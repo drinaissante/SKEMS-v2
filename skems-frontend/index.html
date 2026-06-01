@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/sk_icon_no_bg.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SKEMS</title>
+  </head>
+  <body>
+    <script>
+      (function() {
+        var h = window.location.hash;
+        if (h && h.indexOf('access_token') !== -1) {
+          window.__GOOGLE_AUTH_HASH = h;
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

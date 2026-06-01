@@ -1,0 +1,185 @@
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { useAuth } from "../../context/AuthContext"
+
+export default function RegisterPage() {
+  const { register } = useAuth()
+
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [studentNumber, setStudentNumber] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+
+  const handleSubmit = async (e: React.SubmitEvent) => {
+    e.preventDefault()
+    setError("")
+
+    if (!fullName || !email || !studentNumber || !password) {
+      setError("Please fill in all fields")
+      return
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+
+    setLoading(true)
+
+    const ok = await register({ fullName, email, studentNumber, password })
+
+    setLoading(false)
+
+    if (!ok) {
+      setError("Registration failed — that email or student number may already be in use")
+      return
+    }
+
+    setSuccess(true)
+  }
+
+  return (
+    <div className="min-h-screen bg-[url(/sk_header.png)] bg-cover bg-center md:flex relative">
+      <div className="absolute inset-0 bg-black/50 md:hidden" />
+      <div className="relative z-10 w-full md:w-120 min-h-screen flex flex-col justify-center bg-white/0 md:bg-white px-3 py-8 md:px-10 md:py-0">
+        <div className="w-full max-w-md mx-auto md:mx-0 bg-white rounded-xl shadow-lg border border-[#d9d9d9] p-5 sm:p-8 md:rounded-none md:shadow-none md:border-0 md:p-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-[#222] mb-5">
+            Register
+          </h2>
+
+          {error && (
+            <p className="text-red-600 text-sm mb-4 text-center"> {error} </p>
+          )}
+
+          {success ? (
+            <div className="text-center py-6">
+              <p className="text-green-600 font-medium mb-2">
+                Registration successful!
+              </p>
+              <p className="text-sm text-[#666] mb-4">
+                Check your email for a confirmation link before logging in.
+              </p>
+              <Link
+                to="/login"
+                className="inline-block px-6 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
+              >
+                Go to Login
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+              <div>
+                <label htmlFor='name' className="block text-sm font-medium text-[#666] mb-1">
+                  Full Name
+                </label>
+
+                <input
+                  required
+                  autoComplete="name"
+                  id="name"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-[#666] mb-1">
+                  Email Address
+                </label>
+
+                <input
+                  required
+                  autoComplete="email"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="student_number" className="block text-sm font-medium text-[#666] mb-1">
+                  Student Number
+                </label>
+
+                <input
+                  required
+                  id="student_number"
+                  type="text"
+                  value={studentNumber}
+                  onChange={(e) => setStudentNumber(e.target.value)}
+                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-[#666] mb-1">
+                  Password
+                </label>
+
+                <input
+                  required
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="confirm" className="block text-sm font-medium text-[#666] mb-1">
+                  Confirm Password
+                </label>
+
+                <input
+                  required
+                  id="confirm"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full mt-5 sm:mt-6 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm sm:text-base"
+              >
+                {loading ? "Registering..." : "Register"}
+              </button>
+            </form>
+          )}
+
+          {!success && (
+            <p className="text-center text-sm text-[#666] mt-4">
+              Already have an account?{" "}
+              <Link to="/login" className="text-[#c89116] hover:text-[#fdb125] font-medium">
+                Login
+              </Link>
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="hidden md:block flex-1 relative">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/sinekultura.mp4" type="video/mp4" />
+        </video>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+:root {
+  --gold-dark: #c89116;
+  --gold-mid: #caa453;
+  --gold-bright: #fdb125;
+  --gold-light: #ffd870;
+  --gray-light: #d9d9d9;
+  --gray-mid: #a6a6a6;
+  --gray-dark: #666666;
+  --gray-near-black: #222222;
+
+  --text: var(--gray-dark);
+  --text-h: var(--gray-near-black);
+  --bg: #fff;
+  --border: var(--gray-light);
+  --accent: var(--gold-bright);
+  --accent-bg: rgba(253, 177, 37, 0.1);
+  --accent-border: rgba(253, 177, 37, 0.5);
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: var(--gray-near-black);
+    --border: #2e303a;
+    --accent: #fdb125;
+    --accent-bg: rgba(253, 177, 37, 0.15);
+    --accent-border: rgba(253, 177, 37, 0.5);
+    --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    font-size: 16px;
+  }
+}
+
+img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+body {
+  margin: 0;
+}
