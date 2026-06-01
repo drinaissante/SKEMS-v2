@@ -1,8 +1,14 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 
+import HCaptcha from "@hcaptcha/react-hcaptcha";
+
 export default function LoginPage() {
+  const [ captchaToken, setCaptchaToken ] = useState<string>();
+
+  const captcha = useRef<HCaptcha | null>(null);
+
   const navigate = useNavigate()
   const { login } = useAuth()
 
@@ -17,20 +23,30 @@ export default function LoginPage() {
     setError("")
 
     if (!identifier || !password) {
-      setError("Please fill in all fields")
+      setError("Please fill in all fields.")
       return
     }
     if (!agreed) {
-      setError("You must acknowledge the privacy policy & terms and conditions")
+      setError("You must acknowledge the privacy policy & terms and conditions!")
+      return
+    }
+
+    if (!captcha || !captchaToken) {
+      setError("Please finish the CAPTCHA first.")
       return
     }
 
     setLoading(true)
-    const ok = await login(identifier, password)
+
+    const ok = await login(identifier, password, captchaToken)
+
     setLoading(false)
+    
+    if (captcha.current)
+      captcha.current.resetCaptcha()
 
     if (!ok) {
-      setError("Invalid student number, email, or password")
+      setError("Invalid student number, email, or password.")
       return
     }
 
@@ -97,6 +113,14 @@ export default function LoginPage() {
                 I acknowledge the privacy policy & terms and conditions (for borrowing equipment)
               </span>
             </label>
+
+            <HCaptcha
+              ref={captcha}
+              sitekey={import.meta.env.VITE_HCAPTCHA_SITEKEY}
+              onVerify={(token: string) => {
+                setCaptchaToken(token)
+              }}
+            />
 
             <button
               type="submit"

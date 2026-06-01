@@ -21,7 +21,7 @@ interface AuthContextType {
   isLoggedIn: boolean
   isAdmin: boolean
   isSuperAdmin: boolean
-  login: (identifier: string, password: string) => Promise<boolean>
+  login: (identifier: string, password: string, captchaToken: string) => Promise<boolean>
   register: (data: RegisterData) => Promise<boolean>
   logout: () => Promise<void>
   updateUser: (data: Partial<Omit<User, "id" | "isAdmin" | "isSuperAdmin">>) => Promise<void>
@@ -85,9 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const login = async (identifier: string, password: string): Promise<boolean> => {
+  const login = async (identifier: string, password: string, captchaToken: string): Promise<boolean> => {
     try {
-      const data = await signIn(identifier, password)
+      const data = await signIn(identifier, password, captchaToken)
       if (data?.user) {
         await buildUser(data.user.id)
         return true

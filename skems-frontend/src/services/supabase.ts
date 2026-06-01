@@ -39,7 +39,11 @@ export async function signUp(
   return data;
 }
 
-export async function signIn(identifier: string, password: string) {
+export async function signIn(
+  identifier: string,
+  password: string,
+  captchaToken: string,
+) {
   let email = identifier;
 
   if (!identifier.includes("@")) {
@@ -58,6 +62,9 @@ export async function signIn(identifier: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
+    options: {
+      captchaToken,
+    },
   });
   if (error) throw error;
   return data;
