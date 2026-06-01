@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
   fetchAllRequests,
   updateRequestStatus,
 } from "../../services/supabase"
+import { FiSearch } from "react-icons/fi"
 
 interface Request {
   id: string
@@ -35,6 +36,8 @@ function formatDateTime(iso: string) {
 export default function RequestsPage() {
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
+  const [filterStatus, setFilterStatus] = useState("All")
 
   useEffect(() => {
     const loadRequests = async () => {
@@ -49,6 +52,27 @@ export default function RequestsPage() {
     
     loadRequests()
   }, [])
+
+  const statuses = useMemo(
+    () => ["All", ...new Set(requests.map((r) => r.status))],
+    [requests],
+  )
+
+  const filtered = useMemo(() => {
+    return requests.filter((r) => {
+      const q = search.toLowerCase()
+      const matchesSearch =
+        !q ||
+        r.equipment_name.toLowerCase().includes(q) ||
+        r.borrower_name.toLowerCase().includes(q) ||
+        r.student_number.toLowerCase().includes(q) ||
+        r.reason.toLowerCase().includes(q)
+
+      const matchesStatus = filterStatus === "All" || r.status === filterStatus
+
+      return matchesSearch && matchesStatus
+    })
+  }, [requests, search, filterStatus])
 
   const handleStatus = async (id: string, status: string) => {
     try {
@@ -68,9 +92,31 @@ export default function RequestsPage() {
           Borrow Requests
         </h1>
 
+        <div className="flex flex-wrap gap-2 mb-4">
+          <div className="relative flex-1 min-w-35">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
+            <input
+              type="text"
+              placeholder="Search by name, student number, or reason..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+            />
+          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
+          >
+            {statuses.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+
         {loading ? (
           <p className="text-center text-[#666] py-10">Loading requests...</p>
-        ) : requests.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <p className="text-center text-[#666] py-10">No requests found.</p>
         ) : (
           <div className="overflow-x-auto bg-white rounded-xl shadow border border-[#d9d9d9]">
@@ -88,7 +134,7 @@ export default function RequestsPage() {
                 </tr>
               </thead>
               <tbody>
-                {requests.map((r) => (
+                {filtered.map((r) => (
                   <tr key={r.id} className="border-t border-[#d9d9d9] hover:bg-[#f5f5f5]">
                     <td className="px-3 py-2 sm:px-4 sm:py-3 font-medium text-[#222]">
                       {r.equipment_name}
