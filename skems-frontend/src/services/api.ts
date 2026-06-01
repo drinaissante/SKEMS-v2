@@ -54,7 +54,10 @@ export async function addEquipment(
 
   let nextNum = 1;
   if (maxRow?.equipment_id) {
-    const num = parseInt((maxRow.equipment_id as string).replace("SK-", ""), 10);
+    const num = parseInt(
+      (maxRow.equipment_id as string).replace("SK-", ""),
+      10,
+    );
     if (!isNaN(num)) nextNum = num + 1;
   }
   const newId = `SK-${String(nextNum).padStart(3, "0")}`;
@@ -86,11 +89,14 @@ export async function updateEquipment(
   if (data.category !== undefined) updateData.category = data.category;
   if (data.image !== undefined) updateData.image = data.image;
   if (data.owner !== undefined) updateData.owner = data.owner;
-  if (data.dateGivenToSK !== undefined) updateData.date_given_to_sk = data.dateGivenToSK;
+  if (data.dateGivenToSK !== undefined)
+    updateData.date_given_to_sk = data.dateGivenToSK;
   if (data.condition !== undefined) updateData.condition = data.condition;
   if (data.comments !== undefined) updateData.comments = data.comments;
-  if (data.borrowerName !== undefined) updateData.borrower_name = data.borrowerName;
-  if (data.dateBorrowed !== undefined) updateData.date_borrowed = data.dateBorrowed;
+  if (data.borrowerName !== undefined)
+    updateData.borrower_name = data.borrowerName;
+  if (data.dateBorrowed !== undefined)
+    updateData.date_borrowed = data.dateBorrowed;
   if (data.dateDue !== undefined) updateData.date_due = data.dateDue;
 
   const { error } = await supabase
@@ -110,9 +116,9 @@ export async function deleteEquipment(id: string): Promise<void> {
 
 const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
 const SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets";
-const PENDING_EXPORT_KEY = import.meta.env.PENDING_EXPORT_KEY;
-const AUTH_STATE_KEY = import.meta.env.AUTH_STATE_KEY;
-const TOKEN_KEY = import.meta.env.TOKEN_KEY;
+const PENDING_EXPORT_KEY = import.meta.env.VITE_PENDING_EXPORT_KEY;
+const AUTH_STATE_KEY = import.meta.env.VITE_AUTH_STATE_KEY;
+const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY;
 
 function mapEquipmentToRow(eq: Equipment): string[] {
   return [
