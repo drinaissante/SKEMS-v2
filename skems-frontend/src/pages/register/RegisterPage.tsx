@@ -69,7 +69,7 @@ export default function RegisterPage() {
       captcha.current.resetCaptcha()
 
     if (!ok) {
-      setError("Registration failed. Please try again.");
+      setError("Registration failed. Please try again later.");
       return
     }
 

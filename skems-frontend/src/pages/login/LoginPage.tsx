@@ -46,7 +46,7 @@ export default function LoginPage() {
       captcha.current.resetCaptcha()
 
     if (!ok) {
-      setError("Invalid student number, email, or password.")
+      setError("Invalid student number, email, or password. Please try again later.")
       return
     }
 
