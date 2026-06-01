@@ -32,7 +32,11 @@ export default function ScanPage() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
       })
 
       streamRef.current = stream
@@ -43,7 +47,6 @@ export default function ScanPage() {
     }
   }, [])
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (!scanning || !streamRef.current) return
 
@@ -70,9 +73,23 @@ export default function ScanPage() {
           setScanning(false)
           stopCamera()
 
-          const params = new URLSearchParams()
-          params.set("equipment", code.data)
-          navigate(`/request?${params.toString()}`)
+          const value = code.data
+
+          const goToRequest = (id: string, name?: string) => {
+            const params = new URLSearchParams()
+            params.set("equipment", id)
+            if (name) params.set("name", name)
+            navigate(`/request?${params.toString()}`)
+          }
+
+          if (value.startsWith("http://") || value.startsWith("https://")) {
+            fetch(value)
+              .then((res) => res.json())
+              .then((data) => goToRequest(data.item_id || value, data.equipment_name))
+              .catch(() => goToRequest(value))
+          } else {
+            goToRequest(value)
+          }
           return
         }
       }
@@ -127,8 +144,8 @@ export default function ScanPage() {
         )}
 
         {scanning && (
-          <div className="relative">
-            <video ref={videoRef} className="w-full aspect-video rounded-lg bg-black" muted playsInline autoPlay />
+          <div className="relative w-full h-[60vh] bg-black rounded-lg overflow-hidden">
+            <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline autoPlay />
             <canvas ref={canvasRef} className="hidden" />
             <p className="text-center text-sm text-[#666] mt-3">Scanning for QR code...</p>
             <button

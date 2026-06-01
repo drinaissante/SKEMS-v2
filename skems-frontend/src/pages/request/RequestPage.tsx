@@ -14,6 +14,7 @@ export default function RequestPage() {
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const preselectedId = searchParams.get("equipment")
+  const preselectedName = searchParams.get("name")
 
   const [equipments, setEquipments] = useState<Equipment[]>([])
   const [equipmentId, setEquipmentId] = useState(preselectedId || "")
@@ -143,6 +144,11 @@ export default function RequestPage() {
                     </option>
                   ))}
                 </select>
+              )}
+              {preselectedName && (
+                <p className="text-xs text-[#666] mt-1">
+                  Scanning from QR: <span className="font-medium text-[#222]">{preselectedName}</span>
+                </p>
               )}
             </div>
 

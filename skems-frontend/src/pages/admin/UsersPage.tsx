@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { fetchAllProfiles, toggleAdmin } from "../../services/supabase"
+import { useAuth } from "../../context/AuthContext"
 
 interface Profile {
   id: string
@@ -10,6 +11,7 @@ interface Profile {
 }
 
 export default function UsersPage() {
+  const { user } = useAuth()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState<string | null>(null)
@@ -29,6 +31,7 @@ export default function UsersPage() {
   useEffect(() => { loadProfiles() }, [])
 
   const handleToggle = async (profile: Profile) => {
+    if (profile.id === user?.id) return
     setToggling(profile.id)
     try {
       await toggleAdmin(profile.id, !profile.is_admin)
@@ -85,8 +88,9 @@ export default function UsersPage() {
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => handleToggle(p)}
-                        disabled={toggling === p.id}
+                        disabled={toggling === p.id || p.id === user?.id}
                         className="px-3 py-1 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        title={p.id === user?.id ? "Cannot modify your own role" : undefined}
                       >
                         {toggling === p.id
                           ? "..."

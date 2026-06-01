@@ -17,6 +17,12 @@ export async function signUp(
   fullName: string,
   studentNumber: string,
 ) {
+  if (!email || !password || !fullName || !studentNumber) {
+    throw new Error("All fields are required")
+  }
+  if (password.length < 8) {
+    throw new Error("Password must be at least 8 characters")
+  }
   const { data, error } = await supabase.auth.signUp({
     email,
     password,

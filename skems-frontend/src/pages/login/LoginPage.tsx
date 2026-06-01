@@ -57,9 +57,11 @@ export default function LoginPage() {
 
               <input
                 required
+                autoComplete="username"
                 id="identifier"
                 type="text"
                 value={identifier}
+                maxLength={254}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
               />
@@ -72,9 +74,11 @@ export default function LoginPage() {
 
               <input
                 required
+                autoComplete="current-password"
                 id="password"
                 type="password"
                 value={password}
+                maxLength={128}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
               />

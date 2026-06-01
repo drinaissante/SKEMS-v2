@@ -26,6 +26,10 @@ export default function RegisterPage() {
       setError("Passwords do not match")
       return
     }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters")
+      return
+    }
 
     setLoading(true)
 
@@ -76,15 +80,16 @@ export default function RegisterPage() {
                   Full Name
                 </label>
 
-                <input
-                  required
-                  autoComplete="name"
-                  id="name"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-                />
+                  <input
+                    required
+                    autoComplete="name"
+                    id="name"
+                    type="text"
+                    value={fullName}
+                    maxLength={100}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  />
               </div>
 
               <div>
@@ -93,14 +98,15 @@ export default function RegisterPage() {
                 </label>
 
                 <input
-                  required
-                  autoComplete="email"
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-                />
+                    required
+                    autoComplete="email"
+                    id="email"
+                    type="email"
+                    value={email}
+                    maxLength={254}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  />
               </div>
 
               <div>
@@ -108,14 +114,16 @@ export default function RegisterPage() {
                   Student Number
                 </label>
 
-                <input
-                  required
-                  id="student_number"
-                  type="text"
-                  value={studentNumber}
-                  onChange={(e) => setStudentNumber(e.target.value)}
-                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-                />
+                  <input
+                    required
+                    autoComplete="off"
+                    id="student_number"
+                    type="text"
+                    value={studentNumber}
+                    maxLength={20}
+                    onChange={(e) => setStudentNumber(e.target.value)}
+                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  />
               </div>
 
               <div>
@@ -123,14 +131,16 @@ export default function RegisterPage() {
                   Password
                 </label>
 
-                <input
-                  required
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-                />
+                  <input
+                    required
+                    autoComplete="new-password"
+                    id="password"
+                    type="password"
+                    value={password}
+                    maxLength={128}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  />
               </div>
 
               <div>
@@ -138,14 +148,16 @@ export default function RegisterPage() {
                   Confirm Password
                 </label>
 
-                <input
-                  required
-                  id="confirm"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-                />
+                  <input
+                    required
+                    autoComplete="new-password"
+                    id="confirm"
+                    type="password"
+                    value={confirmPassword}
+                    maxLength={128}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  />
               </div>
 
               <button

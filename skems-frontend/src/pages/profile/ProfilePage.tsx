@@ -22,6 +22,11 @@ export default function ProfilePage() {
     setSaving(true)
     setError("")
     try {
+      if (password && password.length < 8) {
+        setError("Password must be at least 8 characters")
+        setSaving(false)
+        return
+      }
       await updateUser({ fullName, studentNumber, email })
       if (password) {
         await updatePassword(password)
@@ -62,6 +67,7 @@ export default function ProfilePage() {
             <input
               type="text"
               value={fullName}
+              maxLength={100}
               onChange={(e) => setFullName(e.target.value)}
               className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
             />
@@ -75,6 +81,7 @@ export default function ProfilePage() {
             <input
               type="text"
               value={studentNumber}
+              maxLength={20}
               onChange={(e) => setStudentNumber(e.target.value)}
               className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
             />
@@ -98,6 +105,7 @@ export default function ProfilePage() {
             <input
               type={showEmail ? "text" : "password"}
               value={email}
+              maxLength={254}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
             />
@@ -121,7 +129,8 @@ export default function ProfilePage() {
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              maxLength={128}
               placeholder="Enter new password..."
               className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
             />
