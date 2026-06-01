@@ -3,23 +3,38 @@ import type { Equipment } from "../../services/api"
 export default function EquipmentCard({
   eq,
   onEdit,
+  onDelete,
 }: {
   eq: Equipment
   onEdit?: (eq: Equipment) => void
+  onDelete?: (id: string) => void
 }) {
   return (
     <div className="bg-white rounded-xl shadow border border-[#d9d9d9] p-4 relative">
-      {onEdit && (
-        <button
-          onClick={() => onEdit(eq)}
-          className="absolute top-2 right-2 z-10 w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-[#666] hover:text-[#c89116] hover:shadow-md transition-all cursor-pointer"
-          title="Edit equipment"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </button>
-      )}
+      <div className="absolute top-2 right-2 z-10 flex gap-1">
+        {onEdit && (
+          <button
+            onClick={() => onEdit(eq)}
+            className="w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-[#666] hover:text-[#c89116] hover:shadow-md transition-all cursor-pointer"
+            title="Edit equipment"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={() => onDelete(eq.id)}
+            className="w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-red-500 hover:text-red-700 hover:shadow-md transition-all cursor-pointer"
+            title="Delete equipment"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
+      </div>
 
       <div className="w-full h-32 bg-[#d9d9d9] rounded-lg mb-3 flex items-center justify-center text-[#a6a6a6] overflow-hidden">
         {eq.image ? (

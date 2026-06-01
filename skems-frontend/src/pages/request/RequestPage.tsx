@@ -27,14 +27,16 @@ export default function RequestPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
 
-  const loadEquipments = async () => {
-    const data = await fetchEquipments()
-    setEquipments(data.filter((e) => e.condition !== "Borrowed"))
-    setLoading(false)
-  }
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { loadEquipments() }, [])
+  useEffect(() => {
+    const loadEquipments = async () => {
+      const data = await fetchEquipments()
+      setEquipments(data.filter((e) => e.condition !== "Borrowed"))
+      setLoading(false)
+    }
+
+    loadEquipments() 
+  }, [])
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (preselectedId) setEquipmentId(preselectedId) }, [preselectedId])
@@ -153,7 +155,10 @@ export default function RequestPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Name</label>
+              <label className="block text-sm font-medium text-[#666] mb-1">
+                Name
+              </label>
+
               <input
                 type="text"
                 value={user.fullName}
@@ -163,7 +168,10 @@ export default function RequestPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Student Number</label>
+              <label className="block text-sm font-medium text-[#666] mb-1">
+                Student Number
+              </label>
+              
               <input
                 type="text"
                 value={user.studentNumber}
@@ -237,35 +245,71 @@ export default function RequestPage() {
           </form>
         )}
 
-        {showModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm text-center mx-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#ffd870] rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#c89116]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <p className="text-base sm:text-lg font-bold text-[#222] mb-2">Important Notice</p>
-              <p className="text-sm text-[#666] mb-5">
-                Date returned MUST be followed accordingly. Failure to return on time may result in penalties.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmSubmit}
-                  className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
-                >
-                  I Understand
-                </button>
+        {showModal && (() => {
+          const sel = equipments.find((e) => e.id === equipmentId)
+          const fmt = (v: string) => {
+            if (!v) return ""
+            const d = new Date(v)
+            return d.toLocaleString("en-PH", {
+              month: "short", day: "numeric", year: "numeric",
+              hour: "2-digit", minute: "2-digit",
+            })
+          }
+          return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+              <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm mx-3">
+                <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">
+                  Confirm Request
+                </p>
+                <div className="space-y-2 text-sm mb-4">
+                  <div className="flex justify-between">
+                    <span className="text-[#666]">Equipment</span>
+                    <span className="text-[#222] font-medium text-right">{sel?.name ?? equipmentId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#666]">Borrower</span>
+                    <span className="text-[#222] font-medium">{user?.fullName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#666]">Student No.</span>
+                    <span className="text-[#222] font-medium">{user?.studentNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#666]">Reason</span>
+                    <span className="text-[#222] font-medium text-right max-w-48 break-words">{reason}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#666]">Borrow Date</span>
+                    <span className="text-[#222] font-medium">{fmt(dateBorrowed)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#666]">Due Date</span>
+                    <span className="text-[#222] font-medium">{fmt(dateDue)}</span>
+                  </div>
+                </div>
+                <div className="border-t border-[#d9d9d9] pt-4 text-center">
+                  <p className="text-sm text-[#666] mb-5">
+                    Date returned MUST be followed accordingly. Failure to return on time may result in penalties.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmSubmit}
+                      className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
+                    >
+                      I Understand
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
       </div>
     </div>
   )

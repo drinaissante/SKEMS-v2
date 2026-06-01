@@ -304,6 +304,12 @@ export async function addEquipment(
   return newEq;
 }
 
+export async function deleteEquipment(id: string): Promise<void> {
+  await delay();
+  const idx = MOCK_EQUIPMENTS.findIndex((e) => e.id === id);
+  if (idx !== -1) MOCK_EQUIPMENTS.splice(idx, 1);
+}
+
 export async function updateEquipment(
   id: string,
   data: Partial<Equipment>,

@@ -3,6 +3,7 @@ import {
   fetchEquipments,
   addEquipment,
   updateEquipment,
+  deleteEquipment,
   exportToSheets,
   startGoogleAuth,
   completeGoogleAuth,
@@ -132,6 +133,12 @@ export default function EquipmentsPage() {
     }
   }
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Remove this equipment?")) return
+    await deleteEquipment(id)
+    await loadEquipments()
+  }
+
   const handleSave = async (eq: Equipment) => {
     if (editingEquipment) {
       await updateEquipment(eq.id, eq)
@@ -225,6 +232,7 @@ export default function EquipmentsPage() {
                       key={eq.id}
                       eq={eq}
                       onEdit={(e) => setEditingEquipment(e)}
+                      onDelete={handleDelete}
                     />
                   ) : (
                     <EquipmentCardPlaceholder key={`ph-${i}`} />
@@ -239,6 +247,7 @@ export default function EquipmentsPage() {
                       key={eq.id}
                       eq={eq}
                       onEdit={(e) => setEditingEquipment(e)}
+                      onDelete={handleDelete}
                     />
                   ) : (
                     <EquipmentCardPlaceholder key={`ph-${i}`} />
