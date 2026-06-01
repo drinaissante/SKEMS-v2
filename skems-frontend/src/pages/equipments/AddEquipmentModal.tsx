@@ -30,12 +30,38 @@ export default function EquipmentFormModal({
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  const compressImage = (file: File, maxWidth: number, quality: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        let { width, height } = img
+        if (width > maxWidth) {
+          height = (height / width) * maxWidth
+          width = maxWidth
+        }
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext("2d")!
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob)
+          else reject(new Error("Compression failed"))
+        }, "image/jpeg", quality)
+      }
+      img.onerror = () => reject(new Error("Failed to load image"))
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
     try {
-      const url = await imageUpload(file)
+      const compressed = await compressImage(file, 800, 0.7)
+      const compressedFile = new File([compressed], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" })
+      const url = await imageUpload(compressedFile)
       setImageUrl(url)
     } catch {
       // upload failed — keep existing image
@@ -107,6 +133,8 @@ export default function EquipmentFormModal({
                 src={imageUrl}
                 alt="Preview"
                 className="w-20 h-20 object-cover rounded-lg mt-2 border border-[#d9d9d9]"
+                decoding="async"
+                onError={(e) => { (e.target as HTMLImageElement).src = "/sk_icon.jpg" }}
               />
             )}
           </div>

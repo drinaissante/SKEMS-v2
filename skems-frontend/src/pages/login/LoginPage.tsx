@@ -1,6 +1,7 @@
 import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
+import loginMp4 from "../../assets/login.mp4"
 
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
@@ -54,7 +55,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[url(/login.gif)] bg-cover bg-center md:bg-none md:flex relative">
+    <div className="min-h-screen md:flex relative">
+      <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover md:hidden">
+        <source src={loginMp4} type="video/mp4" />
+      </video>
       <div className="absolute inset-0 bg-black/50 md:hidden" />
       
       <div className="relative z-10 w-full md:w-120 min-h-screen flex flex-col justify-center bg-white/0 md:bg-white px-3 py-8 md:px-10 md:py-0">
@@ -142,7 +146,9 @@ export default function LoginPage() {
       </div>
 
       <div className="hidden md:block flex-1 relative">
-        <div className="absolute inset-0 bg-[url(/login.gif)] bg-cover bg-center" />
+        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
+          <source src={loginMp4} type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-black/50" />
       </div>
     </div>

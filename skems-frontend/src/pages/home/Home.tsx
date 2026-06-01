@@ -1,11 +1,15 @@
 import { Link } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
+import mainMp4 from "../../assets/main.mp4"
 
 export default function Home() {
   const { isLoggedIn, user } = useAuth()
 
   return (
-    <div className="relative min-h-screen bg-[url(/main.gif)] bg-cover bg-center">
+    <div className="relative min-h-screen">
+      <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
+        <source src={mainMp4} type="video/mp4" />
+      </video>
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center">

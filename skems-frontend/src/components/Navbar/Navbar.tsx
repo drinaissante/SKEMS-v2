@@ -11,7 +11,7 @@ export default function Navbar() {
       <nav className="flex items-center justify-between gap-3 px-5 py-3 bg-[#222] text-white font-bold">
 
         <Link to="/" className="flex items-center gap-2 shrink-0 select-none">
-          <img src="/sk_icon_no_bg.png" height={30} width={30} alt="SK logo" />
+          <img src="/sk_icon_no_bg.png" height={30} width={30} alt="SK logo" decoding="async" fetchPriority="high" />
           <span className="text-[#fdb125] text-lg">SKEMS</span>
         </Link>
 

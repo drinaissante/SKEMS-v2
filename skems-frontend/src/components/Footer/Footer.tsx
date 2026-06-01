@@ -4,7 +4,7 @@ export default function Footer() {
 
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 select-none">
-          <img src="/sk_icon_no_bg.png" className="h-[24px] w-[24px]" alt="SK logo" />
+          <img src="/sk_icon_no_bg.png" className="h-[24px] w-[24px]" alt="SK logo" loading="lazy" decoding="async" />
           <span className="font-bold text-[#fdb125]">SKEMS</span>
         </div>
 

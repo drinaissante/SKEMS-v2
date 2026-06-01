@@ -2,6 +2,8 @@ import { useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { FiEye, FiEyeOff } from "react-icons/fi"
 import { useAuth } from "../../context/AuthContext"
+import skHeaderPng from "../../assets/sk_header.png"
+import sinekulturaMp4 from "../../assets/sinekultura.mp4"
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 // uses crypto to generate (built in in browser)
@@ -77,7 +79,8 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[url(/sk_header.png)] bg-cover bg-center md:flex relative">
+    <div className="min-h-screen md:flex relative">
+      <img src={skHeaderPng} alt="" className="absolute inset-0 w-full h-full object-cover md:hidden" loading="lazy" decoding="async" />
       <div className="absolute inset-0 bg-black/50 md:hidden" />
       <div className="relative z-10 w-full md:w-120 min-h-screen flex flex-col justify-center bg-white/0 md:bg-white px-3 py-8 md:px-10 md:py-0">
         <div className="w-full max-w-md mx-auto md:mx-0 bg-white rounded-xl shadow-lg border border-[#d9d9d9] p-5 sm:p-8 md:rounded-none md:shadow-none md:border-0 md:p-0">
@@ -263,7 +266,7 @@ export default function RegisterPage() {
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
         >
-          <source src="/sinekultura.mp4" type="video/mp4" />
+          <source src={sinekulturaMp4} type="video/mp4" />
         </video>
       </div>
     </div>
