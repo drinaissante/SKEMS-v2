@@ -104,10 +104,9 @@ export async function updateEquipment(
 }
 
 export async function deleteEquipment(id: string): Promise<void> {
-  const { error } = await supabase
-    .from("equipments")
-    .delete()
-    .eq("equipment_id", id);
+  const { error } = await supabase.rpc("delete_equipment_and_renumber", {
+    target_id: id,
+  });
   if (error) throw error;
 }
 
