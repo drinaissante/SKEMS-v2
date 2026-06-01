@@ -76,6 +76,7 @@ export async function fetchProfile(userId: string) {
     student_number: string
     full_name: string
     is_admin: boolean
+    is_superadmin: boolean
     email: string
   }
 }
@@ -127,6 +128,7 @@ export async function fetchAllProfiles() {
     student_number: string
     full_name: string
     is_admin: boolean
+    is_superadmin: boolean
     email: string
   }[]
 }

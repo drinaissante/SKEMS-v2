@@ -13,16 +13,18 @@ export interface User {
   email: string
   studentNumber: string
   isAdmin: boolean
+  isSuperAdmin: boolean
 }
 
 interface AuthContextType {
   user: User | null
   isLoggedIn: boolean
   isAdmin: boolean
+  isSuperAdmin: boolean
   login: (identifier: string, password: string) => Promise<boolean>
   register: (data: RegisterData) => Promise<boolean>
   logout: () => Promise<void>
-  updateUser: (data: Partial<Omit<User, "id" | "isAdmin">>) => Promise<void>
+  updateUser: (data: Partial<Omit<User, "id" | "isAdmin" | "isSuperAdmin">>) => Promise<void>
 }
 
 export interface RegisterData {
@@ -48,16 +50,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: profile.email,
       studentNumber: profile.student_number,
       isAdmin: profile.is_admin,
+      isSuperAdmin: profile.is_superadmin,
     })
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        buildUser(session.user.id).catch((err) => {
+        try {
+          await buildUser(session.user.id)
+        } catch (err) {
           console.error("buildUser failed:", err)
           setUser(null)
-        })
+        }
       }
       setLoading(false)
     })
@@ -77,7 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const login = async (identifier: string, password: string): Promise<boolean> => {
@@ -129,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoggedIn: !!user,
         isAdmin: user?.isAdmin ?? false,
+        isSuperAdmin: user?.isSuperAdmin ?? false,
         login,
         register,
         logout,

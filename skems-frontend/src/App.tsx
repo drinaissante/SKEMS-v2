@@ -39,6 +39,18 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function SuperAdminRoute({ children }: { children: React.ReactNode }) {
+  const { isLoggedIn, isSuperAdmin } = useAuth()
+
+  if (!isLoggedIn) 
+    return <Navigate to="/login" replace />
+
+  if (!isSuperAdmin) 
+    return <Navigate to="/" replace />
+
+  return <>{children}</>
+}
+
 function App() {
   return (
     <Routes>
@@ -95,9 +107,9 @@ function App() {
         <Route
           path='/admin/users'
           element={
-            <AdminRoute>
+            <SuperAdminRoute>
               <UsersPage />
-            </AdminRoute>
+            </SuperAdminRoute>
           }
         />
 

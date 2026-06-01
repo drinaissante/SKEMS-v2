@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 
 export default function Navbar() {
-  const { isLoggedIn, isAdmin, user, logout } = useAuth()
+  const { isLoggedIn, isAdmin, isSuperAdmin, user, logout } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -35,6 +35,11 @@ export default function Navbar() {
                   <Link to="/admin/requests" className="hover:text-[#fdb125] transition-colors">
                     Manage Requests
                   </Link>
+                  {isSuperAdmin && (
+                    <Link to="/admin/users" className="hover:text-[#fdb125] transition-colors">
+                      Manage Users
+                    </Link>
+                  )}
                 </>
               )}
               <Link to="/my-requests" className="hover:text-[#fdb125] transition-colors">
@@ -131,6 +136,15 @@ export default function Navbar() {
                   >
                     Manage Requests
                   </Link>
+                  {isSuperAdmin && (
+                    <Link
+                      to="/admin/users"
+                      onClick={() => setSidebarOpen(false)}
+                      className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
+                    >
+                      Manage Users
+                    </Link>
+                  )}
                 </>
               )}
 

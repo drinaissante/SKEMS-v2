@@ -171,7 +171,7 @@ export default function RequestPage() {
               <label className="block text-sm font-medium text-[#666] mb-1">
                 Student Number
               </label>
-              
+
               <input
                 type="text"
                 value={user.studentNumber}
@@ -276,7 +276,7 @@ export default function RequestPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#666]">Reason</span>
-                    <span className="text-[#222] font-medium text-right max-w-48 break-words">{reason}</span>
+                    <span className="text-[#222] font-medium text-right max-w-48 wrap-break-word">{reason}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#666]">Borrow Date</span>

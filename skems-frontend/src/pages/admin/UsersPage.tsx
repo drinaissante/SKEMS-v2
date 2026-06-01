@@ -7,6 +7,7 @@ interface Profile {
   student_number: string
   full_name: string
   is_admin: boolean
+  is_superadmin: boolean
   email: string
 }
 
