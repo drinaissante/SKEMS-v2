@@ -1,242 +1,7 @@
+import { supabase } from "./supabase";
+
 export const GOOGLE_CLIENT_ID = import.meta.env.GOOGLE_CLIENT_ID;
 export const SPREADSHEET_ID = import.meta.env.GOOGLE_SPREADSHEET_ID;
-
-const MOCK_EQUIPMENTS: Equipment[] = [
-  {
-    id: "SK-001",
-    name: "Canon EOS R5",
-    category: "Camera Gear",
-    image: "/sk_icon.jpg",
-    owner: "John Tan",
-    dateGivenToSK: "2025-01-15",
-    condition: "Working",
-    comments: "Includes 24-105mm lens",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-002",
-    name: "Sony A7 III",
-    category: "Camera Gear",
-    image: "/sk_icon.jpg",
-    owner: "Sarah Lim",
-    dateGivenToSK: "2025-02-01",
-    condition: "Working",
-    comments: "Needs battery replacement soon",
-    borrowerName: "Ali Baba",
-    dateBorrowed: "2025-03-10",
-    dateDue: "2025-03-24",
-  },
-  {
-    id: "SK-003",
-    name: "Godox SL150W",
-    category: "Lighting Equipment",
-    image: "/sk_icon.jpg",
-    owner: "SK Supply",
-    dateGivenToSK: "2024-11-20",
-    condition: "Needs Repair",
-    comments: "Bulb needs replacement",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-004",
-    name: "Rode NTG4+",
-    category: "Wireless Microphones",
-    image: "/sk_icon.jpg",
-    owner: "Mike Chen",
-    dateGivenToSK: "2025-03-01",
-    condition: "Working",
-    comments: "Shotgun microphone",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-005",
-    name: "DJI RS 3 Pro",
-    category: "Camera Gear",
-    image: "/sk_icon.jpg",
-    owner: "David Wong",
-    dateGivenToSK: "2025-01-10",
-    condition: "Working",
-    comments: "Gimbal stabilizer",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-006",
-    name: "Aputure 120D II",
-    category: "Lighting Equipment",
-    image: "/sk_icon.jpg",
-    owner: "SK Supply",
-    dateGivenToSK: "2024-09-05",
-    condition: "Working",
-    comments: "With softbox and stand",
-    borrowerName: "Jane Doe",
-    dateBorrowed: "2025-03-12",
-    dateDue: "2025-03-26",
-  },
-  {
-    id: "SK-007",
-    name: "Fujifilm X-T5",
-    category: "Camera Gear",
-    image: "/sk_icon.jpg",
-    owner: "Emily Ng",
-    dateGivenToSK: "2025-04-01",
-    condition: "Working",
-    comments: "With 35mm f/1.4 lens",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-008",
-    name: "Sennheiser MKH 416",
-    category: "Wireless Microphones",
-    image: "/sk_icon.jpg",
-    owner: "SK Supply",
-    dateGivenToSK: "2025-02-14",
-    condition: "Not checked",
-    comments: "Boom microphone kit",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-009",
-    name: "Nanlite Forza 60C",
-    category: "Lighting Equipment",
-    image: "/sk_icon.jpg",
-    owner: "Chris Lim",
-    dateGivenToSK: "2025-03-20",
-    condition: "Working",
-    comments: "RGB full-color LED",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-010",
-    name: "GoPro Hero 12",
-    category: "Camera Gear",
-    image: "/sk_icon.jpg",
-    owner: "Alex Tan",
-    dateGivenToSK: "2025-04-10",
-    condition: "Working",
-    comments: "With waterproof housing",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-011",
-    name: "Shure SM7B",
-    category: "Wireless Microphones",
-    image: "/sk_icon.jpg",
-    owner: "SK Supply",
-    dateGivenToSK: "2024-12-01",
-    condition: "Needs Repair",
-    comments: "Needs XLR cable replacement",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-012",
-    name: "Aputure MC Pro",
-    category: "Lighting Equipment",
-    image: "/sk_icon.jpg",
-    owner: "Sarah Lim",
-    dateGivenToSK: "2025-01-25",
-    condition: "Working",
-    comments: "Tiny RGB LED panel set",
-    borrowerName: "Bob Lee",
-    dateBorrowed: "2025-03-15",
-    dateDue: "2025-03-29",
-  },
-  {
-    id: "SK-013",
-    name: "Blackmagic Pocket 6K",
-    category: "Camera Gear",
-    image: "/sk_icon.jpg",
-    owner: "David Wong",
-    dateGivenToSK: "2025-02-28",
-    condition: "Working",
-    comments: "With SSD recorder rig",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-014",
-    name: "Hollyland Mars 400S",
-    category: "Communication Equipment",
-    image: "/sk_icon.jpg",
-    owner: "SK Supply",
-    dateGivenToSK: "2025-03-05",
-    condition: "Working",
-    comments: "Wireless video transmitter",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-015",
-    name: "K&F Concept Tripod",
-    category: "Stands & Mounts",
-    image: "/sk_icon.jpg",
-    owner: "Emily Ng",
-    dateGivenToSK: "2024-10-15",
-    condition: "Working",
-    comments: "Carbon fiber, fluid head",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-016",
-    name: "Rode Wireless GO II",
-    category: "Wireless Microphones",
-    image: "/sk_icon.jpg",
-    owner: "Mike Chen",
-    dateGivenToSK: "2025-04-05",
-    condition: "Working",
-    comments: "Dual-channel wireless mic",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-017",
-    name: "Godox Softbox 120cm",
-    category: "Lighting Equipment",
-    image: "/sk_icon.jpg",
-    owner: "SK Supply",
-    dateGivenToSK: "2024-08-20",
-    condition: "Not checked",
-    comments: "Rodents chewed through fabric",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-  {
-    id: "SK-018",
-    name: 'SmallHD Focus 5"',
-    category: "Special Effects & Accessories",
-    image: "/sk_icon.jpg",
-    owner: "Chris Lim",
-    dateGivenToSK: "2025-03-18",
-    condition: "Working",
-    comments: "On-camera monitor",
-    borrowerName: "",
-    dateBorrowed: "",
-    dateDue: "",
-  },
-];
 
 export interface Equipment {
   id: string;
@@ -252,72 +17,95 @@ export interface Equipment {
   dateDue: string;
 }
 
-export interface BorrowRequest {
-  equipmentId: string;
-  borrowerName: string;
-  studentNumber: string;
-  reason: string;
-  dateBorrowed: string;
-  dateDue: string;
-}
-
-async function delay(ms = 300) {
-  return new Promise((r) => setTimeout(r, ms));
+function mapRowToEquipment(row: Record<string, unknown>): Equipment {
+  return {
+    id: row.equipment_id as string,
+    name: row.name as string,
+    category: row.category as string,
+    image: (row.image as string) ?? "",
+    owner: row.owner as string,
+    dateGivenToSK: (row.date_given_to_sk as string) ?? "",
+    condition: row.condition as string,
+    comments: (row.comments as string) ?? "",
+    borrowerName: (row.borrower_name as string) ?? "",
+    dateBorrowed: (row.date_borrowed as string) ?? "",
+    dateDue: (row.date_due as string) ?? "",
+  };
 }
 
 export async function fetchEquipments(): Promise<Equipment[]> {
-  await delay();
-  return [...MOCK_EQUIPMENTS];
-}
-
-export async function submitBorrowRequest(
-  data: BorrowRequest,
-): Promise<{ success: boolean }> {
-  await delay();
-
-  const idx = MOCK_EQUIPMENTS.findIndex((e) => e.id === data.equipmentId);
-
-  if (idx !== -1) {
-    MOCK_EQUIPMENTS[idx] = {
-      ...MOCK_EQUIPMENTS[idx],
-      borrowerName: data.borrowerName,
-      dateBorrowed: data.dateBorrowed,
-      dateDue: data.dateDue,
-      comments: data.reason,
-    };
-  }
-  return { success: true };
+  const { data, error } = await supabase
+    .from("equipments")
+    .select("*")
+    .order("equipment_id", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(mapRowToEquipment);
 }
 
 export async function addEquipment(
   equipment: Omit<Equipment, "id">,
 ): Promise<Equipment> {
-  await delay();
-  const numbers = MOCK_EQUIPMENTS.map((e) =>
-    parseInt(e.id.replace("SK-", ""), 10),
-  ).filter((n) => !isNaN(n));
-  const nextNum = numbers.length ? Math.max(...numbers) + 1 : 1;
-  const newId = `SK-${String(nextNum).padStart(3, "0")}`;
-  const newEq: Equipment = { id: newId, ...equipment };
-  MOCK_EQUIPMENTS.push(newEq);
-  return newEq;
-}
+  const { data: maxRow } = await supabase
+    .from("equipments")
+    .select("equipment_id")
+    .order("equipment_id", { ascending: false })
+    .limit(1)
+    .single();
 
-export async function deleteEquipment(id: string): Promise<void> {
-  await delay();
-  const idx = MOCK_EQUIPMENTS.findIndex((e) => e.id === id);
-  if (idx !== -1) MOCK_EQUIPMENTS.splice(idx, 1);
+  let nextNum = 1;
+  if (maxRow?.equipment_id) {
+    const num = parseInt((maxRow.equipment_id as string).replace("SK-", ""), 10);
+    if (!isNaN(num)) nextNum = num + 1;
+  }
+  const newId = `SK-${String(nextNum).padStart(3, "0")}`;
+
+  const { error } = await supabase.from("equipments").insert({
+    equipment_id: newId,
+    name: equipment.name,
+    category: equipment.category,
+    image: equipment.image,
+    owner: equipment.owner,
+    date_given_to_sk: equipment.dateGivenToSK || null,
+    condition: equipment.condition,
+    comments: equipment.comments,
+    borrower_name: equipment.borrowerName || null,
+    date_borrowed: equipment.dateBorrowed || null,
+    date_due: equipment.dateDue || null,
+  });
+  if (error) throw error;
+
+  return { id: newId, ...equipment };
 }
 
 export async function updateEquipment(
   id: string,
   data: Partial<Equipment>,
 ): Promise<void> {
-  await delay();
-  const idx = MOCK_EQUIPMENTS.findIndex((e) => e.id === id);
-  if (idx !== -1) {
-    MOCK_EQUIPMENTS[idx] = { ...MOCK_EQUIPMENTS[idx], ...data };
-  }
+  const updateData: Record<string, unknown> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.category !== undefined) updateData.category = data.category;
+  if (data.image !== undefined) updateData.image = data.image;
+  if (data.owner !== undefined) updateData.owner = data.owner;
+  if (data.dateGivenToSK !== undefined) updateData.date_given_to_sk = data.dateGivenToSK;
+  if (data.condition !== undefined) updateData.condition = data.condition;
+  if (data.comments !== undefined) updateData.comments = data.comments;
+  if (data.borrowerName !== undefined) updateData.borrower_name = data.borrowerName;
+  if (data.dateBorrowed !== undefined) updateData.date_borrowed = data.dateBorrowed;
+  if (data.dateDue !== undefined) updateData.date_due = data.dateDue;
+
+  const { error } = await supabase
+    .from("equipments")
+    .update(updateData)
+    .eq("equipment_id", id);
+  if (error) throw error;
+}
+
+export async function deleteEquipment(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("equipments")
+    .delete()
+    .eq("equipment_id", id);
+  if (error) throw error;
 }
 
 const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
