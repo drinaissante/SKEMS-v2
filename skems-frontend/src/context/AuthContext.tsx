@@ -56,14 +56,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         if (initRef.current) return
         initRef.current = true
         if (session?.user) {
-          buildUser(session.user.id).catch((err) => {
+          try {
+            await buildUser(session.user.id)
+          } catch (err) {
             console.error("buildUser failed:", err)
             setUser(null)
-          })
+          }
         }
         setLoading(false)
       },

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { fetchMyRequests } from "../services/supabase"
-import { useAuth } from "../context/AuthContext"
+import { fetchMyRequests } from "../../services/supabase"
+import { useAuth } from "../../context/AuthContext"
 
 interface Request {
   id: string
