@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react"
 import { supabase, signUp, signIn, signOut, fetchProfile, updateProfile, updateEmail } from "../services/supabase"
@@ -51,25 +52,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        buildUser(session.user.id).catch(() => setUser(null))
-      }
-      setLoading(false)
-    })
+  const initRef = useRef(false)
 
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        if (initRef.current) return
+        initRef.current = true
         if (session?.user) {
-          buildUser(session.user.id).catch(() => setUser(null))
-        } else {
-          setUser(null)
+          buildUser(session.user.id).catch((err) => {
+            console.error("buildUser failed:", err)
+            setUser(null)
+          })
         }
+        setLoading(false)
       },
     )
 
     return () => subscription.unsubscribe()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const login = async (identifier: string, password: string): Promise<boolean> => {

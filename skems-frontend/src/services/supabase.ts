@@ -70,7 +70,7 @@ export async function fetchProfile(userId: string) {
     .eq("id", userId)
     .single()
 
-  if (error) throw error
+  if (error || !data) throw error ?? new Error("Profile not found")
   return data as {
     id: string
     student_number: string
