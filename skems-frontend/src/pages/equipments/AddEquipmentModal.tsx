@@ -1,5 +1,6 @@
 import { useState } from "react"
 import type { Equipment } from "../../services/api"
+import skIconFallback from "../../assets/sk_icon.jpg"
 
 interface EquipmentFormModalProps {
   equipment?: Equipment
@@ -7,6 +8,7 @@ interface EquipmentFormModalProps {
   onClose: () => void
   conditions: string[]
   imageUpload: (file: File) => Promise<string>
+  defaultOwner?: string
 }
 
 export default function EquipmentFormModal({
@@ -15,12 +17,13 @@ export default function EquipmentFormModal({
   onClose,
   conditions,
   imageUpload,
+  defaultOwner = "",
 }: EquipmentFormModalProps) {
   const isEdit = !!equipment
 
   const [name, setName] = useState(equipment?.name ?? "")
   const [category, setCategory] = useState(equipment?.category ?? "Camera Gear")
-  const [owner, setOwner] = useState(equipment?.owner ?? "")
+  const [owner, setOwner] = useState(equipment?.owner ?? defaultOwner)
   const [dateGivenToSK, setDateGivenToSK] = useState(
     equipment?.dateGivenToSK ?? "",
   )
@@ -128,15 +131,13 @@ export default function EquipmentFormModal({
             {uploading && (
               <p className="text-xs text-[#666] mt-1">Uploading...</p>
             )}
-            {imageUrl && (
-              <img
-                src={imageUrl}
-                alt="Preview"
-                className="w-20 h-20 object-cover rounded-lg mt-2 border border-[#d9d9d9]"
-                decoding="async"
-                onError={(e) => { (e.target as HTMLImageElement).src = "/sk_icon.jpg" }}
-              />
-            )}
+            <img
+              src={imageUrl || skIconFallback}
+              alt="Preview"
+              className="w-20 h-20 object-cover rounded-lg mt-2 border border-[#d9d9d9]"
+              decoding="async"
+              onError={(e) => { (e.target as HTMLImageElement).src = skIconFallback }}
+            />
           </div>
 
           <div>
@@ -174,13 +175,25 @@ export default function EquipmentFormModal({
             <label className="block text-sm font-medium text-[#666] mb-1">
               Date Given to SK
             </label>
-            <input
-              type="date"
-              required
-              value={dateGivenToSK}
-              onChange={(e) => setDateGivenToSK(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222]"
-            />
+            <div className="flex gap-2">
+              <input
+                type="date"
+                required
+                value={dateGivenToSK}
+                onChange={(e) => setDateGivenToSK(e.target.value)}
+                className="flex-1 px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222]"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date()
+                  setDateGivenToSK(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`)
+                }}
+                className="px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer shrink-0"
+              >
+                Today
+              </button>
+            </div>
           </div>
 
           <div>

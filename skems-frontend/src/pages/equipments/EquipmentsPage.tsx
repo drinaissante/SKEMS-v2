@@ -18,7 +18,7 @@ const MOBILE_ITEMS = 3
 const DESKTOP_ITEMS = 8
 
 export default function EquipmentsPage() {
-  const { isAdmin } = useAuth()
+  const { isAdmin, user } = useAuth()
   const [equipments, setEquipments] = useState<Equipment[]>([])
 
   const [search, setSearch] = useState("")
@@ -277,6 +277,7 @@ export default function EquipmentsPage() {
           onClose={() => setEditingEquipment(undefined)}
           conditions={conditions}
           imageUpload={uploadImage}
+          defaultOwner={user?.fullName ?? ""}
         />
       )}
     </div>
