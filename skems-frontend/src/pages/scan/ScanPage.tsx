@@ -41,7 +41,6 @@ export default function ScanPage() {
         return
 
       videoRef.current.srcObject = stream
-      videoRef.current.setAttribute("playsinline", "true")
 
       await videoRef.current.play()
 
@@ -127,7 +126,7 @@ export default function ScanPage() {
 
         {scanning && (
           <div className="relative">
-            <video ref={videoRef} className="w-full rounded-lg" muted />
+            <video ref={videoRef} className="w-full aspect-video rounded-lg bg-black" muted playsInline autoPlay />
             <canvas ref={canvasRef} className="hidden" />
             <p className="text-center text-sm text-[#666] mt-3">Scanning for QR code...</p>
             <button
