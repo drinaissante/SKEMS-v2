@@ -5,9 +5,6 @@ import {
   updateEquipment,
   deleteEquipment,
   exportToSheets,
-  startGoogleAuth,
-  completeGoogleAuth,
-  getStoredToken,
   type Equipment,
 } from "../../services/api"
 import { uploadImage } from "../../services/supabase"
@@ -43,23 +40,6 @@ export default function EquipmentsPage() {
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     mq.addEventListener("change", handler)
     return () => mq.removeEventListener("change", handler)
-  }, [])
-
-  useEffect(() => {
-    const authResult = completeGoogleAuth()
-    if (!authResult) return
-    setSyncing(true) // eslint-disable-line react-hooks/set-state-in-effect
-    setSyncMessage("")
-    exportToSheets(authResult.items, authResult.token)
-      .then((result) => {
-        if (result.ok) {
-          setSyncMessage("Synced!")
-          setTimeout(() => setSyncMessage(""), 3000)
-        } else {
-          setSyncMessage(result.error ?? "Sync failed")
-        }
-      })
-      .finally(() => setSyncing(false))
   }, [])
 
   const loadEquipments = async () => {
@@ -114,14 +94,7 @@ export default function EquipmentsPage() {
     try {
       setSyncing(true)
       setSyncMessage("")
-
-      const storedToken = getStoredToken()
-      if (!storedToken) {
-        startGoogleAuth(equipments)
-        return
-      }
-
-      const result = await exportToSheets(equipments, storedToken)
+      const result = await exportToSheets(equipments)
       setSyncing(false)
       if (result.ok) {
         setSyncMessage("Synced!")
