@@ -56,19 +56,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const existingRows = getRes.data.values ?? [];
-    const headerRow = existingRows[1] ?? [];
-    const idCol = headerRow.indexOf("Item ID");
+    const headerRowIdx = existingRows.findIndex((r) => r.includes("Item ID"));
 
-    if (idCol === -1) {
+    if (headerRowIdx === -1) {
       return res.status(400).json({
         ok: false,
-        error: 'Column "Item ID" not found in Row 2',
+        error: 'Column "Item ID" not found in sheet',
       });
     }
 
+    const idCol = existingRows[headerRowIdx].indexOf("Item ID");
+    const dataStart = headerRowIdx + 1;
+
     const idToRow = new Map<string, number>();
-    for (let i = 2; i < existingRows.length; i++) {
-      const idVal = existingRows[i][idCol];
+    for (let i = dataStart; i < existingRows.length; i++) {
+      const row = existingRows[i];
+      if (!row || row.length === 0 || !row[idCol]) continue;
+      const idVal = String(row[idCol]).trim();
       if (idVal) idToRow.set(idVal, i + 1);
     }
 
