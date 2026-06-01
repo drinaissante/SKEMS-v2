@@ -4,6 +4,19 @@ import { FiEye, FiEyeOff } from "react-icons/fi"
 import { useAuth } from "../../context/AuthContext"
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
+// uses crypto to generate (built in in browser)
+const generatePassword = (length: number): string => {
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lower = 'abcdefghijklmnopqrstuvwxyz';
+  const digits = '0123456789';
+  const special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+  const all = upper + lower + digits + special;
+
+  const array = new Uint32Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array).map(n => all[n % all.length]).join('');
+};
+
 export default function RegisterPage() {
   const [ captchaToken, setCaptchaToken ] = useState<string>();
 
@@ -147,9 +160,22 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-[#666] mb-1">
-                  Password
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor="password" className="block text-sm font-medium text-[#666]">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const pw = generatePassword(16)
+                      setPassword(pw)
+                      setConfirmPassword(pw)
+                    }}
+                    className="text-xs text-[#c89116] hover:text-[#fdb125] cursor-pointer font-medium"
+                  >
+                    Generate
+                  </button>
+                </div>
 
                 <div className="relative">
                   <input
