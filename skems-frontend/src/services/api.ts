@@ -123,7 +123,7 @@ export async function exportToSheets(
     const data = await res.json();
     return data as { ok: boolean; error?: string };
   } catch (err) {
-    console.log(err.message);
+    if (err instanceof Error) console.log(err.message);
 
     return {
       ok: false,
