@@ -27,6 +27,9 @@ export default function LoginPage() {
   const [forgotLoading, setForgotLoading] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
 
+  const forgotCaptcha = useRef<HCaptcha | null>(null);
+  const [forgotCaptchaToken, setForgotCaptchaToken] = useState<string>();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -62,7 +65,7 @@ export default function LoginPage() {
     navigate("/")
   }
 
-  const handleForgotSubmit = async (e: React.SubmitEvent) => {
+  const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setForgotSent(false)
@@ -72,11 +75,18 @@ export default function LoginPage() {
       return
     }
 
+    if (!forgotCaptchaToken) {
+      setError("Please finish the CAPTCHA first.")
+      return
+    }
+
     setForgotLoading(true)
     try {
-      await resetPassword(forgotEmail, `${window.location.origin}/change-password`)
+      await resetPassword(forgotEmail, `${window.location.origin}/change-password`, forgotCaptchaToken)
       setForgotSent(true)
       setShowForgot(false)
+      if (forgotCaptcha.current)
+        forgotCaptcha.current.resetCaptcha()
     } catch {
       setError("Failed to send reset email. Please try again.")
     } finally {
@@ -169,6 +179,13 @@ export default function LoginPage() {
                   maxLength={254}
                   autoComplete="email"
                   className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                />
+                <HCaptcha
+                  ref={forgotCaptcha}
+                  sitekey={import.meta.env.VITE_HCAPTCHA_SITEKEY}
+                  onVerify={(token: string) => {
+                    setForgotCaptchaToken(token)
+                  }}
                 />
                 <button
                   type="submit"

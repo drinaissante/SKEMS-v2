@@ -128,9 +128,10 @@ export async function updatePassword(newPassword: string) {
   if (error) throw error;
 }
 
-export async function resetPassword(email: string, redirectTo: string) {
+export async function resetPassword(email: string, redirectTo: string, captchaToken?: string) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo,
+    captchaToken,
   });
   if (error) throw error;
 }
