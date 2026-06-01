@@ -50,6 +50,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const sheets = google.sheets({ version: "v4", auth });
+
+    const sheetRes = await sheets.spreadsheets.get({
+      spreadsheetId,
+      ranges: ["Inventory"],
+      fields: "sheets.properties(sheetId,title)",
+    });
+    const sheetId = sheetRes.data.sheets?.[0]?.properties?.sheetId;
+    if (sheetId === undefined) {
+      return res.status(500).json({ ok: false, error: "Sheet not found" });
+    }
+
     const range = "Inventory!A:K";
 
     const getRes = await sheets.spreadsheets.values.get({
@@ -98,6 +109,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         range: `Inventory!A${dataStartRow}:K${writeEndRow}`,
         valueInputOption: "USER_ENTERED",
         requestBody: { values: dataRows },
+      });
+
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [{
+            updateDimensionProperties: {
+              range: {
+                sheetId,
+                dimension: "ROWS",
+                startIndex: dataStartRow - 1,
+                endIndex: dataStartRow + dataRows.length - 1,
+              },
+              properties: { pixelSize: 80 },
+              fields: "pixelSize",
+            },
+          }],
+        },
       });
     }
 
