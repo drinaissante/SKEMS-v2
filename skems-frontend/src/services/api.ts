@@ -322,9 +322,9 @@ export async function updateEquipment(
 
 const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
 const SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets";
-const PENDING_EXPORT_KEY = "skems_pending_export";
-const AUTH_STATE_KEY = "skems_auth_state";
-const TOKEN_KEY = "skems_google_token";
+const PENDING_EXPORT_KEY = import.meta.env.PENDING_EXPORT_KEY;
+const AUTH_STATE_KEY = import.meta.env.AUTH_STATE_KEY;
+const TOKEN_KEY = import.meta.env.TOKEN_KEY;
 
 function mapEquipmentToRow(eq: Equipment): string[] {
   return [

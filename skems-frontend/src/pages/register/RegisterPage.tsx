@@ -53,7 +53,7 @@ export default function RegisterPage() {
       captcha.current.resetCaptcha()
 
     if (!ok) {
-      setError("Registration failed — that email or student number may already be in use")
+      setError("Registration failed. Please try again.");
       return
     }
 
@@ -78,9 +78,11 @@ export default function RegisterPage() {
               <p className="text-green-600 font-medium mb-2">
                 Registration successful!
               </p>
+
               <p className="text-sm text-[#666] mb-4">
                 Check your email for a confirmation link before logging in.
               </p>
+
               <Link
                 to="/login"
                 className="inline-block px-6 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"

@@ -28,10 +28,10 @@ export async function signUp(
     email,
     password,
     options: {
+      captchaToken,
       data: {
         full_name: fullName,
         student_number: studentNumber,
-        captchaToken,
       },
     },
   });
