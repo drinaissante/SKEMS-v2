@@ -14,12 +14,14 @@ import { uploadImage } from "../../services/supabase"
 import EquipmentFormModal from "./AddEquipmentModal"
 import EquipmentCard from "./EquipmentCard"
 import EquipmentCardPlaceholder from "./EquipmentCardPlaceholder"
+import { useAuth } from "../../context/AuthContext"
 
 const conditions = ["Working", "Needs Repair", "Broken", "Not checked"]
 const MOBILE_ITEMS = 3
 const DESKTOP_ITEMS = 8
 
 export default function EquipmentsPage() {
+  const { isAdmin } = useAuth()
   const [equipments, setEquipments] = useState<Equipment[]>([])
 
   const [search, setSearch] = useState("")
@@ -231,8 +233,8 @@ export default function EquipmentsPage() {
                     <EquipmentCard
                       key={eq.id}
                       eq={eq}
-                      onEdit={(e) => setEditingEquipment(e)}
-                      onDelete={handleDelete}
+                      onEdit={isAdmin ? (e) => setEditingEquipment(e) : undefined}
+                      onDelete={isAdmin ? handleDelete : undefined}
                     />
                   ) : (
                     <EquipmentCardPlaceholder key={`ph-${i}`} />
@@ -246,8 +248,8 @@ export default function EquipmentsPage() {
                     <EquipmentCard
                       key={eq.id}
                       eq={eq}
-                      onEdit={(e) => setEditingEquipment(e)}
-                      onDelete={handleDelete}
+                      onEdit={isAdmin ? (e) => setEditingEquipment(e) : undefined}
+                      onDelete={isAdmin ? handleDelete : undefined}
                     />
                   ) : (
                     <EquipmentCardPlaceholder key={`ph-${i}`} />
