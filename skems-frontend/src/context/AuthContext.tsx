@@ -3,7 +3,6 @@ import {
   useContext,
   useState,
   useEffect,
-  useRef,
   type ReactNode,
 } from "react"
 import { supabase, signUp, signIn, signOut, fetchProfile, updateProfile, updateEmail } from "../services/supabase"
@@ -52,28 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const initRef = useRef(false)
-
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (initRef.current) return
-        initRef.current = true
-        if (session?.user) {
-          try {
-            await buildUser(session.user.id)
-          } catch (err) {
-            console.error("buildUser failed:", err)
-            setUser(null)
-          }
-        }
-        setLoading(false)
-      },
-    )
-
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (initRef.current) return
-      initRef.current = true
       if (session?.user) {
         buildUser(session.user.id).catch((err) => {
           console.error("buildUser failed:", err)
@@ -82,6 +61,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false)
     })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "INITIAL_SESSION") return
+        if (session?.user) {
+          buildUser(session.user.id).catch((err) => {
+            console.error("buildUser failed:", err)
+            setUser(null)
+          })
+        } else {
+          setUser(null)
+        }
+      },
+    )
 
     return () => subscription.unsubscribe()
   // eslint-disable-next-line react-hooks/exhaustive-deps
