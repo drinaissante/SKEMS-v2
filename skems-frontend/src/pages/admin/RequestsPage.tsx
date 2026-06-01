@@ -36,17 +36,17 @@ export default function RequestsPage() {
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadRequests = async () => {
-    try {
-      const data = await fetchAllRequests()
-      setRequests(data)
-    } catch {
-      setRequests([])
-    }
-    setLoading(false)
-  }
-
   useEffect(() => {
+    const loadRequests = async () => {
+      try {
+        const data = await fetchAllRequests()
+        setRequests(data)
+      } catch {
+        setRequests([])
+      }
+      setLoading(false)
+    }
+    
     loadRequests()
   }, [])
 
