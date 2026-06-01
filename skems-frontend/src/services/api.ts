@@ -123,6 +123,8 @@ export async function exportToSheets(
     const data = await res.json();
     return data as { ok: boolean; error?: string };
   } catch (err) {
+    console.log(err.message);
+
     return {
       ok: false,
       error: err instanceof Error ? err.message : "Network error",

@@ -4,7 +4,6 @@
   ],
   "functions": {
     "api/export-to-sheets.ts": {
-      "memory": 256,
       "maxDuration": 30
     }
   },
