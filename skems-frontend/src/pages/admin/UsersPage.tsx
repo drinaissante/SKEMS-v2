@@ -35,7 +35,7 @@ export default function UsersPage() {
     if (profile.id === user?.id) return
     setToggling(profile.id)
     try {
-      await toggleAdmin(profile.id, !profile.is_admin)
+      await toggleAdmin(profile.id, !profile.is_admin, user!.id)
       await loadProfiles()
     } catch {
       // silently fail

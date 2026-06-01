@@ -133,11 +133,21 @@ export async function fetchAllProfiles() {
   }[]
 }
 
-export async function toggleAdmin(userId: string, isAdmin: boolean) {
+export async function toggleAdmin(targetUserId: string, isAdmin: boolean, currentUserId: string) {
+  const { data: caller, error: callerError } = await supabase
+    .from("profiles")
+    .select("is_superadmin")
+    .eq("id", currentUserId)
+    .single()
+
+  if (callerError || !caller?.is_superadmin) {
+    throw new Error("Only super admins can toggle admin status")
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({ is_admin: isAdmin })
-    .eq("id", userId)
+    .eq("id", targetUserId)
   if (error) throw error
 }
 
