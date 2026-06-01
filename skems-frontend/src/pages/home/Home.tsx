@@ -32,6 +32,12 @@ export default function Home() {
                 Borrow Equipment
               </Link>
               <Link
+                to="/my-requests"
+                className="w-full sm:flex-1 px-6 py-3 bg-[#222] hover:bg-[#666] text-white font-bold rounded-xl transition-colors shadow text-sm sm:text-base"
+              >
+                My Requests
+              </Link>
+              <Link
                 to="/profile"
                 className="w-full sm:flex-1 px-6 py-3 bg-[#222] hover:bg-[#666] text-white font-bold rounded-xl transition-colors shadow text-sm sm:text-base"
               >

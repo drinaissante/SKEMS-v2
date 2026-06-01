@@ -28,10 +28,18 @@ export default function Navbar() {
           {isLoggedIn ? (
             <>
               {isAdmin && (
-                <Link to="/equipments" className="hover:text-[#fdb125] transition-colors">
-                  Equipments
-                </Link>
+                <>
+                  <Link to="/equipments" className="hover:text-[#fdb125] transition-colors">
+                    Equipment
+                  </Link>
+                  <Link to="/admin/requests" className="hover:text-[#fdb125] transition-colors">
+                    Manage Requests
+                  </Link>
+                </>
               )}
+              <Link to="/my-requests" className="hover:text-[#fdb125] transition-colors">
+                My Requests
+              </Link>
               <Link to="/profile" className="hover:text-[#fdb125] transition-colors">
                 {user?.fullName ?? "Profile"}
               </Link>
@@ -108,14 +116,31 @@ export default function Navbar() {
               </Link>
 
               {isAdmin && (
-                <Link
-                  to="/equipments"
-                  onClick={() => setSidebarOpen(false)}
-                  className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
-                >
-                  Equipments
-                </Link>
+                <>
+                  <Link
+                    to="/equipments"
+                    onClick={() => setSidebarOpen(false)}
+                    className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
+                  >
+                    Equipment
+                  </Link>
+                  <Link
+                    to="/admin/requests"
+                    onClick={() => setSidebarOpen(false)}
+                    className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
+                  >
+                    Manage Requests
+                  </Link>
+                </>
               )}
+
+              <Link
+                to="/my-requests"
+                onClick={() => setSidebarOpen(false)}
+                className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
+              >
+                My Requests
+              </Link>
 
               <Link
                 to="/profile"

@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react"
 import { useSearchParams } from "react-router-dom"
-import { fetchEquipments, submitBorrowRequest, type Equipment } from "../../services/api"
+import { fetchEquipments, type Equipment } from "../../services/api"
+import { submitRequest } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
+
+function todayNow(): string {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
 export default function RequestPage() {
   const { user } = useAuth()
@@ -51,24 +58,30 @@ export default function RequestPage() {
     setShowModal(false)
     setSubmitting(true)
 
-    const result = await submitBorrowRequest({
-      equipmentId,
-      borrowerName: user?.fullName ?? "",
-      studentNumber: user?.studentNumber ?? "",
-      reason,
-      dateBorrowed,
-      dateDue,
-    })
+    const selected = equipments.find((e) => e.id === equipmentId)
 
-    setSubmitting(false)
+    try {
+      await submitRequest({
+        equipmentId,
+        equipmentName: selected?.name ?? "",
+        borrowerName: user?.fullName ?? "",
+        studentNumber: user?.studentNumber ?? "",
+        reason,
+        dateBorrowed,
+        dateDue,
+        userId: user?.id ?? "",
+      })
 
-    if (result.success) {
       setSuccess(true)
       setEquipmentId("")
       setReason("")
       setDateBorrowed("")
       setDateDue("")
+    } catch {
+      setError("Failed to submit request. Please try again.")
     }
+
+    setSubmitting(false)
   }
 
   if (!user) return null
@@ -169,25 +182,43 @@ export default function RequestPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Date to be Borrowed</label>
-              <input
-                type="date"
-                value={dateBorrowed}
-                onChange={(e) => setDateBorrowed(e.target.value)}
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-              />
+              <label className="block text-sm font-medium text-[#666] mb-1">Date & Time to be Borrowed</label>
+              <div className="flex gap-2">
+                <input
+                  type="datetime-local"
+                  value={dateBorrowed}
+                  onChange={(e) => setDateBorrowed(e.target.value)}
+                  className="flex-1 px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setDateBorrowed(todayNow())}
+                  className="px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer shrink-0"
+                >
+                  Today
+                </button>
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-[#666] mb-1">
-                Date to be Returned / Due Date
+                Date & Time to be Returned / Due Date
               </label>
-              <input
-                type="date"
-                value={dateDue}
-                onChange={(e) => setDateDue(e.target.value)}
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="datetime-local"
+                  value={dateDue}
+                  onChange={(e) => setDateDue(e.target.value)}
+                  className="flex-1 px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setDateDue(todayNow())}
+                  className="px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer shrink-0"
+                >
+                  Today
+                </button>
+              </div>
             </div>
 
             <button

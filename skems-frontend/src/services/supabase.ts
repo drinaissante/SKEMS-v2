@@ -132,3 +132,83 @@ export async function toggleAdmin(userId: string, isAdmin: boolean) {
     .eq("id", userId)
   if (error) throw error
 }
+
+export async function submitRequest(data: {
+  equipmentId: string
+  equipmentName: string
+  borrowerName: string
+  studentNumber: string
+  reason: string
+  dateBorrowed: string
+  dateDue: string
+  userId: string
+}) {
+  const { error } = await supabase.from("requests").insert({
+    equipment_id: data.equipmentId,
+    equipment_name: data.equipmentName,
+    borrower_name: data.borrowerName,
+    student_number: data.studentNumber,
+    reason: data.reason,
+    date_borrowed: data.dateBorrowed,
+    date_due: data.dateDue,
+    user_id: data.userId,
+    status: "Pending",
+  })
+  if (error) throw error
+}
+
+export async function fetchMyRequests(userId: string) {
+  const { data, error } = await supabase
+    .from("requests")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+
+  if (error) throw error
+  return data as {
+    id: string
+    equipment_id: string
+    equipment_name: string
+    borrower_name: string
+    student_number: string
+    reason: string
+    date_borrowed: string
+    date_due: string
+    status: string
+    created_at: string
+    user_id: string
+  }[]
+}
+
+export async function fetchAllRequests() {
+  const { data, error } = await supabase
+    .from("requests")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (error) throw error
+  return data as {
+    id: string
+    equipment_id: string
+    equipment_name: string
+    borrower_name: string
+    student_number: string
+    reason: string
+    date_borrowed: string
+    date_due: string
+    status: string
+    created_at: string
+    user_id: string
+  }[]
+}
+
+export async function updateRequestStatus(
+  requestId: string,
+  status: string,
+) {
+  const { error } = await supabase
+    .from("requests")
+    .update({ status })
+    .eq("id", requestId)
+  if (error) throw error
+}
