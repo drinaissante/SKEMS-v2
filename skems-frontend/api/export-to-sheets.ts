@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
+const SK_ICON_URL = "https://mlsupahnubyokjczsevp.supabase.co/storage/v1/object/public/sk-equipments/sk_icon.jpg";
+
 interface Equipment {
   id: string;
   name: string;
@@ -65,21 +67,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const idCol = existingRows[headerRowIdx].indexOf("Item ID");
-    const dataStart = headerRowIdx + 1;
-
-    const idToRow = new Map<string, number>();
-    for (let i = dataStart; i < existingRows.length; i++) {
-      const row = existingRows[i];
-      if (!row || row.length === 0 || !row[idCol]) continue;
-      const idVal = String(row[idCol]).trim();
-      if (idVal) idToRow.set(idVal, i + 1);
-    }
+    const dataStartRow = headerRowIdx + 2;
 
     const mapRow = (eq: Equipment) => [
       eq.id,
       eq.name,
-      eq.image ? `=IMAGE("${eq.image}")` : "",
+      eq.image ? `=IMAGE("${eq.image}")` : `=IMAGE("${SK_ICON_URL}")`,
       eq.category,
       eq.owner,
       eq.borrowerName,
@@ -90,36 +83,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       eq.comments,
     ];
 
-    const updates: { range: string; values: string[][] }[] = [];
-    const newRows: string[][] = [];
+    const dataRows = items.map(mapRow);
 
-    for (const eq of items) {
-      const row = idToRow.get(eq.id);
-      const vals = mapRow(eq);
-      if (row) {
-        updates.push({ range: `Inventory!A${row}:K${row}`, values: [vals] });
-      } else {
-        newRows.push(vals);
-      }
-    }
+    const clearRange = `Inventory!A${dataStartRow}:K${headerRowIdx + existingRows.length}`;
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId,
+      range: clearRange,
+    });
 
-    if (updates.length > 0) {
-      await sheets.spreadsheets.values.batchUpdate({
+    if (dataRows.length > 0) {
+      const writeEndRow = dataStartRow + dataRows.length - 1;
+      await sheets.spreadsheets.values.update({
         spreadsheetId,
-        requestBody: {
-          data: updates,
-          valueInputOption: "USER_ENTERED",
-        },
-      });
-    }
-
-    if (newRows.length > 0) {
-      await sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range: "Inventory!A:K",
+        range: `Inventory!A${dataStartRow}:K${writeEndRow}`,
         valueInputOption: "USER_ENTERED",
-        insertDataOption: "INSERT_ROWS",
-        requestBody: { values: newRows },
+        requestBody: { values: dataRows },
       });
     }
 
