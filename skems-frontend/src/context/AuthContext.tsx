@@ -71,6 +71,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     )
 
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (initRef.current) return
+      initRef.current = true
+      if (session?.user) {
+        buildUser(session.user.id).catch((err) => {
+          console.error("buildUser failed:", err)
+          setUser(null)
+        })
+      }
+      setLoading(false)
+    })
+
     return () => subscription.unsubscribe()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
