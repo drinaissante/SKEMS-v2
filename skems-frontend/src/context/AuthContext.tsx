@@ -32,6 +32,7 @@ export interface RegisterData {
   email: string
   studentNumber: string
   password: string
+  captchaToken: string | undefined
 }
 
 /* eslint-disable react-refresh/only-export-components */
@@ -99,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData): Promise<boolean> => {
     try {
-      await signUp(data.email, data.password, data.fullName, data.studentNumber)
+      await signUp(data.email, data.password, data.fullName, data.studentNumber, data.captchaToken ?? '')
       return true
     } catch {
       return false

@@ -1,8 +1,13 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 export default function RegisterPage() {
+  const [ captchaToken, setCaptchaToken ] = useState<string>();
+
+  const captcha = useRef<HCaptcha | null>(null);
+
   const { register } = useAuth()
 
   const [fullName, setFullName] = useState("")
@@ -10,7 +15,9 @@ export default function RegisterPage() {
   const [studentNumber, setStudentNumber] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+
   const [error, setError] = useState("")
+
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
@@ -31,11 +38,19 @@ export default function RegisterPage() {
       return
     }
 
+    if (!captcha || !captchaToken) {
+      setError("Please finish the CAPTCHA first.")
+      return
+    }
+
     setLoading(true)
 
-    const ok = await register({ fullName, email, studentNumber, password })
+    const ok = await register({ fullName, email, studentNumber, password, captchaToken })
 
     setLoading(false)
+
+    if (captcha.current)
+      captcha.current.resetCaptcha()
 
     if (!ok) {
       setError("Registration failed — that email or student number may already be in use")
@@ -159,6 +174,14 @@ export default function RegisterPage() {
                     className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
                   />
               </div>
+
+              <HCaptcha
+                ref={captcha}
+                sitekey={import.meta.env.VITE_HCAPTCHA_SITEKEY}
+                onVerify={(token: string) => {
+                  setCaptchaToken(token)
+                }}
+              />
 
               <button
                 type="submit"
