@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Home from './pages/home/Home'
 import LoginPage from './pages/login/LoginPage'
 import RegisterPage from './pages/register/RegisterPage'
+import ChangePasswordPage from './pages/auth/ChangePasswordPage'
 import ScanPage from './pages/scan/ScanPage'
 import EquipmentsPage from './pages/equipments/EquipmentsPage'
 import RequestPage from './pages/request/RequestPage'
@@ -54,6 +55,8 @@ function SuperAdminRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <Routes>
+      <Route path='/change-password' element={<ChangePasswordPage />} />
+
       <Route element={<MainLayout />}>
         <Route path='/' element={<Home />} />
         <Route path='/login' element={<GuestRoute><LoginPage /></GuestRoute>} />

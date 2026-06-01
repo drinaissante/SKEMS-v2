@@ -128,6 +128,13 @@ export async function updatePassword(newPassword: string) {
   if (error) throw error;
 }
 
+export async function resetPassword(email: string, redirectTo: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+  if (error) throw error;
+}
+
 export async function fetchAllProfiles() {
   const { data, error } = await supabase
     .from("profiles")
