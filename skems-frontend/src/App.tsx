@@ -6,8 +6,10 @@ import RegisterPage from './pages/register/RegisterPage'
 import ScanPage from './pages/scan/ScanPage'
 import EquipmentsPage from './pages/equipments/EquipmentsPage'
 import RequestPage from './pages/request/RequestPage'
+import MyRequestsPage from './pages/MyRequestsPage'
 import ProfilePage from './pages/profile/ProfilePage'
 import UsersPage from './pages/admin/UsersPage'
+import RequestsPage from './pages/admin/RequestsPage'
 
 import MainLayout from './layouts/MainLayout'
 
@@ -73,6 +75,15 @@ function App() {
         />
 
         <Route
+          path='/my-requests'
+          element={
+            <ProtectedRoute>
+              <MyRequestsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path='/equipments'
           element={
             <AdminRoute>
@@ -86,6 +97,15 @@ function App() {
           element={
             <AdminRoute>
               <UsersPage />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path='/admin/requests'
+          element={
+            <AdminRoute>
+              <RequestsPage />
             </AdminRoute>
           }
         />
