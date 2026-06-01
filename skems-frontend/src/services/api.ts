@@ -1,6 +1,5 @@
-export const GOOGLE_CLIENT_ID =
-  "324648609005-4ogad7i2cnfkti5rosnkf3qdfm75040v.apps.googleusercontent.com";
-export const SPREADSHEET_ID = "1RzsD2H-uqNf1svnlaYiqNtwOk9iUEy3aeUZ0eVNeJgA";
+export const GOOGLE_CLIENT_ID = import.meta.env.GOOGLE_CLIENT_ID;
+export const SPREADSHEET_ID = import.meta.env.GOOGLE_SPREADSHEET_ID;
 
 const MOCK_EQUIPMENTS: Equipment[] = [
   {
@@ -344,9 +343,9 @@ function mapEquipmentToRow(eq: Equipment): string[] {
 }
 
 function generateState(): string {
-  const arr = new Uint8Array(16)
-  crypto.getRandomValues(arr)
-  return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("")
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export function startGoogleAuth(items: Equipment[]): void {
@@ -369,6 +368,7 @@ export function completeGoogleAuth(): {
   token: string;
   items: Equipment[];
 } | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hash = window.location.hash || (window as any).__GOOGLE_AUTH_HASH || "";
   if (!hash || !hash.includes("access_token")) return null;
 
