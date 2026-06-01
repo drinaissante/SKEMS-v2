@@ -36,54 +36,56 @@ export default function ScanPage() {
       })
 
       streamRef.current = stream
-
-      if (!videoRef.current) 
-        return
-
-      videoRef.current.srcObject = stream
-
-      await videoRef.current.play()
-
       setScanning(true)
-
-      const tick = () => {
-        if (!videoRef.current || !canvasRef.current) 
-          return
-
-        const video = videoRef.current
-        const canvas = canvasRef.current
-
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-          canvas.width = video.videoWidth
-          canvas.height = video.videoHeight
-          const ctx = canvas.getContext("2d")
-          if (!ctx) return
-
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-          const code = jsQR(imageData.data, imageData.width, imageData.height)
-
-          if (code) {
-            setResult(code.data)
-            setScanning(false)
-            stopCamera()
-
-            const params = new URLSearchParams()
-            params.set("equipment", code.data)
-            navigate(`/request?${params.toString()}`)
-            return
-          }
-        }
-
-        animFrameRef.current = requestAnimationFrame(tick)
-      }
-
-      animFrameRef.current = requestAnimationFrame(tick)
     } catch {
       setError("Camera access was denied. Please enable camera permissions in your browser settings and try again.")
       setShowPermissionModal(true)
     }
-  }, [navigate, stopCamera])
+  }, [])
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
+    if (!scanning || !streamRef.current) return
+
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    if (!video || !canvas) return
+
+    video.srcObject = streamRef.current
+    video.play()
+
+    const tick = () => {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        const code = jsQR(imageData.data, imageData.width, imageData.height)
+
+        if (code) {
+          setResult(code.data)
+          setScanning(false)
+          stopCamera()
+
+          const params = new URLSearchParams()
+          params.set("equipment", code.data)
+          navigate(`/request?${params.toString()}`)
+          return
+        }
+      }
+
+      animFrameRef.current = requestAnimationFrame(tick)
+    }
+
+    animFrameRef.current = requestAnimationFrame(tick)
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
+    }
+  }, [scanning, navigate, stopCamera])
 
   const handleOpenCamera = useCallback(() => {
     setShowPermissionModal(true)
