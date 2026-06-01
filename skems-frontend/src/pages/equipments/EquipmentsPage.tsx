@@ -34,6 +34,8 @@ export default function EquipmentsPage() {
 
   const [syncing, setSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState("")
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deletingId, setDeletingId] = useState("")
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -108,9 +110,15 @@ export default function EquipmentsPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Remove this equipment?")) return
-    await deleteEquipment(id)
+  const handleDelete = (id: string) => {
+    setDeletingId(id)
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDelete = async () => {
+    await deleteEquipment(deletingId)
+    setShowDeleteConfirm(false)
+    setDeletingId("")
     await loadEquipments()
   }
 
@@ -279,6 +287,36 @@ export default function EquipmentsPage() {
           imageUpload={uploadImage}
           defaultOwner={user?.fullName ?? ""}
         />
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-[#222] mb-2 text-center">Remove Equipment</p>
+            <p className="text-sm text-[#666] mb-6 text-center">
+              Are you sure you want to remove this equipment? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeletingId("") }}
+                className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
