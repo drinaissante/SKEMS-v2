@@ -252,12 +252,12 @@ export default function ScanPage() {
 
     try {
       const itemQtyMap = new Map<string, {item: string, quantity: string}>()
-      for (const eqItem of editableFields.equipment_list) {
-        const norm = eqItem.item.toLowerCase()
-        for (const eq of matchedEquipments) {
-          if (!itemQtyMap.has(eq.id) && eq.name.toLowerCase().includes(norm)) {
-            itemQtyMap.set(eq.id, eqItem)
-          }
+      for (const eq of matchedEquipments) {
+        const found = editableFields.equipment_list.find(e =>
+          e.item && eq.name.toLowerCase().includes(e.item.toLowerCase())
+        )
+        if (found) {
+          itemQtyMap.set(eq.id, { item: eq.name, quantity: found.quantity })
         }
       }
 

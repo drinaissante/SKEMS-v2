@@ -79,6 +79,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const fields = JSON.parse(jsonMatch[0]);
+        if (Array.isArray(fields.equipment_list)) {
+          fields.equipment_list = fields.equipment_list.map((e: {item?: string, quantity?: string}) => {
+            let name = (e.item || "").trim()
+            let qty = e.quantity || ""
+            const trail = name.match(/\s*[—–\-:]\s*(\d+)\s*$|\((\d+)\)\s*$|\s*x(\d+)\s*$/i)
+            if (trail) {
+              const n = trail[1] || trail[2] || trail[3]
+              if (n && (!qty || qty === "1")) qty = n
+              name = name.replace(/[—–\-:]\s*\d+\s*$/, "").replace(/\(\d+\)\s*$/, "").replace(/x\d+\s*$/i, "").trim()
+            }
+            return { item: name, quantity: qty || "1" }
+          })
+        }
         return res.status(200).json({ fields });
       } catch (err) {
         lastError = err;
