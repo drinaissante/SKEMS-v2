@@ -132,20 +132,48 @@ export default function ScanPage() {
     const captureCanvas = captureCanvasRef.current
     if (!video || !captureCanvas) return
 
+    const container = video.parentElement
     const maxDim = 800
-    let w = video.videoWidth
-    let h = video.videoHeight
-    if (w > maxDim || h > maxDim) {
-      const ratio = Math.min(maxDim / w, maxDim / h)
-      w = Math.round(w * ratio)
-      h = Math.round(h * ratio)
-    }
 
-    captureCanvas.width = w
-    captureCanvas.height = h
-    const ctx = captureCanvas.getContext("2d")
-    if (!ctx) return
-    ctx.drawImage(video, 0, 0, w, h)
+    const videoW = video.videoWidth
+    const videoH = video.videoHeight
+
+    if (container) {
+      const containerW = container.clientWidth
+      const containerH = container.clientHeight || containerW * 0.75
+      const scale = Math.max(containerW / videoW, containerH / videoH)
+      const visibleW = containerW / scale
+      const visibleH = containerH / scale
+      const sx = (videoW - visibleW) / 2
+      const sy = (videoH - visibleH) / 2
+
+      let outW = visibleW
+      let outH = visibleH
+      if (outW > maxDim || outH > maxDim) {
+        const ratio = Math.min(maxDim / outW, maxDim / outH)
+        outW = Math.round(outW * ratio)
+        outH = Math.round(outH * ratio)
+      }
+
+      captureCanvas.width = outW
+      captureCanvas.height = outH
+      const ctx = captureCanvas.getContext("2d")
+      if (!ctx) return
+      ctx.drawImage(video, sx, sy, visibleW, visibleH, 0, 0, outW, outH)
+    } else {
+      let w = videoW
+      let h = videoH
+      if (w > maxDim || h > maxDim) {
+        const ratio = Math.min(maxDim / w, maxDim / h)
+        w = Math.round(w * ratio)
+        h = Math.round(h * ratio)
+      }
+      captureCanvas.width = w
+      captureCanvas.height = h
+      const ctx = captureCanvas.getContext("2d")
+      if (!ctx) return
+      ctx.drawImage(video, 0, 0, w, h)
+    }
 
     const dataUrl = captureCanvas.toDataURL("image/jpeg", 0.7)
     setCapturedImage(dataUrl)
