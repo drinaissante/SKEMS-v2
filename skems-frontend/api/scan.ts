@@ -70,9 +70,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
+          console.error("Gemini response did not contain valid JSON:", text.substring(0, 500));
           return res.status(500).json({
-            error: "Gemini response did not contain valid JSON",
-            raw: text.substring(0, 500),
+            error: "Something went wrong. Please try again in a few minutes.",
           });
         }
 
