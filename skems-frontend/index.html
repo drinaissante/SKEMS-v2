@@ -4,16 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/sk_icon_no_bg.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; media-src 'self' https:; connect-src 'self' https://mlsupahnubyokjczsevp.supabase.co https://accounts.google.com https://sheets.googleapis.com https://*.hcaptcha.com; frame-src https://*.hcaptcha.com;" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; media-src 'self' https:; connect-src 'self' https://mlsupahnubyokjczsevp.supabase.co wss://mlsupahnubyokjczsevp.supabase.co https://accounts.google.com https://sheets.googleapis.com https://*.hcaptcha.com; frame-src https://*.hcaptcha.com;"
+    />
     <title>SKEMS</title>
   </head>
   <body>
     <script>
-      (function() {
+      (function () {
         var h = window.location.hash;
-        if (h && h.indexOf('access_token') !== -1) {
+        if (h && h.indexOf("access_token") !== -1) {
           window.__GOOGLE_AUTH_HASH = h;
-          window.history.replaceState(null, '', window.location.pathname);
+          window.history.replaceState(null, "", window.location.pathname);
         }
       })();
     </script>
