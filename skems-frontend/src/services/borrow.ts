@@ -3,6 +3,7 @@ export interface ScannedFormFields {
   date: string
   position_department: string
   owner: string
+  quantity: string
   equipment_requested: string
   purpose_of_use: string
   date_time_borrowing: string
@@ -11,9 +12,19 @@ export interface ScannedFormFields {
   return_location: string
 }
 
-export interface BorrowRecord extends ScannedFormFields {
+export interface BorrowRecord {
   equipment_id: string
+  full_name: string
+  date: string
+  position_department: string
+  owner: string
   quantity: number
+  equipment_requested: string
+  purpose_of_use: string
+  date_time_borrowing: string
+  date_time_return: string
+  pickup_location: string
+  return_location: string
   condition_before: string
   condition_after: string
   notes: string

@@ -187,6 +187,7 @@ export default function ScanPage() {
         date: data.fields.date ?? "",
         position_department: data.fields.position_department ?? "",
         owner: data.fields.owner ?? "",
+        quantity: data.fields.quantity ?? "1",
         equipment_requested: data.fields.equipment_requested ?? "",
         purpose_of_use: data.fields.purpose_of_use ?? "",
         date_time_borrowing: data.fields.date_time_borrowing ?? "",
@@ -232,11 +233,21 @@ export default function ScanPage() {
     setError("")
 
     try {
+      const qty = parseInt(editableFields.quantity) || 1
       for (const eqId of selectedEquipmentIds) {
         await addBorrowedItem({
           equipment_id: eqId,
-          quantity: 1,
-          ...editableFields,
+          quantity: qty,
+          full_name: editableFields.full_name,
+          date: editableFields.date,
+          position_department: editableFields.position_department,
+          owner: editableFields.owner,
+          equipment_requested: editableFields.equipment_requested,
+          purpose_of_use: editableFields.purpose_of_use,
+          date_time_borrowing: editableFields.date_time_borrowing,
+          date_time_return: editableFields.date_time_return,
+          pickup_location: editableFields.pickup_location,
+          return_location: editableFields.return_location,
           scanned_by: user.id,
         })
       }
@@ -279,14 +290,6 @@ export default function ScanPage() {
     return () => stopCamera()
   }, [stopCamera])
 
-  useEffect(() => {
-    if (mode === "form") {
-      resetFormMode()
-    } else {
-      resetFormMode()
-    }
-  }, [mode, resetFormMode])
-
   if (!user) return null
 
   const fieldLabels: Record<keyof ScannedFormFields, string> = {
@@ -294,6 +297,7 @@ export default function ScanPage() {
     date: "Date",
     position_department: "Position/Department",
     owner: "Owner",
+    quantity: "Quantity",
     equipment_requested: "Equipment Requested",
     purpose_of_use: "Purpose of Use",
     date_time_borrowing: "Date & Time of Borrowing",
@@ -307,7 +311,7 @@ export default function ScanPage() {
       <div className="w-full max-w-lg bg-white rounded-xl shadow-lg p-5 sm:p-6 border border-[#d9d9d9]">
         <div className="flex gap-1 mb-5 bg-[#f5f5f5] rounded-lg p-1">
           <button
-            onClick={() => setMode("qr")}
+            onClick={() => { resetFormMode(); setMode("qr") }}
             className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors cursor-pointer ${
               mode === "qr"
                 ? "bg-[#c89116] text-white"
@@ -317,7 +321,7 @@ export default function ScanPage() {
             QR Scanner
           </button>
           <button
-            onClick={() => setMode("form")}
+            onClick={() => { resetFormMode(); setMode("form") }}
             className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors cursor-pointer ${
               mode === "form"
                 ? "bg-[#c89116] text-white"
