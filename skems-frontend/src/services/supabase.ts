@@ -347,3 +347,11 @@ export async function updateBorrowedItem(
 
   if (error) throw error;
 }
+
+export async function deleteBorrowedItem(equipmentId: string) {
+  const { error } = await supabase
+    .from("borrow_records")
+    .delete()
+    .eq("equipment_id", equipmentId);
+  if (error) throw error;
+}

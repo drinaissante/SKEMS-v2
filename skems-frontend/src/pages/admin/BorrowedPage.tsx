@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import {
   fetchBorrowedItems,
   updateBorrowedItem,
+  deleteBorrowedItem,
 } from "../../services/supabase"
 import type { BorrowRecord } from "../../services/borrow"
 
@@ -44,6 +45,8 @@ export default function BorrowedPage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<BorrowRecord | null>(null)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
   const [editConditionBefore, setEditConditionBefore] = useState<string[]>([])
   const [editConditionAfter, setEditConditionAfter] = useState<string[]>([])
@@ -110,9 +113,22 @@ export default function BorrowedPage() {
     }
   }
 
+  const handleDelete = async (equipmentId: string) => {
+    setDeleting(equipmentId)
+    try {
+      await deleteBorrowedItem(equipmentId)
+      setRecords((prev) => prev.filter((r) => r.equipment_id !== equipmentId))
+    } catch {
+      // silently fail
+    } finally {
+      setDeleting(null)
+      setShowDeleteConfirm(null)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#f5f5f5] px-3 py-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#222] mb-6">
           Borrowed Items
         </h1>
@@ -130,8 +146,8 @@ export default function BorrowedPage() {
                   <th className="px-4 py-3 font-medium">Equipment ID</th>
                   <th className="px-4 py-3 font-medium">Equipment</th>
                   <th className="px-4 py-3 font-medium text-center">Qty</th>
-                  <th className="px-4 py-3 font-medium hidden sm:table-cell">Date Borrowed</th>
-                  <th className="px-4 py-3 font-medium hidden sm:table-cell">Date Due</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Date Borrowed</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Date Due</th>
                   <th className="px-4 py-3 font-medium text-center">Before</th>
                   <th className="px-4 py-3 font-medium text-center">After</th>
                   <th className="px-4 py-3 font-medium text-center">Notes</th>
@@ -146,30 +162,29 @@ export default function BorrowedPage() {
                       <div className="text-xs text-[#a6a6a6]">{r.position_department}</div>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</td>
-                    <td className="px-4 py-3 max-w-40 truncate">{r.equipment_requested}</td>
+                    <td className="px-4 py-3 min-w-40">{r.equipment_requested}</td>
                     <td className="px-4 py-3 text-center font-medium">{r.quantity}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-xs hidden sm:table-cell">
-                      {formatDate(r.date_time_borrowing)}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-xs hidden sm:table-cell">
-                      {formatDate(r.date_time_return)}
-                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-xs">{formatDate(r.date_time_borrowing)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-xs">{formatDate(r.date_time_return)}</td>
+                    <td className="px-4 py-3 text-center">{ConditionBadges(r.condition_before)}</td>
+                    <td className="px-4 py-3 text-center">{ConditionBadges(r.condition_after)}</td>
+                    <td className="px-4 py-3 text-center text-xs text-[#666] min-w-24">{r.notes || "—"}</td>
                     <td className="px-4 py-3 text-center">
-                      {ConditionBadges(r.condition_before)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {ConditionBadges(r.condition_after)}
-                    </td>
-                    <td className="px-4 py-3 text-center max-w-32 truncate text-xs text-[#666]">
-                      {r.notes || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => handleEdit(r)}
-                        className="px-3 py-1 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white transition-colors cursor-pointer"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex gap-1 justify-center">
+                        <button
+                          onClick={() => handleEdit(r)}
+                          className="px-3 py-1 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white transition-colors cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(r.equipment_id)}
+                          disabled={deleting === r.equipment_id}
+                          className="px-3 py-1 text-xs font-bold rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        >
+                          {deleting === r.equipment_id ? "..." : "Delete"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -293,6 +308,37 @@ export default function BorrowedPage() {
                 className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm"
               >
                 {saving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-[#222] mb-2 text-center">Delete Borrow Record</p>
+            <p className="text-sm text-[#666] mb-6 text-center">
+              Are you sure you want to delete this borrow record for <strong>{showDeleteConfirm}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(showDeleteConfirm)}
+                disabled={deleting === showDeleteConfirm}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
+              >
+                {deleting === showDeleteConfirm ? "..." : "Delete"}
               </button>
             </div>
           </div>
