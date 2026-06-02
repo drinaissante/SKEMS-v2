@@ -403,7 +403,7 @@ export default function ScanPage() {
             {!capturedImage && !isScanningForm && !formSuccess && (
               <div className="flex flex-col items-center gap-4">
                 {scanning ? (
-                  <div className="relative w-full aspect-[4/3] bg-black rounded-lg overflow-hidden">
+                  <div className="relative w-full aspect-[3/4] bg-black rounded-lg overflow-hidden">
                     <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline autoPlay />
                     <button
                       onClick={captureFrame}
@@ -420,7 +420,7 @@ export default function ScanPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-4 w-full">
-                    <div className="w-full max-w-70 aspect-[4/3] border-2 border-dashed border-[#a6a6a6] rounded-xl flex items-center justify-center text-[#a6a6a6]">
+                    <div className="w-full max-w-70 aspect-[3/4] border-2 border-dashed border-[#a6a6a6] rounded-xl flex items-center justify-center text-[#a6a6a6]">
                       <svg className="w-12 h-12 sm:w-16 sm:h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -477,7 +477,7 @@ export default function ScanPage() {
 
             {capturedImage && !isScanningForm && !showResultModal && !formSuccess && (
               <div className="flex flex-col items-center gap-4">
-                <div className="w-full aspect-[4/3] bg-black rounded-lg overflow-hidden">
+                <div className="w-full aspect-[3/4] bg-black rounded-lg overflow-hidden">
                   <img
                     src={capturedImage}
                     alt="Captured form"
