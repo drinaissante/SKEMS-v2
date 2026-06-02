@@ -27,13 +27,16 @@ export default function Navbar() {
 
           {isLoggedIn ? (
             <>
-              {isAdmin && (
+                  {isAdmin && (
                 <>
                   <Link to="/equipments" className="hover:text-[#fdb125] transition-colors">
                     Equipment
                   </Link>
                   <Link to="/admin/requests" className="hover:text-[#fdb125] transition-colors">
                     Manage Requests
+                  </Link>
+                  <Link to="/admin/borrowed" className="hover:text-[#fdb125] transition-colors">
+                    Borrowed
                   </Link>
                   {isSuperAdmin && (
                     <Link to="/admin/users" className="hover:text-[#fdb125] transition-colors">
@@ -120,7 +123,7 @@ export default function Navbar() {
                 Scan
               </Link>
 
-              {isAdmin && (
+                  {isAdmin && (
                 <>
                   <Link
                     to="/equipments"
@@ -135,6 +138,13 @@ export default function Navbar() {
                     className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
                   >
                     Manage Requests
+                  </Link>
+                  <Link
+                    to="/admin/borrowed"
+                    onClick={() => setSidebarOpen(false)}
+                    className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
+                  >
+                    Borrowed
                   </Link>
                   {isSuperAdmin && (
                     <Link

@@ -251,3 +251,96 @@ export async function updateRequestStatus(requestId: string, status: string) {
     .eq("id", requestId);
   if (error) throw error;
 }
+
+export interface NewBorrowRecord {
+  equipment_id: string
+  full_name: string
+  date: string
+  position_department: string
+  owner: string
+  equipment_requested: string
+  purpose_of_use: string
+  date_time_borrowing: string
+  date_time_return: string
+  pickup_location: string
+  return_location: string
+  scanned_by: string
+}
+
+export async function fetchBorrowedItems() {
+  const { data, error } = await supabase
+    .from("borrow_records")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data as {
+    equipment_id: string
+    full_name: string
+    date: string
+    position_department: string
+    owner: string
+    equipment_requested: string
+    purpose_of_use: string
+    date_time_borrowing: string
+    date_time_return: string
+    pickup_location: string
+    return_location: string
+    condition_before: string
+    condition_after: string
+    notes: string
+    scanned_by: string
+    created_at: string
+    updated_at: string
+  }[];
+}
+
+export async function addBorrowedItem(data: NewBorrowRecord) {
+  const { error } = await supabase
+    .from("borrow_records")
+    .upsert({
+      equipment_id: data.equipment_id,
+      full_name: data.full_name,
+      date: data.date,
+      position_department: data.position_department,
+      owner: data.owner,
+      equipment_requested: data.equipment_requested,
+      purpose_of_use: data.purpose_of_use,
+      date_time_borrowing: data.date_time_borrowing,
+      date_time_return: data.date_time_return,
+      pickup_location: data.pickup_location,
+      return_location: data.return_location,
+      scanned_by: data.scanned_by,
+    });
+
+  if (error) throw error;
+
+  const { error: updateErr } = await supabase
+    .from("equipments")
+    .update({
+      borrower_name: data.full_name,
+      date_borrowed: data.date_time_borrowing || null,
+      date_due: data.date_time_return || null,
+      condition: "Borrowed",
+    })
+    .eq("equipment_id", data.equipment_id);
+
+  if (updateErr) console.error("Failed to sync equipment:", updateErr);
+}
+
+export async function updateBorrowedItem(
+  equipmentId: string,
+  updates: { condition_before?: string; condition_after?: string; notes?: string },
+) {
+  const updateData: Record<string, string> = {};
+  if (updates.condition_before !== undefined) updateData.condition_before = updates.condition_before;
+  if (updates.condition_after !== undefined) updateData.condition_after = updates.condition_after;
+  if (updates.notes !== undefined) updateData.notes = updates.notes;
+
+  const { error } = await supabase
+    .from("borrow_records")
+    .update(updateData)
+    .eq("equipment_id", equipmentId);
+
+  if (error) throw error;
+}
