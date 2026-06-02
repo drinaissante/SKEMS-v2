@@ -14,9 +14,10 @@ const conditionColors: Record<string, string> = {
   Damaged: "bg-red-100 text-red-700",
 }
 
-function formatDate(iso: string) {
-  if (!iso) return ""
-  const d = new Date(iso)
+function formatDate(val: string) {
+  if (!val) return ""
+  const d = new Date(val)
+  if (isNaN(d.getTime())) return val
   const pad = (n: number) => String(n).padStart(2, "0")
   return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
@@ -128,6 +129,7 @@ export default function BorrowedPage() {
                   <th className="px-4 py-3 font-medium">Borrower</th>
                   <th className="px-4 py-3 font-medium">Equipment ID</th>
                   <th className="px-4 py-3 font-medium">Equipment</th>
+                  <th className="px-4 py-3 font-medium text-center">Qty</th>
                   <th className="px-4 py-3 font-medium hidden sm:table-cell">Date Borrowed</th>
                   <th className="px-4 py-3 font-medium hidden sm:table-cell">Date Due</th>
                   <th className="px-4 py-3 font-medium text-center">Before</th>
@@ -145,6 +147,7 @@ export default function BorrowedPage() {
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</td>
                     <td className="px-4 py-3 max-w-40 truncate">{r.equipment_requested}</td>
+                    <td className="px-4 py-3 text-center font-medium">{r.quantity}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-xs hidden sm:table-cell">
                       {formatDate(r.date_time_borrowing)}
                     </td>
@@ -187,6 +190,10 @@ export default function BorrowedPage() {
               <div className="flex justify-between">
                 <span>Equipment ID:</span>
                 <span className="font-medium text-[#c89116]">{editing.equipment_id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Quantity:</span>
+                <span className="font-medium text-[#222]">{editing.quantity}</span>
               </div>
               <div className="flex justify-between">
                 <span>Borrower:</span>

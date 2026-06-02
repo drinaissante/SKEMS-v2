@@ -201,12 +201,19 @@ export default function ScanPage() {
 
       const equipData = await fetchEquipments()
       const query = fields.equipment_requested.toLowerCase()
-      const matches = equipData.filter(
-        (eq) =>
-          query.includes(eq.name.toLowerCase()) ||
-          eq.name.toLowerCase().includes(query) ||
-          query.split(";").some((part) => part.trim() && eq.name.toLowerCase().includes(part.trim())),
-      )
+      const parts = query.split(/[;,&\n\r]+| and /).map((s) => s.trim()).filter(Boolean)
+      const cleaned = parts.map((p) =>
+        p
+          .replace(/^(one|two|three|four|five|six|seven|eight|nine|ten)\s*\(\d+\)\s*/i, "")
+          .replace(/^\d+[.)]\s*/, "")
+          .replace(/^\d+x\s*/i, "")
+          .replace(/^\d+\s*pcs?\s*/i, "")
+          .trim(),
+      ).filter(Boolean)
+      const matches = equipData.filter((eq) => {
+        const name = eq.name.toLowerCase()
+        return cleaned.some((part) => name.includes(part))
+      })
       setMatchedEquipments(matches)
       setSelectedEquipmentIds(matches.map((eq) => eq.id))
 
@@ -228,6 +235,7 @@ export default function ScanPage() {
       for (const eqId of selectedEquipmentIds) {
         await addBorrowedItem({
           equipment_id: eqId,
+          quantity: 1,
           ...editableFields,
           scanned_by: user.id,
         })

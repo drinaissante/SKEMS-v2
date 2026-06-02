@@ -36,6 +36,8 @@ Rules:
 - If a field is not visible or empty, set it to null — do not guess
 - Extract exactly what is written on the form
 - Preserve numbers and punctuation exactly as written
+- For equipment_requested: if the form uses a numbered/bulleted list (1., 2., a., b., •, etc.), extract ALL items, remove the numbering, and join them with semicolons — e.g. "1.) Light Stands 2.) Lights" becomes "Light Stands; Lights"
+- For equipment_requested: strip quantity/count prefixes from each item — e.g. "Two (2) Bendiro Lights" → "Bendiro Lights"; "One (1) Light Diffuser" → "Light Diffuser"; "3x Microphone" → "Microphone"
 - List multiple equipment items separated by semicolons`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

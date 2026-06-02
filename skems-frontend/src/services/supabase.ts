@@ -254,6 +254,7 @@ export async function updateRequestStatus(requestId: string, status: string) {
 
 export interface NewBorrowRecord {
   equipment_id: string
+  quantity: number
   full_name: string
   date: string
   position_department: string
@@ -276,6 +277,7 @@ export async function fetchBorrowedItems() {
   if (error) throw error;
   return data as {
     equipment_id: string
+    quantity: number
     full_name: string
     date: string
     position_department: string
@@ -300,6 +302,7 @@ export async function addBorrowedItem(data: NewBorrowRecord) {
     .from("borrow_records")
     .upsert({
       equipment_id: data.equipment_id,
+      quantity: data.quantity,
       full_name: data.full_name,
       date: data.date,
       position_department: data.position_department,

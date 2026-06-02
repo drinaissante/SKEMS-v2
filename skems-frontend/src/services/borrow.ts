@@ -13,6 +13,7 @@ export interface ScannedFormFields {
 
 export interface BorrowRecord extends ScannedFormFields {
   equipment_id: string
+  quantity: number
   condition_before: string
   condition_after: string
   notes: string
