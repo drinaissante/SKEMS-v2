@@ -49,29 +49,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: { maxOutputTokens: 1000 },
-    });
 
-    const result = await model.generateContent([
-      PROMPT,
-      { inlineData: { mimeType: "image/jpeg", data: image } },
-    ]);
+    const MODELS = ["gemini-2.5-flash", "gemini-3-flash", "gemini-1.5-flash"];
 
-    const response = await result.response;
-    const text = response.text();
+    let lastError: unknown;
+    for (const modelName of MODELS) {
+      try {
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          generationConfig: { maxOutputTokens: 1000 },
+        });
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return res.status(500).json({
-        error: "Gemini response did not contain valid JSON",
-        raw: text.substring(0, 500),
-      });
+        const result = await model.generateContent([
+          PROMPT,
+          { inlineData: { mimeType: "image/jpeg", data: image } },
+        ]);
+
+        const response = await result.response;
+        const text = response.text();
+
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          return res.status(500).json({
+            error: "Gemini response did not contain valid JSON",
+            raw: text.substring(0, 500),
+          });
+        }
+
+        const fields = JSON.parse(jsonMatch[0]);
+        return res.status(200).json({ fields });
+      } catch (err) {
+        lastError = err;
+      }
     }
 
-    const fields = JSON.parse(jsonMatch[0]);
-    return res.status(200).json({ fields });
+    const msg = lastError instanceof Error ? lastError.message : "Unknown error";
+    if (/spikes|high demand/i.test(msg)) {
+      return res.status(503).json({
+        error: "Service is currently unavailable due to high demand. Please try again later.",
+      });
+    }
+    return res.status(500).json({ error: msg });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
