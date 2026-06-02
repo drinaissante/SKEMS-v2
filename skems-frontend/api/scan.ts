@@ -27,6 +27,7 @@ Rules:
 - Extract exactly what is written on the form
 - Preserve numbers and punctuation exactly as written
 - equipment_list: extract each equipment item as a separate object with "item" and "quantity" keys. For example: "Two (2) Bendiro Lights" → {"item": "Bendiro Lights", "quantity": "2"}; "One (1) Light Diffuser" → {"item": "Light Diffuser", "quantity": "1"}. If no quantity is specified, use "1".
+- Also handle patterns where the quantity comes after the equipment name: "Bendiro Lights - 2" → {"item": "Bendiro Lights", "quantity": "2"}; "Light Stand: 1" → {"item": "Light Stand", "quantity": "1"}; "Lights (2)" → {"item": "Lights", "quantity": "2"}.
 - If the form uses a numbered/bulleted list (1., 2., a., b., •, etc.), extract ALL items as separate entries in the array.
 - For each entry, strip quantity/count prefixes from the item name (e.g. "3x Light Stand" → "Light Stand"; "1.) Light Stands" → "Light Stands").`;
 
