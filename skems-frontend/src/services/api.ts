@@ -87,14 +87,14 @@ export async function updateEquipment(
   if (data.image !== undefined) updateData.image = data.image;
   if (data.owner !== undefined) updateData.owner = data.owner;
   if (data.dateGivenToSK !== undefined)
-    updateData.date_given_to_sk = data.dateGivenToSK;
+    updateData.date_given_to_sk = data.dateGivenToSK || null;
   if (data.condition !== undefined) updateData.condition = data.condition;
   if (data.comments !== undefined) updateData.comments = data.comments;
   if (data.borrowerName !== undefined)
     updateData.borrower_name = data.borrowerName;
   if (data.dateBorrowed !== undefined)
-    updateData.date_borrowed = data.dateBorrowed;
-  if (data.dateDue !== undefined) updateData.date_due = data.dateDue;
+    updateData.date_borrowed = data.dateBorrowed || null;
+  if (data.dateDue !== undefined) updateData.date_due = data.dateDue || null;
 
   const { error } = await supabase
     .from("equipments")
