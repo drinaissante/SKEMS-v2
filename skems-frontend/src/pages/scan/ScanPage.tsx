@@ -351,7 +351,6 @@ export default function ScanPage() {
             {scanning && (
               <div className="relative w-full h-[60vh] bg-black rounded-lg overflow-hidden">
                 <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline autoPlay />
-                <canvas ref={canvasRef} className="hidden" />
                 <p className="text-center text-sm text-[#666] mt-3">Scanning for QR code...</p>
                 <button
                   onClick={stopCamera}
@@ -718,6 +717,7 @@ export default function ScanPage() {
         </div>
       )}
 
+      <canvas ref={canvasRef} className="hidden" />
       <canvas ref={captureCanvasRef} className="hidden" />
     </div>
   )
