@@ -34,23 +34,26 @@ Rules:
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    console.error("Method not allowed:", req.method);
+    return res.status(405).json({ error: "Something went wrong. Please try again in a few minutes." });
   }
 
   const { image } = req.body;
   if (!image) {
-    return res.status(400).json({ error: "No image provided" });
+    console.error("No image provided");
+    return res.status(400).json({ error: "Something went wrong. Please try again in a few minutes." });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: "Server not configured" });
+    console.error("GEMINI_API_KEY not configured");
+    return res.status(500).json({ error: "Something went wrong. Please try again in a few minutes." });
   }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const MODELS = ["gemini-2.5-flash", "gemini-3-flash", "gemini-1.5-flash"];
+    const MODELS = ["gemini-2.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3-flash", "gemini-3.5-flash"];
 
     let lastError: unknown;
     for (const modelName of MODELS) {
@@ -85,15 +88,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const msg = lastError instanceof Error ? lastError.message : "Unknown error";
     if (/spikes|high demand/i.test(msg)) {
+      console.error("All models overloaded:", msg);
       return res.status(503).json({
         error: "Service is currently unavailable due to high demand. Please try again later.",
       });
     }
-    return res.status(500).json({ error: msg });
+    console.error("All models failed:", msg);
+    return res.status(500).json({ error: "Something went wrong. Please try again in a few minutes." });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    console.error("Unexpected error:", error);
+    return res.status(500).json({ error: "Something went wrong. Please try again in a few minutes." });
   }
 }
