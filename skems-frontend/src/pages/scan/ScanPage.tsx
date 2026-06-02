@@ -1,8 +1,9 @@
 import { useRef, useState, useCallback, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import jsQR from "jsqr"
 import { fetchEquipments, type Equipment } from "../../services/api"
-import { addBorrowedItem } from "../../services/supabase"
+import { supabase, addBorrowedItem } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import type { ScannedFormFields } from "../../services/borrow"
 
@@ -33,6 +34,7 @@ export default function ScanPage() {
   const [editableFields, setEditableFields] = useState<ScannedFormFields | null>(null)
   const [aiAcknowledged, setAiAcknowledged] = useState(false)
   const [formSuccess, setFormSuccess] = useState(false)
+  const queryClient = useQueryClient()
   const [matchedEquipments, setMatchedEquipments] = useState<Equipment[]>([])
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([])
 
@@ -195,12 +197,20 @@ export default function ScanPage() {
     setIsScanningForm(true)
     setError("")
 
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) {
+      throw new Error("Authentication required")
+    }
+
     const base64 = capturedImage.split(",")[1]
 
     try {
       const res = await fetch("/api/scan", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ image: base64 }),
       })
 
@@ -227,7 +237,13 @@ export default function ScanPage() {
       setEditableFields({ ...fields })
       setAiAcknowledged(false)
 
-      const equipData = await fetchEquipments()
+      let equipData = queryClient.getQueryData<Equipment[]>(["equipments"])
+      if (!equipData) {
+        equipData = await queryClient.fetchQuery({
+          queryKey: ["equipments"],
+          queryFn: fetchEquipments,
+        }) ?? []
+      }
       const itemNames = fields.equipment_list.map(e => e.item.toLowerCase()).filter(Boolean)
       const matches = equipData.filter((eq) => {
         const name = eq.name.toLowerCase()

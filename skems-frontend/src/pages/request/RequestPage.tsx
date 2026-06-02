@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useSearchParams } from "react-router-dom"
-import { fetchEquipments, type Equipment } from "../../services/api"
+import { useQuery } from "@tanstack/react-query"
+import { fetchEquipments } from "../../services/api"
 import { submitRequest } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 
@@ -16,27 +17,23 @@ export default function RequestPage() {
   const preselectedId = searchParams.get("equipment")
   const preselectedName = searchParams.get("name")
 
-  const [equipments, setEquipments] = useState<Equipment[]>([])
   const [equipmentId, setEquipmentId] = useState(preselectedId || "")
   const [reason, setReason] = useState("")
   const [dateBorrowed, setDateBorrowed] = useState("")
   const [dateDue, setDateDue] = useState("")
-  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
 
-
-  useEffect(() => {
-    const loadEquipments = async () => {
-      const data = await fetchEquipments()
-      setEquipments(data.filter((e) => e.condition !== "Borrowed"))
-      setLoading(false)
-    }
-
-    loadEquipments() 
-  }, [])
+  const { data: allEquipments = [], isLoading } = useQuery({
+    queryKey: ["equipments"],
+    queryFn: fetchEquipments,
+  })
+  const equipments = useMemo(
+    () => allEquipments.filter((e) => e.condition !== "Borrowed"),
+    [allEquipments],
+  )
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (preselectedId) setEquipmentId(preselectedId) }, [preselectedId])
@@ -129,7 +126,7 @@ export default function RequestPage() {
                 Equipment
               </label>
 
-              {loading ? (
+              {isLoading ? (
                 <p className="text-sm text-[#a6a6a6]">Loading equipment...</p>
               ) : (
                 <select
@@ -237,7 +234,7 @@ export default function RequestPage() {
 
             <button
               type="submit"
-              disabled={submitting || loading}
+              disabled={submitting || isLoading}
               className="w-full mt-2 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm sm:text-base"
             >
               {submitting ? "Submitting..." : "Submit Request"}

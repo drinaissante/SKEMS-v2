@@ -1,5 +1,50 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient } from "@supabase/supabase-js";
+
+interface EquipmentEntry {
+  equipment_id: string;
+  name: string;
+}
+
+function findBestMatch(
+  itemName: string,
+  equipmentList: EquipmentEntry[],
+): { equipment_id: string; name: string; score: number } | null {
+  const item = itemName.toLowerCase().trim();
+  if (!item) return null;
+
+  const itemTokens = item.split(/\s+/).filter((t) => t.length >= 3);
+  let best: { equipment_id: string; name: string; score: number } | null = null;
+  let bestScore = 0;
+
+  for (const eq of equipmentList) {
+    const name = eq.name.toLowerCase().trim();
+
+    if (name === item)
+      return { equipment_id: eq.equipment_id, name: eq.name, score: 1.0 };
+
+    let score = 0;
+    if (name.includes(item)) {
+      score = 0.9;
+    } else if (item.includes(name)) {
+      score = 0.8;
+    } else if (itemTokens.length > 0) {
+      const dbTokens = name.split(/\s+/).filter((t) => t.length >= 3);
+      const common = itemTokens.filter((t) => dbTokens.includes(t)).length;
+      if (common > 0) {
+        score = 0.7 * (common / Math.max(itemTokens.length, dbTokens.length));
+      }
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = { equipment_id: eq.equipment_id, name: eq.name, score };
+    }
+  }
+
+  return bestScore >= 0.5 ? best : null;
+}
 
 const PROMPT = `You are a form OCR system. Extract the following fields from this form image.
 
@@ -41,6 +86,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!image) {
     console.error("No image provided");
     return res.status(400).json({ error: "Something went wrong. Please try again in a few minutes." });
+  }
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("Supabase env vars not configured");
+    return res.status(500).json({ error: "Something went wrong. Please try again in a few minutes." });
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Authentication required." });
+  }
+  const token = authHeader.slice(7);
+
+  const authClient = createClient(supabaseUrl, supabaseKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false },
+  });
+
+  const { data: { user: authUser }, error: authError } = await authClient.auth.getUser(token);
+  if (authError || !authUser) {
+    console.error("Auth check failed:", authError?.message);
+    return res.status(401).json({ error: "Authentication required." });
+  }
+
+  const { data: profile, error: profileError } = await authClient
+    .from("profiles")
+    .select("is_admin, is_superadmin")
+    .eq("id", authUser.id)
+    .single();
+
+  if (profileError || !profile?.is_admin) {
+    console.error("Admin check failed:", profileError?.message);
+    return res.status(403).json({ error: "You do not have permission to scan forms." });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
@@ -92,6 +172,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return { item: name, quantity: qty || "1" }
           })
         }
+
+        try {
+          if (Array.isArray(fields.equipment_list)) {
+            const { data: equipData, error: equipErr } = await authClient
+              .from("equipments")
+              .select("equipment_id, name");
+            if (!equipErr && equipData && equipData.length > 0) {
+              fields.equipment_list = fields.equipment_list.map((e: {item: string, quantity: string}) => {
+                const match = findBestMatch(e.item, equipData);
+                if (match) {
+                  return { item: match.name, quantity: e.quantity };
+                }
+                return e;
+              });
+            }
+          }
+        } catch (e) {
+          console.error("Equipment matching failed:", e);
+        }
+
         return res.status(200).json({ fields });
       } catch (err) {
         lastError = err;

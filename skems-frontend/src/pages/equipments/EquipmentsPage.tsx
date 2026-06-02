@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   fetchEquipments,
   addEquipment,
@@ -19,7 +20,7 @@ const DESKTOP_ITEMS = 8
 
 export default function EquipmentsPage() {
   const { isAdmin, user } = useAuth()
-  const [equipments, setEquipments] = useState<Equipment[]>([])
+  const queryClient = useQueryClient()
 
   const [search, setSearch] = useState("")
   const [filterCategory, setFilterCategory] = useState("All")
@@ -27,7 +28,6 @@ export default function EquipmentsPage() {
 
   const [editingEquipment, setEditingEquipment] = useState<Equipment | null | undefined>(undefined)
 
-  const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -37,21 +37,37 @@ export default function EquipmentsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deletingId, setDeletingId] = useState("")
 
+  const { data: equipments = [], isLoading } = useQuery({
+    queryKey: ["equipments"],
+    queryFn: fetchEquipments,
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteEquipment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipments"] })
+    },
+  })
+
+  const saveMutation = useMutation({
+    mutationFn: async (eq: Equipment) => {
+      if (editingEquipment) {
+        await updateEquipment(eq.id, eq)
+      } else {
+        await addEquipment(eq)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["equipments"] })
+    },
+  })
+
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     mq.addEventListener("change", handler)
     return () => mq.removeEventListener("change", handler)
   }, [])
-
-  const loadEquipments = async () => {
-    const data = await fetchEquipments()
-    setEquipments(data)
-    setLoading(false)
-  }
-
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { loadEquipments() }, [])
 
   const categories = useMemo(
     () => ["All", ...new Set(equipments.map((e) => e.category))],
@@ -116,20 +132,14 @@ export default function EquipmentsPage() {
   }
 
   const confirmDelete = async () => {
-    await deleteEquipment(deletingId)
+    await deleteMutation.mutateAsync(deletingId)
     setShowDeleteConfirm(false)
     setDeletingId("")
-    await loadEquipments()
   }
 
   const handleSave = async (eq: Equipment) => {
-    if (editingEquipment) {
-      await updateEquipment(eq.id, eq)
-    } else {
-      await addEquipment(eq)
-    }
+    await saveMutation.mutateAsync(eq)
     setEditingEquipment(undefined)
-    await loadEquipments()
   }
 
   const allPageItems = useMemo(() => {
@@ -202,7 +212,7 @@ export default function EquipmentsPage() {
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
-          {loading ? (
+          {isLoading ? (
             <p className="text-center text-[#666] py-10">Loading equipment...</p>
           ) : filtered.length === 0 ? (
             <p className="text-center text-[#666] py-10">No equipment found.</p>

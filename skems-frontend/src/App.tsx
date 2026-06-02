@@ -16,6 +16,7 @@ import BorrowedPage from './pages/admin/BorrowedPage'
 import MainLayout from './layouts/MainLayout'
 
 import { useAuth } from './context/AuthContext'
+import { useEquipmentsRealtime } from './hooks/useEquipmentsRealtime'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuth()
@@ -54,6 +55,7 @@ function SuperAdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  useEquipmentsRealtime()
   return (
     <Routes>
       <Route path='/change-password' element={<ChangePasswordPage />} />
