@@ -1,10 +1,14 @@
+export interface EquipmentItem {
+  item: string
+  quantity: string
+}
+
 export interface ScannedFormFields {
   full_name: string
   date: string
   position_department: string
   owner: string
-  quantity: string
-  equipment_requested: string
+  equipment_list: EquipmentItem[]
   purpose_of_use: string
   date_time_borrowing: string
   date_time_return: string

@@ -11,8 +11,7 @@ Use exactly these keys:
   "date": "",
   "position_department": "",
   "owner": "",
-  "quantity": "",
-  "equipment_requested": "",
+  "equipment_list": [],
   "purpose_of_use": "",
   "date_time_borrowing": "",
   "date_time_return": "",
@@ -27,10 +26,9 @@ Rules:
 - If a field is not visible or empty, set it to null — do not guess
 - Extract exactly what is written on the form
 - Preserve numbers and punctuation exactly as written
-- quantity: extract the total count/number of items being borrowed (e.g. "Two (2) Bendiro Lights" → quantity: "2"); if not specified, set to "1"
-- For equipment_requested: if the form uses a numbered/bulleted list (1., 2., a., b., •, etc.), extract ALL items, remove the numbering, and join them with semicolons — e.g. "1.) Light Stands 2.) Lights" becomes "Light Stands; Lights"
-- For equipment_requested: remove any quantity/count prefixes from each item — e.g. "Two (2) Bendiro Lights" → "Bendiro Lights"; "One (1) Light Diffuser" → "Light Diffuser"
-- List multiple equipment items separated by semicolons`;
+- equipment_list: extract each equipment item as a separate object with "item" and "quantity" keys. For example: "Two (2) Bendiro Lights" → {"item": "Bendiro Lights", "quantity": "2"}; "One (1) Light Diffuser" → {"item": "Light Diffuser", "quantity": "1"}. If no quantity is specified, use "1".
+- If the form uses a numbered/bulleted list (1., 2., a., b., •, etc.), extract ALL items as separate entries in the array.
+- For each entry, strip quantity/count prefixes from the item name (e.g. "3x Light Stand" → "Light Stand"; "1.) Light Stands" → "Light Stands").`;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {

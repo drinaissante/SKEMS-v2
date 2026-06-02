@@ -187,8 +187,7 @@ export default function ScanPage() {
         date: data.fields.date ?? "",
         position_department: data.fields.position_department ?? "",
         owner: data.fields.owner ?? "",
-        quantity: data.fields.quantity ?? "1",
-        equipment_requested: data.fields.equipment_requested ?? "",
+        equipment_list: Array.isArray(data.fields.equipment_list) ? data.fields.equipment_list : [],
         purpose_of_use: data.fields.purpose_of_use ?? "",
         date_time_borrowing: data.fields.date_time_borrowing ?? "",
         date_time_return: data.fields.date_time_return ?? "",
@@ -201,19 +200,10 @@ export default function ScanPage() {
       setAiAcknowledged(false)
 
       const equipData = await fetchEquipments()
-      const query = fields.equipment_requested.toLowerCase()
-      const parts = query.split(/[;,&\n\r]+| and /).map((s) => s.trim()).filter(Boolean)
-      const cleaned = parts.map((p) =>
-        p
-          .replace(/^(one|two|three|four|five|six|seven|eight|nine|ten)\s*\(\d+\)\s*/i, "")
-          .replace(/^\d+[.)]\s*/, "")
-          .replace(/^\d+x\s*/i, "")
-          .replace(/^\d+\s*pcs?\s*/i, "")
-          .trim(),
-      ).filter(Boolean)
+      const itemNames = fields.equipment_list.map(e => e.item.toLowerCase()).filter(Boolean)
       const matches = equipData.filter((eq) => {
         const name = eq.name.toLowerCase()
-        return cleaned.some((part) => name.includes(part))
+        return itemNames.some((part) => name.includes(part))
       })
       setMatchedEquipments(matches)
       setSelectedEquipmentIds(matches.map((eq) => eq.id))
@@ -233,16 +223,26 @@ export default function ScanPage() {
     setError("")
 
     try {
-      const qty = parseInt(editableFields.quantity) || 1
+      const itemQtyMap = new Map<string, {item: string, quantity: string}>()
+      for (const eqItem of editableFields.equipment_list) {
+        const norm = eqItem.item.toLowerCase()
+        for (const eq of matchedEquipments) {
+          if (!itemQtyMap.has(eq.id) && eq.name.toLowerCase().includes(norm)) {
+            itemQtyMap.set(eq.id, eqItem)
+          }
+        }
+      }
+
       for (const eqId of selectedEquipmentIds) {
+        const info = itemQtyMap.get(eqId)
         await addBorrowedItem({
           equipment_id: eqId,
-          quantity: qty,
+          quantity: parseInt(info?.quantity || "1"),
           full_name: editableFields.full_name,
           date: editableFields.date,
           position_department: editableFields.position_department,
           owner: editableFields.owner,
-          equipment_requested: editableFields.equipment_requested,
+          equipment_requested: info?.item || "",
           purpose_of_use: editableFields.purpose_of_use,
           date_time_borrowing: editableFields.date_time_borrowing,
           date_time_return: editableFields.date_time_return,
@@ -259,7 +259,7 @@ export default function ScanPage() {
     } finally {
       setIsScanningForm(false)
     }
-  }, [editableFields, user, selectedEquipmentIds])
+  }, [editableFields, user, selectedEquipmentIds, matchedEquipments])
 
   const resetFormMode = useCallback(() => {
     setCapturedImage(null)
@@ -292,13 +292,11 @@ export default function ScanPage() {
 
   if (!user) return null
 
-  const fieldLabels: Record<keyof ScannedFormFields, string> = {
+  const fieldLabels: Record<string, string> = {
     full_name: "Full Name",
     date: "Date",
     position_department: "Position/Department",
     owner: "Owner",
-    quantity: "Quantity",
-    equipment_requested: "Equipment Requested",
     purpose_of_use: "Purpose of Use",
     date_time_borrowing: "Date & Time of Borrowing",
     date_time_return: "Date & Time of Return",
@@ -565,14 +563,14 @@ export default function ScanPage() {
             </p>
 
             <div className="space-y-3">
-              {(Object.keys(fieldLabels) as (keyof ScannedFormFields)[]).map((key) => (
+              {(Object.keys(fieldLabels) as (keyof typeof fieldLabels)[]).map((key) => (
                 <div key={key}>
                   <label className="block text-xs font-medium text-[#666] mb-0.5">
                     {fieldLabels[key]}
                   </label>
                   <input
                     type="text"
-                    value={editableFields[key]}
+                    value={(editableFields as any)[key] ?? ""}
                     onChange={(e) =>
                       setEditableFields({ ...editableFields, [key]: e.target.value })
                     }
@@ -580,6 +578,64 @@ export default function ScanPage() {
                   />
                 </div>
               ))}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-[#d9d9d9]">
+              <label className="block text-xs font-medium text-[#666] mb-2">
+                Equipment
+              </label>
+              {editableFields.equipment_list.map((eqItem, idx) => (
+                <div key={idx} className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={eqItem.item}
+                    onChange={(e) => {
+                      const list = [...editableFields.equipment_list]
+                      list[idx] = { ...list[idx], item: e.target.value }
+                      setEditableFields({ ...editableFields, equipment_list: list })
+                    }}
+                    placeholder="Equipment name"
+                    className="flex-1 px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  />
+                  <input
+                    type="text"
+                    value={eqItem.quantity}
+                    onChange={(e) => {
+                      const list = [...editableFields.equipment_list]
+                      list[idx] = { ...list[idx], quantity: e.target.value }
+                      setEditableFields({ ...editableFields, equipment_list: list })
+                    }}
+                    placeholder="Qty"
+                    className="w-16 px-2 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] text-center"
+                  />
+                  <button
+                    onClick={() => {
+                      const list = editableFields.equipment_list.filter((_, i) => i !== idx)
+                      setEditableFields({ ...editableFields, equipment_list: list })
+                    }}
+                    className="px-2 py-2 text-red-500 hover:text-red-700 cursor-pointer"
+                    title="Remove item"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  setEditableFields({
+                    ...editableFields,
+                    equipment_list: [...editableFields.equipment_list, { item: "", quantity: "1" }],
+                  })
+                }}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs text-[#c89116] font-medium hover:text-[#caa453] transition-colors cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Item
+              </button>
             </div>
 
             {matchedEquipments.length > 0 && (
@@ -617,10 +673,10 @@ export default function ScanPage() {
               </div>
             )}
 
-            {matchedEquipments.length === 0 && editableFields.equipment_requested && (
+            {matchedEquipments.length === 0 && editableFields.equipment_list.length > 0 && (
               <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
                 <p className="text-xs font-medium text-red-700">
-                  No matching equipment found in inventory for "{editableFields.equipment_requested}".<br />
+                  No matching equipment found in inventory for "{editableFields.equipment_list.map(e => e.item).join(", ")}".<br />
                   You must add the equipment to inventory first before recording a borrow.
                 </p>
               </div>
