@@ -21,13 +21,13 @@ export default function Navbar() {
             <>
               <Link
                 to="/scan"
-                className="px-3 py-1.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
+                className="px-3 py-2.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
               >
                 Scan
               </Link>
               <Link
                 to="/request"
-                className="px-3 py-1.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
+                className="px-3 py-2.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
               >
                 Request
               </Link>
@@ -94,7 +94,7 @@ export default function Navbar() {
               </Link>
               <Link
                 to="/login"
-                className="px-3 py-1.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
+                className="px-3 py-2.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
               >
                 Login
               </Link>
@@ -105,7 +105,7 @@ export default function Navbar() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setSidebarOpen(true)}
-          className="md:hidden p-2 hover:bg-white/10 rounded transition-colors cursor-pointer"
+          className="md:hidden p-3 hover:bg-white/10 rounded transition-colors cursor-pointer"
           aria-label="Open menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
