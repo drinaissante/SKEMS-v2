@@ -16,6 +16,7 @@ import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
 import MainLayout from './layouts/MainLayout'
 
 import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 import { useAuth } from './context/AuthContext'
 import { useEquipmentsRealtime } from './hooks/useEquipmentsRealtime'
@@ -154,6 +155,7 @@ function App() {
       </Routes>
       
       <Analytics />
+      <SpeedInsights />
     </>
 
   )
