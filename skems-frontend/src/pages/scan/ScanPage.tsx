@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { fetchEquipments, type Equipment } from "../../services/api"
-import { supabase, addBorrowedItem } from "../../services/supabase"
+import { supabase, submitRequest } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import type { ScannedFormFields } from "../../services/borrow"
 import QRScanner from "./QRScanner"
@@ -190,6 +190,18 @@ export default function ScanPage() {
     setShowItemSelector(false)
   }, [selectorSelectedId, selectorItemIndex, queryClient])
 
+  const fieldLabels = useMemo<Record<keyof Omit<ScannedFormFields, "equipment_list">, string>>(() => ({
+    full_name: "Full Name",
+    date: "Date",
+    position_department: "Position/Department",
+    owner: "Owner",
+    purpose_of_use: "Purpose of Use",
+    date_time_borrowing: "Date & Time of Borrowing",
+    date_time_return: "Date & Time of Return",
+    pickup_location: "Pickup Location",
+    return_location: "Return Location",
+  }), [])
+
   const submitFormScan = useCallback(async () => {
     if (!editableFields || !user) return
 
@@ -219,20 +231,20 @@ export default function ScanPage() {
 
         const qty = parseInt(fi.quantity) || 1
 
-        await addBorrowedItem({
-          equipment_id: sel.id,
+        await submitRequest({
+          equipmentId: sel.id,
+          equipmentName: sel.name,
+          borrowerName: editableFields.full_name,
+          studentNumber: user.studentNumber,
+          reason: editableFields.purpose_of_use,
+          dateBorrowed: editableFields.date_time_borrowing,
+          dateDue: editableFields.date_time_return,
+          userId: user.id,
           quantity: qty,
-          full_name: editableFields.full_name,
-          date: editableFields.date,
-          position_department: editableFields.position_department,
-          owner: editableFields.owner,
-          equipment_requested: sel.name,
-          purpose_of_use: editableFields.purpose_of_use,
-          date_time_borrowing: editableFields.date_time_borrowing,
-          date_time_return: editableFields.date_time_return,
-          pickup_location: editableFields.pickup_location,
-          return_location: editableFields.return_location,
-          scanned_by: user.id,
+          positionDepartment: editableFields.position_department,
+          pickupLocation: editableFields.pickup_location,
+          returnLocation: editableFields.return_location,
+          owner: sel.owner,
         })
       }
 
@@ -243,7 +255,7 @@ export default function ScanPage() {
     } finally {
       setIsScanningForm(false)
     }
-  }, [editableFields, user, selectedEquipments])
+  }, [editableFields, user, selectedEquipments, fieldLabels])
 
   const resetFormMode = useCallback(() => {
     setCapturedImage(null)
@@ -260,18 +272,6 @@ export default function ScanPage() {
   }, [])
 
   if (!user) return null
-
-  const fieldLabels: Record<keyof Omit<ScannedFormFields, "equipment_list">, string> = {
-    full_name: "Full Name",
-    date: "Date",
-    position_department: "Position/Department",
-    owner: "Owner",
-    purpose_of_use: "Purpose of Use",
-    date_time_borrowing: "Date & Time of Borrowing",
-    date_time_return: "Date & Time of Return",
-    pickup_location: "Pickup Location",
-    return_location: "Return Location",
-  }
 
   return (
     <div className="min-h-screen flex flex-col px-3 py-8 bg-[#f5f5f5]">
