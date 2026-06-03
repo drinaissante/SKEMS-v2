@@ -1,19 +1,7 @@
-import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query"
 import { fetchMyRequests } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
-
-interface Request {
-  id: string
-  equipment_name: string
-  borrower_name: string
-  reason: string
-  date_borrowed: string
-  date_due: string
-  status: string
-  created_at: string
-  quantity: number
-}
 
 const statusColors: Record<string, string> = {
   Pending: "bg-[#caa453] text-white",
@@ -31,16 +19,12 @@ function formatDateTime(iso: string) {
 
 export default function MyRequestsPage() {
   const { user } = useAuth()
-  const [requests, setRequests] = useState<Request[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!user) return
-    fetchMyRequests(user.id)
-      .then(setRequests)
-      .catch(() => setRequests([]))
-      .finally(() => setLoading(false))
-  }, [user])
+  const { data: requests = [], isLoading } = useQuery({
+    queryKey: ["my-requests", user?.id],
+    queryFn: () => fetchMyRequests(user!.id),
+    enabled: !!user,
+  })
 
   if (!user) return null
 
@@ -51,7 +35,7 @@ export default function MyRequestsPage() {
           My Requests
         </h1>
 
-        {loading ? (
+        {isLoading ? (
           <p className="text-center text-[#666] py-10">Loading...</p>
         ) : requests.length === 0 ? (
           <div className="text-center py-10">

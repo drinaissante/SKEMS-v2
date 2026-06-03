@@ -1,24 +1,10 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   fetchAllRequests,
   updateRequestStatus,
 } from "../../services/supabase"
 import { FiSearch } from "react-icons/fi"
-
-interface Request {
-  id: string
-  equipment_id: string
-  equipment_name: string
-  borrower_name: string
-  student_number: string
-  reason: string
-  date_borrowed: string
-  date_due: string
-  status: string
-  created_at: string
-  user_id: string
-  quantity: number
-}
 
 const statusColors: Record<string, string> = {
   Pending: "bg-[#caa453] text-white",
@@ -35,24 +21,22 @@ function formatDateTime(iso: string) {
 }
 
 export default function RequestsPage() {
-  const [requests, setRequests] = useState<Request[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("All")
 
-  useEffect(() => {
-    const loadRequests = async () => {
-      try {
-        const data = await fetchAllRequests()
-        setRequests(data)
-      } catch {
-        setRequests([])
-      }
-      setLoading(false)
-    }
-    
-    loadRequests()
-  }, [])
+  const { data: requests = [], isLoading } = useQuery({
+    queryKey: ["admin-requests"],
+    queryFn: fetchAllRequests,
+  })
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      updateRequestStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
+    },
+  })
 
   const statuses = useMemo(
     () => ["All", ...new Set(requests.map((r) => r.status))],
@@ -75,15 +59,8 @@ export default function RequestsPage() {
     })
   }, [requests, search, filterStatus])
 
-  const handleStatus = async (id: string, status: string) => {
-    try {
-      await updateRequestStatus(id, status)
-      setRequests((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status } : r)),
-      )
-    } catch {
-      // ignore
-    }
+  const handleStatus = (id: string, status: string) => {
+    statusMutation.mutate({ id, status })
   }
 
   return (
@@ -115,7 +92,7 @@ export default function RequestsPage() {
           </select>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <p className="text-center text-[#666] py-10">Loading requests...</p>
         ) : filtered.length === 0 ? (
           <p className="text-center text-[#666] py-10">No requests found.</p>

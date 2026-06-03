@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   fetchBorrowedItems,
   updateBorrowedItem,
@@ -41,29 +42,38 @@ function ConditionBadges(value: string) {
 }
 
 export default function BorrowedPage() {
-  const [records, setRecords] = useState<BorrowRecord[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [editing, setEditing] = useState<BorrowRecord | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
   const [editConditionBefore, setEditConditionBefore] = useState<string[]>([])
   const [editConditionAfter, setEditConditionAfter] = useState<string[]>([])
   const [editNotes, setEditNotes] = useState("")
 
-  const loadRecords = async () => {
-    try {
-      const data = await fetchBorrowedItems()
-      setRecords(data)
-    } catch {
-      setRecords([])
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: records = [], isLoading } = useQuery({
+    queryKey: ["borrowed-items"],
+    queryFn: fetchBorrowedItems,
+  })
 
-  useEffect(() => { loadRecords() }, [])
+  const updateMutation = useMutation({
+    mutationFn: ({
+      equipmentId,
+      updates,
+    }: {
+      equipmentId: string
+      updates: { condition_before?: string; condition_after?: string; notes?: string }
+    }) => updateBorrowedItem(equipmentId, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (equipmentId: string) => deleteBorrowedItem(equipmentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+    },
+  })
 
   const handleEdit = (r: BorrowRecord) => {
     setEditing(r)
@@ -86,43 +96,27 @@ export default function BorrowedPage() {
 
   const handleSave = async () => {
     if (!editing) return
-    setSaving(true)
     try {
-      await updateBorrowedItem(editing.equipment_id, {
-        condition_before: editConditionBefore.join(","),
-        condition_after: editConditionAfter.join(","),
-        notes: editNotes,
+      await updateMutation.mutateAsync({
+        equipmentId: editing.equipment_id,
+        updates: {
+          condition_before: editConditionBefore.join(","),
+          condition_after: editConditionAfter.join(","),
+          notes: editNotes,
+        },
       })
-      setRecords((prev) =>
-        prev.map((r) =>
-          r.equipment_id === editing.equipment_id
-            ? {
-                ...r,
-                condition_before: editConditionBefore.join(","),
-                condition_after: editConditionAfter.join(","),
-                notes: editNotes,
-              }
-            : r,
-        ),
-      )
       setEditing(null)
     } catch {
       // silently fail
-    } finally {
-      setSaving(false)
     }
   }
 
   const handleDelete = async (equipmentId: string) => {
-    setDeleting(equipmentId)
     try {
-      await deleteBorrowedItem(equipmentId)
-      setRecords((prev) => prev.filter((r) => r.equipment_id !== equipmentId))
+      await deleteMutation.mutateAsync(equipmentId)
+      setShowDeleteConfirm(null)
     } catch {
       // silently fail
-    } finally {
-      setDeleting(null)
-      setShowDeleteConfirm(null)
     }
   }
 
@@ -133,7 +127,7 @@ export default function BorrowedPage() {
           Borrowed Items
         </h1>
 
-        {loading ? (
+        {isLoading ? (
           <p className="text-center text-[#666] py-10">Loading borrowed items...</p>
         ) : records.length === 0 ? (
           <p className="text-center text-[#666] py-10">No borrowed items found.</p>
@@ -179,10 +173,10 @@ export default function BorrowedPage() {
                         </button>
                         <button
                           onClick={() => setShowDeleteConfirm(r.equipment_id)}
-                          disabled={deleting === r.equipment_id}
+                          disabled={deleteMutation.isPending && deleteMutation.variables === r.equipment_id}
                           className="px-3 py-1 text-xs font-bold rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
                         >
-                          {deleting === r.equipment_id ? "..." : "Delete"}
+                          {deleteMutation.isPending && deleteMutation.variables === r.equipment_id ? "..." : "Delete"}
                         </button>
                       </div>
                     </td>
@@ -304,10 +298,10 @@ export default function BorrowedPage() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={saving}
+                disabled={updateMutation.isPending}
                 className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm"
               >
-                {saving ? "Saving..." : "Save"}
+                {updateMutation.isPending ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
@@ -335,10 +329,10 @@ export default function BorrowedPage() {
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}
-                disabled={deleting === showDeleteConfirm}
+                disabled={deleteMutation.isPending}
                 className="flex-1 py-2 bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
               >
-                {deleting === showDeleteConfirm ? "..." : "Delete"}
+                {deleteMutation.isPending ? "..." : "Delete"}
               </button>
             </div>
           </div>

@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState, useMemo } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { fetchAllProfiles, toggleAdmin } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
+import { FiSearch } from "react-icons/fi"
 
 interface Profile {
   id: string
@@ -13,35 +15,49 @@ interface Profile {
 
 export default function UsersPage() {
   const { user } = useAuth()
-  const [profiles, setProfiles] = useState<Profile[]>([])
-  const [loading, setLoading] = useState(true)
-  const [toggling, setToggling] = useState<string | null>(null)
+  const queryClient = useQueryClient()
+  const [search, setSearch] = useState("")
 
-  const loadProfiles = async () => {
-    try {
-      const data = await fetchAllProfiles()
-      setProfiles(data)
-    } catch {
-      // silently fail
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: profiles = [], isLoading } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: fetchAllProfiles,
+  })
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { loadProfiles() }, [])
+  const toggleMutation = useMutation({
+    mutationFn: ({
+      profileId,
+      isAdmin,
+      currentUserId,
+    }: {
+      profileId: string
+      isAdmin: boolean
+      currentUserId: string
+    }) => toggleAdmin(profileId, isAdmin, currentUserId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] })
+    },
+  })
 
-  const handleToggle = async (profile: Profile) => {
-    if (profile.id === user?.id) return
-    setToggling(profile.id)
-    try {
-      await toggleAdmin(profile.id, !profile.is_admin, user!.id)
-      await loadProfiles()
-    } catch {
-      // silently fail
-    } finally {
-      setToggling(null)
-    }
+  const filtered = useMemo(
+    () => profiles.filter((p) => {
+      const q = search.toLowerCase()
+      return (
+        !q ||
+        p.full_name.toLowerCase().includes(q) ||
+        p.student_number.toLowerCase().includes(q) ||
+        p.email.toLowerCase().includes(q)
+      )
+    }),
+    [profiles, search],
+  )
+
+  const handleToggle = (profile: Profile) => {
+    if (profile.id === user?.id || toggleMutation.isPending) return
+    toggleMutation.mutate({
+      profileId: profile.id,
+      isAdmin: !profile.is_admin,
+      currentUserId: user!.id,
+    })
   }
 
   return (
@@ -51,10 +67,23 @@ export default function UsersPage() {
           User Management
         </h1>
 
-        {loading ? (
+        <div className="relative mb-4">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
+          <input
+            type="text"
+            placeholder="Search by name, student number, or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+          />
+        </div>
+
+        {isLoading ? (
           <p className="text-center text-[#666] py-10">Loading users...</p>
-        ) : profiles.length === 0 ? (
-          <p className="text-center text-[#666] py-10">No users found.</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-[#666] py-10">
+            {search ? "No users match your search." : "No users found."}
+          </p>
         ) : (
           <div className="bg-white rounded-xl shadow border border-[#d9d9d9] overflow-hidden">
             <table className="w-full text-sm">
@@ -68,7 +97,7 @@ export default function UsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#d9d9d9]">
-                {profiles.map((p) => (
+                {filtered.map((p) => (
                   <tr key={p.id} className="text-[#222]">
                     <td className="px-4 py-3">{p.full_name}</td>
                     <td className="px-4 py-3">{p.student_number}</td>
@@ -89,11 +118,11 @@ export default function UsersPage() {
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => handleToggle(p)}
-                        disabled={toggling === p.id || p.id === user?.id}
+                        disabled={toggleMutation.isPending || p.id === user?.id}
                         className="px-3 py-1 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
                         title={p.id === user?.id ? "Cannot modify your own role" : undefined}
                       >
-                        {toggling === p.id
+                        {toggleMutation.isPending && toggleMutation.variables?.profileId === p.id
                           ? "..."
                           : p.is_admin
                             ? "Remove Admin"
