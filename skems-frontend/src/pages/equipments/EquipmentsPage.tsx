@@ -260,6 +260,16 @@ export default function EquipmentsPage() {
         <div className="flex-1 min-h-0 overflow-y-auto">
           {isLoading ? (
             <p className="text-center text-[#666] py-10">Loading equipment...</p>
+          ) : equipments.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full min-h-62.5 text-center">
+              <p className="text-[#666] mb-4">There are no equipments.</p>
+              <button
+                onClick={() => setEditingEquipment(null)}
+                className="px-5 py-2.5 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer"
+              >
+                Add Equipment
+              </button>
+            </div>
           ) : filtered.length === 0 ? (
             <p className="text-center text-[#666] py-10">No equipment found.</p>
           ) : (
