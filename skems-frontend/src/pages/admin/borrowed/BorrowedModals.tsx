@@ -5,8 +5,8 @@ import { FiX } from "react-icons/fi"
 /* ───────── Edit Modal ───────── */
 interface EditModalProps {
   editing: BorrowRecord | null
-  editConditionBefore: string[]
-  editConditionAfter: string[]
+  editConditionBefore: string
+  editConditionAfter: string
   editNotes: string
   onToggleBefore: (c: string) => void
   onToggleAfter: (c: string) => void
@@ -59,14 +59,15 @@ export function EditModal({
                 <label
                   key={c}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
-                    editConditionBefore.includes(c)
+                    editConditionBefore === c
                       ? "bg-[#c89116] text-white border-[#c89116]"
                       : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
                   }`}
                 >
                   <input
-                    type="checkbox"
-                    checked={editConditionBefore.includes(c)}
+                    type="radio"
+                    name="conditionBefore"
+                    checked={editConditionBefore === c}
                     onChange={() => onToggleBefore(c)}
                     className="hidden"
                   />
@@ -83,14 +84,15 @@ export function EditModal({
                 <label
                   key={c}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
-                    editConditionAfter.includes(c)
+                    editConditionAfter === c
                       ? "bg-[#c89116] text-white border-[#c89116]"
                       : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
                   }`}
                 >
                   <input
-                    type="checkbox"
-                    checked={editConditionAfter.includes(c)}
+                    type="radio"
+                    name="conditionAfter"
+                    checked={editConditionAfter === c}
                     onChange={() => onToggleAfter(c)}
                     className="hidden"
                   />

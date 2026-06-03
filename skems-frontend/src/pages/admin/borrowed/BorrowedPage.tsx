@@ -22,10 +22,10 @@ export default function BorrowedPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
   const [search, setSearch] = useState("")
 
-  const [editConditionBefore, setEditConditionBefore] = useState<string[]>([])
-  const [editConditionAfter, setEditConditionAfter] = useState<string[]>([])
+  const [editConditionBefore, setEditConditionBefore] = useState<string>("")
+  const [editConditionAfter, setEditConditionAfter] = useState<string>("")
   const [editNotes, setEditNotes] = useState("")
-
+  
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
@@ -113,21 +113,9 @@ export default function BorrowedPage() {
 
   const handleEdit = (r: BorrowRecord) => {
     setEditing(r)
-    setEditConditionBefore(r.condition_before ? r.condition_before.split(",").map((s) => s.trim()).filter(Boolean) : [])
-    setEditConditionAfter(r.condition_after ? r.condition_after.split(",").map((s) => s.trim()).filter(Boolean) : [])
+    setEditConditionBefore(r.condition_before || "")
+    setEditConditionAfter(r.condition_after || "")
     setEditNotes(r.notes || "")
-  }
-
-  const toggleCondition = (
-    list: string[],
-    setter: (v: string[]) => void,
-    value: string,
-  ) => {
-    setter(
-      list.includes(value)
-        ? list.filter((c) => c !== value)
-        : [...list, value],
-    )
   }
 
   const handleSave = async () => {
@@ -136,8 +124,8 @@ export default function BorrowedPage() {
       await updateMutation.mutateAsync({
         equipmentId: editing.equipment_id,
         updates: {
-          condition_before: editConditionBefore.join(","),
-          condition_after: editConditionAfter.join(","),
+          condition_before: editConditionBefore,
+          condition_after: editConditionAfter,
           notes: editNotes,
         },
       })
@@ -248,8 +236,8 @@ export default function BorrowedPage() {
         editConditionBefore={editConditionBefore}
         editConditionAfter={editConditionAfter}
         editNotes={editNotes}
-        onToggleBefore={(c) => toggleCondition(editConditionBefore, setEditConditionBefore, c)}
-        onToggleAfter={(c) => toggleCondition(editConditionAfter, setEditConditionAfter, c)}
+        onToggleBefore={setEditConditionBefore}
+        onToggleAfter={setEditConditionAfter}
         onNotesChange={setEditNotes}
         onClose={() => setEditing(null)}
         onSave={handleSave}

@@ -1,10 +1,10 @@
-export const CONDITION_OPTIONS = ["Good", "Fair", "Poor", "Damaged"] as const
+export const CONDITION_OPTIONS = ["Working", "Needs Repair", "Broken", "Not checked"] as const
 
 export const conditionColors: Record<string, string> = {
-  Good: "bg-green-100 text-green-700",
-  Fair: "bg-yellow-100 text-yellow-700",
-  Poor: "bg-orange-100 text-orange-700",
-  Damaged: "bg-red-100 text-red-700",
+  Working: "bg-green-100 text-green-700",
+  "Needs Repair": "bg-[#ffd870] text-[#222]",
+  Broken: "bg-red-100 text-red-700",
+  "Not checked": "bg-gray-100 text-[#666]",
 }
 
 export const MOBILE_ITEMS = 3
