@@ -7,7 +7,7 @@ import {
   deleteRequest,
 } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
-import { FiSearch, FiChevronDown, FiTrash2 } from "react-icons/fi"
+import { FiSearch, FiChevronDown, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi"
 
 const MOBILE_ITEMS = 5
 const DESKTOP_ITEMS = 10
@@ -221,15 +221,17 @@ export default function RequestsPage() {
                               <button
                                 onClick={() => handleStatus(r.id, "Approved")}
                                 disabled={approveMutation.isPending}
-                                className="px-3 py-2 text-xs bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white rounded transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                title="Approve"
                               >
-                                {approveMutation.isPending && approveMutation.variables === r.id ? "..." : "Approve"}
+                                {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={15} />}
                               </button>
                               <button
                                 onClick={() => handleStatus(r.id, "Denied")}
-                                className="px-3 py-2 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors cursor-pointer"
+                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer"
+                                title="Deny"
                               >
-                                Deny
+                                <FiXCircle size={15} />
                               </button>
                             </>
                           )}
@@ -335,15 +337,17 @@ export default function RequestsPage() {
                               <button
                                 onClick={() => handleStatus(r.id, "Approved")}
                                 disabled={approveMutation.isPending}
-                                className="flex-1 py-2.5 text-xs font-bold bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                title="Approve"
                               >
-                                {approveMutation.isPending && approveMutation.variables === r.id ? "..." : "Approve"}
+                                {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={16} />}
                               </button>
                               <button
                                 onClick={() => handleStatus(r.id, "Denied")}
-                                className="flex-1 py-2.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors cursor-pointer"
+                                className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer"
+                                title="Deny"
                               >
-                                Deny
+                                <FiXCircle size={16} />
                               </button>
                           </>
                         )}
