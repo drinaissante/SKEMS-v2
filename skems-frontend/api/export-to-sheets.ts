@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-const SK_ICON_URL = "https://mlsupahnubyokjczsevp.supabase.co/storage/v1/object/public/sk-equipments/sk_icon.jpg";
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SK_ICON_URL = `${SUPABASE_URL}/storage/v1/object/public/sk-equipments/sk_icon.jpg`;
+const QR_BASE_URL = `${SUPABASE_URL}/storage/v1/object/public/sk-equipments/qr-codes`;
 
 interface Equipment {
   id: string;
@@ -61,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ ok: false, error: "Sheet not found" });
     }
 
-    const range = "Inventory!A:K";
+    const range = "Inventory!A:L";
 
     const getRes = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -92,11 +94,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       eq.dateBorrowed,
       eq.dateDue,
       eq.comments,
+      `=IMAGE("${QR_BASE_URL}/${eq.id}.png")`,
     ];
 
     const dataRows = items.map(mapRow);
 
-    const clearRange = `Inventory!A${dataStartRow}:K${headerRowIdx + existingRows.length}`;
+    const clearRange = `Inventory!A${dataStartRow}:L${headerRowIdx + existingRows.length}`;
     await sheets.spreadsheets.values.clear({
       spreadsheetId,
       range: clearRange,
@@ -106,7 +109,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const writeEndRow = dataStartRow + dataRows.length - 1;
       await sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `Inventory!A${dataStartRow}:K${writeEndRow}`,
+        range: `Inventory!A${dataStartRow}:L${writeEndRow}`,
         valueInputOption: "USER_ENTERED",
         requestBody: { values: dataRows },
       });
@@ -114,18 +117,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId,
         requestBody: {
-          requests: [{
-            updateDimensionProperties: {
-              range: {
-                sheetId,
-                dimension: "ROWS",
-                startIndex: dataStartRow - 1,
-                endIndex: dataStartRow + dataRows.length - 1,
+          requests: [
+            {
+              updateDimensionProperties: {
+                range: {
+                  sheetId,
+                  dimension: "ROWS",
+                  startIndex: dataStartRow - 1,
+                  endIndex: dataStartRow + dataRows.length - 1,
+                },
+                properties: { pixelSize: 80 },
+                fields: "pixelSize",
               },
-              properties: { pixelSize: 80 },
-              fields: "pixelSize",
             },
-          }],
+          ],
         },
       });
     }
