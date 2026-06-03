@@ -182,6 +182,14 @@ export default function ScanPage() {
   const submitFormScan = useCallback(async () => {
     if (!editableFields || !user) return
 
+    const fieldKeys = Object.keys(fieldLabels) as (keyof typeof fieldLabels)[]
+    for (const key of fieldKeys) {
+      if (!(editableFields[key] as string)?.trim()) {
+        setError(`"${fieldLabels[key]}" is required.`)
+        return
+      }
+    }
+
     for (let i = 0; i < editableFields.equipment_list.length; i++) {
       if (!selectedEquipments[i]) {
         setError(`Select equipment for item "${editableFields.equipment_list[i].item}".`)
@@ -255,8 +263,8 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-3 py-8 bg-[#f5f5f5]">
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-lg p-5 sm:p-6 border border-[#d9d9d9]">
+    <div className="min-h-screen flex flex-col px-3 py-8 bg-[#f5f5f5]">
+      <div className="w-full max-w-lg bg-white rounded-xl shadow-lg px-3 py-2 sm:p-6 border border-[#d9d9d9]">
         <div className="flex gap-1 mb-5 bg-[#f5f5f5] rounded-lg p-1">
           <button
             onClick={() => { resetFormMode(); setMode("qr") }}
@@ -374,7 +382,7 @@ export default function ScanPage() {
               {(Object.keys(fieldLabels) as (keyof typeof fieldLabels)[]).map((key) => (
                 <div key={key}>
                   <label className="block text-xs font-medium text-[#666] mb-0.5">
-                    {fieldLabels[key]}
+                    {fieldLabels[key]} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -523,7 +531,7 @@ export default function ScanPage() {
               </button>
               <button
                 onClick={submitFormScan}
-                disabled={!aiAcknowledged || !reviewConfirmed || isScanningForm || Object.values(selectedEquipments).some(v => v === null)}
+                disabled={!aiAcknowledged || !reviewConfirmed || isScanningForm || editableFields.equipment_list.some((_, i) => selectedEquipments[i] == null)}
                 className="flex-1 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm"
               >
                 {isScanningForm ? "Submitting..." : "Submit"}
