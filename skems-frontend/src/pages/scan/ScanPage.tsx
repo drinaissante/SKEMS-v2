@@ -362,7 +362,7 @@ export default function ScanPage() {
 
       {showResultModal && editableFields && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-xl py-8 px-5 sm:py-8 sm:px-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg sm:text-xl font-bold text-[#222] mb-4">
               Extracted Form Data
             </h3>
@@ -516,7 +516,7 @@ export default function ScanPage() {
 
             <div className="flex gap-3 mt-5">
               <button
-                onClick={() => setShowResultModal(false)}
+                onClick={() => { setShowResultModal(false); setCapturedImage(null) }}
                 className="flex-1 py-2.5 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
               >
                 Cancel
