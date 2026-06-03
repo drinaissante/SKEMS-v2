@@ -1,203 +1,64 @@
-import { useRef, useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
-import jsQR from "jsqr"
 import { fetchEquipments, type Equipment } from "../../services/api"
 import { supabase, addBorrowedItem } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import type { ScannedFormFields } from "../../services/borrow"
+import QRScanner from "./QRScanner"
+import FormScanner from "./FormScanner"
 
 type ScanMode = "qr" | "form"
 
 export default function ScanPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
-
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const captureCanvasRef = useRef<HTMLCanvasElement>(null)
+  const queryClient = useQueryClient()
 
   const [mode, setMode] = useState<ScanMode>("qr")
 
-  const [scanning, setScanning] = useState(false)
-  const [result, setResult] = useState("")
-  const [error, setError] = useState("")
-  const [showPermissionModal, setShowPermissionModal] = useState(false)
-
-  const streamRef = useRef<MediaStream | null>(null)
-  const animFrameRef = useRef<number>(0)
-
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [isScanningForm, setIsScanningForm] = useState(false)
-  const [scanResult, setScanResult] = useState<ScannedFormFields | null>(null)
   const [showResultModal, setShowResultModal] = useState(false)
   const [editableFields, setEditableFields] = useState<ScannedFormFields | null>(null)
   const [aiAcknowledged, setAiAcknowledged] = useState(false)
+  const [reviewConfirmed, setReviewConfirmed] = useState(false)
   const [formSuccess, setFormSuccess] = useState(false)
-  const queryClient = useQueryClient()
-  const [matchedEquipments, setMatchedEquipments] = useState<Equipment[]>([])
-  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([])
+  const [error, setError] = useState("")
   const [showAiConsentModal, setShowAiConsentModal] = useState(false)
-  const [unmatchedItems, setUnmatchedItems] = useState<string[]>([])
-  const [formQtyMap, setFormQtyMap] = useState<Map<string, number>>(new Map())
-  const [matchedItemMap, setMatchedItemMap] = useState<Map<string, string>>(new Map())
 
-  const stopCamera = useCallback(() => {
-    if (animFrameRef.current)
-      cancelAnimationFrame(animFrameRef.current)
+  const [selectedEquipments, setSelectedEquipments] = useState<
+    Record<number, { id: string; name: string; owner: string; condition: string } | null>
+  >({})
 
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop())
-      streamRef.current = null
-    }
-  }, [])
+  const [showItemSelector, setShowItemSelector] = useState(false)
+  const [selectorItemIndex, setSelectorItemIndex] = useState(0)
+  const [selectorMatches, setSelectorMatches] = useState<Equipment[]>([])
+  const [selectorSelectedId, setSelectorSelectedId] = useState("")
+  const [selectorSearch, setSelectorSearch] = useState("")
 
-  const startCamera = useCallback(async () => {
-    setError("")
-    setResult("")
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "environment",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      })
-
-      streamRef.current = stream
-      setScanning(true)
-    } catch {
-      setError("Camera access was denied.")
-      setShowPermissionModal(true)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (mode === "form") {
-      if (capturedImage || isScanningForm || scanResult) return
-    }
-    if (!scanning || !streamRef.current) return
-
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    if (!video || !canvas) return
-
-    video.srcObject = streamRef.current
-    video.play()
-
-    const tick = () => {
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return
-
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-        const code = jsQR(imageData.data, imageData.width, imageData.height)
-
-        if (code) {
-          setResult(code.data)
-          setScanning(false)
-          stopCamera()
-
-          const value = code.data
-
-          const goToRequest = (id: string, name?: string) => {
-            const params = new URLSearchParams()
-            params.set("equipment", id)
-            if (name) params.set("name", name)
-            navigate(`/request?${params.toString()}`)
-          }
-
-          if (value.startsWith("http://") || value.startsWith("https://")) {
-            fetch(value)
-              .then((res) => res.json())
-              .then((data) => goToRequest(data.item_id || value, data.equipment_name))
-              .catch(() => goToRequest(value))
-          } else {
-            goToRequest(value)
-          }
-          return
-        }
-      }
-
-      animFrameRef.current = requestAnimationFrame(tick)
+  const handleQrScan = useCallback((code: string) => {
+    const goToRequest = (id: string, name?: string) => {
+      const params = new URLSearchParams()
+      params.set("equipment", id)
+      if (name) params.set("name", name)
+      navigate(`/request?${params.toString()}`)
     }
 
-    animFrameRef.current = requestAnimationFrame(tick)
-
-    return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
-    }
-  }, [scanning, navigate, stopCamera, mode, capturedImage, isScanningForm, scanResult])
-
-  const captureFrame = useCallback(() => {
-    const video = videoRef.current
-    const captureCanvas = captureCanvasRef.current
-    if (!video || !captureCanvas) return
-
-    const container = video.parentElement
-    const maxDim = 800
-
-    const videoW = video.videoWidth
-    const videoH = video.videoHeight
-
-    if (container) {
-      const containerW = container.clientWidth
-      const containerH = container.clientHeight || containerW * 0.75
-      const scale = Math.max(containerW / videoW, containerH / videoH)
-      const visibleW = containerW / scale
-      const visibleH = containerH / scale
-      const sx = (videoW - visibleW) / 2
-      const sy = (videoH - visibleH) / 2
-
-      let outW = visibleW
-      let outH = visibleH
-      if (outW > maxDim || outH > maxDim) {
-        const ratio = Math.min(maxDim / outW, maxDim / outH)
-        outW = Math.round(outW * ratio)
-        outH = Math.round(outH * ratio)
-      }
-
-      captureCanvas.width = outW
-      captureCanvas.height = outH
-      const ctx = captureCanvas.getContext("2d")
-      if (!ctx) return
-      ctx.drawImage(video, sx, sy, visibleW, visibleH, 0, 0, outW, outH)
+    if (code.startsWith("http://") || code.startsWith("https://")) {
+      fetch(code)
+        .then(res => res.json())
+        .then(data => goToRequest(data.item_id || code, data.equipment_name))
+        .catch(() => goToRequest(code))
     } else {
-      let w = videoW
-      let h = videoH
-      if (w > maxDim || h > maxDim) {
-        const ratio = Math.min(maxDim / w, maxDim / h)
-        w = Math.round(w * ratio)
-        h = Math.round(h * ratio)
-      }
-      captureCanvas.width = w
-      captureCanvas.height = h
-      const ctx = captureCanvas.getContext("2d")
-      if (!ctx) return
-      ctx.drawImage(video, 0, 0, w, h)
+      goToRequest(code)
     }
+  }, [navigate])
 
-    const dataUrl = captureCanvas.toDataURL("image/jpeg", 0.7)
+  const handleCapture = useCallback((dataUrl: string) => {
     setCapturedImage(dataUrl)
-    stopCamera()
-    setScanning(false)
-  }, [stopCamera])
-
-  const retakeForm = useCallback(() => {
-    setCapturedImage(null)
-    setIsScanningForm(false)
-    setScanResult(null)
-    setShowResultModal(false)
-    setError("")
-    setUnmatchedItems([])
-    setMatchedEquipments([])
-    setSelectedEquipmentIds([])
-    startCamera()
-  }, [startCamera])
+    setShowAiConsentModal(true)
+  }, [])
 
   const scanFormImage = useCallback(async () => {
     if (!capturedImage) return
@@ -206,7 +67,9 @@ export default function ScanPage() {
 
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.access_token) {
-      throw new Error("Authentication required")
+      setError("Authentication required")
+      setIsScanningForm(false)
+      return
     }
 
     const base64 = capturedImage.split(",")[1]
@@ -240,9 +103,9 @@ export default function ScanPage() {
         return_location: data.fields.return_location ?? "",
       }
 
-      setScanResult(fields)
       setEditableFields({ ...fields })
       setAiAcknowledged(false)
+      setReviewConfirmed(false)
 
       let equipData = queryClient.getQueryData<Equipment[]>(["equipments"])
       if (!equipData) {
@@ -254,31 +117,23 @@ export default function ScanPage() {
       const validEquipData = equipData.filter(
         e => e.condition !== "Broken" && e.condition !== "Unavailable"
       )
-      const formQty = new Map<string, number>()
-      for (const eqItem of fields.equipment_list) {
-        if (eqItem.item) {
-          formQty.set(eqItem.item.toLowerCase(), parseInt(eqItem.quantity) || 1)
+
+      const initialSelection: Record<number, { id: string; name: string; owner: string; condition: string } | null> = {}
+      for (let i = 0; i < fields.equipment_list.length; i++) {
+        const itemName = fields.equipment_list[i].item?.toLowerCase() ?? ""
+        if (!itemName) {
+          initialSelection[i] = null
+          continue
         }
+        const match = validEquipData.find(e =>
+          e.name.toLowerCase().includes(itemName) ||
+          e.category.toLowerCase().includes(itemName)
+        )
+        initialSelection[i] = match
+          ? { id: match.id, name: match.name, owner: match.owner ?? "", condition: match.condition }
+          : null
       }
-      const matchedItem = new Map<string, string>()
-      const itemNames = fields.equipment_list.map(e => e.item.toLowerCase()).filter(Boolean)
-      const matches = validEquipData.filter((eq) => {
-        const name = eq.name.toLowerCase()
-        const found = itemNames.find((part) => name.includes(part))
-        if (found) {
-          matchedItem.set(eq.id, found)
-          return true
-        }
-        return false
-      })
-      const unmatched = fields.equipment_list
-        .filter(e => e.item && !matches.some(m => m.name.toLowerCase().includes(e.item.toLowerCase())))
-        .map(e => e.item)
-      setMatchedEquipments(matches)
-      setMatchedItemMap(matchedItem)
-      setFormQtyMap(formQty)
-      setUnmatchedItems(unmatched)
-      setSelectedEquipmentIds([])
+      setSelectedEquipments(initialSelection)
 
       setShowResultModal(true)
       setIsScanningForm(false)
@@ -286,23 +141,50 @@ export default function ScanPage() {
       setError(err instanceof Error ? err.message : "Scan failed")
       setIsScanningForm(false)
     }
-  }, [capturedImage])
+  }, [capturedImage, queryClient])
+
+  const openItemSelector = useCallback((idx: number) => {
+    if (!editableFields) return
+    const itemName = editableFields.equipment_list[idx]?.item ?? ""
+    setSelectorItemIndex(idx)
+    setSelectorSearch(itemName)
+
+    const equipData = queryClient.getQueryData<Equipment[]>(["equipments"]) ?? []
+    const validEquipData = equipData.filter(
+      e => e.condition !== "Broken" && e.condition !== "Unavailable"
+    )
+    const q = itemName.toLowerCase()
+    const matches = validEquipData.filter(e =>
+      e.name.toLowerCase().includes(q) ||
+      e.category.toLowerCase().includes(q)
+    )
+    setSelectorMatches(matches)
+    setSelectorSelectedId(matches.length > 0 ? matches[0].id : "")
+    setShowItemSelector(true)
+  }, [editableFields, queryClient])
+
+  const confirmItemSelection = useCallback(() => {
+    if (!selectorSelectedId) return
+    const equipData = queryClient.getQueryData<Equipment[]>(["equipments"]) ?? []
+    const validEquipData = equipData.filter(
+      e => e.condition !== "Broken" && e.condition !== "Unavailable"
+    )
+    const eq = validEquipData.find(e => e.id === selectorSelectedId)
+    if (!eq) return
+
+    setSelectedEquipments(prev => ({
+      ...prev,
+      [selectorItemIndex]: { id: eq.id, name: eq.name, owner: eq.owner ?? "", condition: eq.condition },
+    }))
+    setShowItemSelector(false)
+  }, [selectorSelectedId, selectorItemIndex, queryClient])
 
   const submitFormScan = useCallback(async () => {
     if (!editableFields || !user) return
-    if (selectedEquipmentIds.length === 0) return
 
-    const selectionCount = new Map<string, number>()
-    for (const eqId of selectedEquipmentIds) {
-      const itemName = matchedItemMap.get(eqId)
-      if (itemName) {
-        selectionCount.set(itemName, (selectionCount.get(itemName) || 0) + 1)
-      }
-    }
-    for (const [name, count] of selectionCount) {
-      const maxQty = formQtyMap.get(name) || 1
-      if (count > maxQty) {
-        setError(`Cannot borrow more than ${maxQty} of "${name}".`)
+    for (let i = 0; i < editableFields.equipment_list.length; i++) {
+      if (!selectedEquipments[i]) {
+        setError(`Select equipment for item "${editableFields.equipment_list[i].item}".`)
         return
       }
     }
@@ -311,26 +193,21 @@ export default function ScanPage() {
     setError("")
 
     try {
-      const itemQtyMap = new Map<string, {item: string}>()
-      for (const eq of matchedEquipments) {
-        const found = editableFields.equipment_list.find(e =>
-          e.item && eq.name.toLowerCase().includes(e.item.toLowerCase())
-        )
-        if (found) {
-          itemQtyMap.set(eq.id, { item: eq.name })
-        }
-      }
+      for (let i = 0; i < editableFields.equipment_list.length; i++) {
+        const fi = editableFields.equipment_list[i]
+        const sel = selectedEquipments[i]
+        if (!sel) continue
 
-      for (const eqId of selectedEquipmentIds) {
-        const info = itemQtyMap.get(eqId)
+        const qty = parseInt(fi.quantity) || 1
+
         await addBorrowedItem({
-          equipment_id: eqId,
-          quantity: 1,
+          equipment_id: sel.id,
+          quantity: qty,
           full_name: editableFields.full_name,
           date: editableFields.date,
           position_department: editableFields.position_department,
           owner: editableFields.owner,
-          equipment_requested: info?.item || "",
+          equipment_requested: sel.name,
           purpose_of_use: editableFields.purpose_of_use,
           date_time_borrowing: editableFields.date_time_borrowing,
           date_time_return: editableFields.date_time_return,
@@ -347,44 +224,25 @@ export default function ScanPage() {
     } finally {
       setIsScanningForm(false)
     }
-  }, [editableFields, user, selectedEquipmentIds, matchedEquipments, matchedItemMap, formQtyMap])
+  }, [editableFields, user, selectedEquipments])
 
   const resetFormMode = useCallback(() => {
     setCapturedImage(null)
     setIsScanningForm(false)
-    setScanResult(null)
     setShowResultModal(false)
     setEditableFields(null)
     setAiAcknowledged(false)
+    setReviewConfirmed(false)
     setFormSuccess(false)
     setError("")
-    setUnmatchedItems([])
-    setMatchedEquipments([])
-    setSelectedEquipmentIds([])
+    setSelectedEquipments({})
     setShowAiConsentModal(false)
+    setShowItemSelector(false)
   }, [])
-
-  const handleOpenCamera = useCallback(() => {
-    setShowPermissionModal(true)
-  }, [])
-
-  const handleContinue = useCallback(() => {
-    setShowPermissionModal(false)
-    startCamera()
-  }, [startCamera])
-
-  const handleCancel = useCallback(() => {
-    setShowPermissionModal(false)
-    setError("")
-  }, [])
-
-  useEffect(() => {
-    return () => stopCamera()
-  }, [stopCamera])
 
   if (!user) return null
 
-  const fieldLabels: Record<string, string> = {
+  const fieldLabels: Record<keyof Omit<ScannedFormFields, "equipment_list">, string> = {
     full_name: "Full Name",
     date: "Date",
     position_department: "Position/Department",
@@ -403,9 +261,7 @@ export default function ScanPage() {
           <button
             onClick={() => { resetFormMode(); setMode("qr") }}
             className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors cursor-pointer ${
-              mode === "qr"
-                ? "bg-[#c89116] text-white"
-                : "text-[#666] hover:text-[#222]"
+              mode === "qr" ? "bg-[#c89116] text-white" : "text-[#666] hover:text-[#222]"
             }`}
           >
             QR Scanner
@@ -413,156 +269,19 @@ export default function ScanPage() {
           <button
             onClick={() => { resetFormMode(); setMode("form") }}
             className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors cursor-pointer ${
-              mode === "form"
-                ? "bg-[#c89116] text-white"
-                : "text-[#666] hover:text-[#222]"
+              mode === "form" ? "bg-[#c89116] text-white" : "text-[#666] hover:text-[#222]"
             }`}
           >
             Form Scanner
           </button>
         </div>
 
-        {mode === "qr" && (
-          <>
-            {!scanning && !result && (
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-full max-w-70 aspect-square border-2 border-dashed border-[#a6a6a6] rounded-xl flex items-center justify-center text-[#a6a6a6]">
-                  <svg className="w-12 h-12 sm:w-16 sm:h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                <button
-                  onClick={handleOpenCamera}
-                  className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm sm:text-base"
-                >
-                  Open Camera
-                </button>
-              </div>
-            )}
-
-            {scanning && (
-              <div className="relative w-full h-[60vh] bg-black rounded-lg overflow-hidden">
-                <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline autoPlay />
-                <p className="text-center text-sm text-[#666] mt-3">Scanning for QR code...</p>
-                <button
-                  onClick={stopCamera}
-                  className="mt-4 w-full sm:w-auto px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors cursor-pointer text-sm"
-                >
-                  Stop Camera
-                </button>
-              </div>
-            )}
-
-            {result && (
-              <div className="text-center">
-                <p className="text-green-600 font-bold mb-2">QR Code Detected!</p>
-                <p className="text-sm text-[#666] break-all">Redirecting...</p>
-              </div>
-            )}
-          </>
-        )}
+        {mode === "qr" && <QRScanner onScan={handleQrScan} />}
 
         {mode === "form" && (
           <>
             {!capturedImage && !isScanningForm && !formSuccess && (
-              <div className="flex flex-col items-center gap-4">
-                {scanning ? (
-                  <div className="relative w-full aspect-[3/4] bg-black rounded-lg overflow-hidden">
-                    <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline autoPlay />
-                    <button
-                      onClick={captureFrame}
-                      className="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-full transition-colors cursor-pointer text-sm shadow-lg"
-                    >
-                      Capture
-                    </button>
-                    <button
-                      onClick={stopCamera}
-                      className="absolute top-3 right-3 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors cursor-pointer"
-                    >
-                      Stop
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-4 w-full">
-                    <div className="w-full max-w-70 aspect-[3/4] border-2 border-dashed border-[#a6a6a6] rounded-xl flex items-center justify-center text-[#a6a6a6]">
-                      <svg className="w-12 h-12 sm:w-16 sm:h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <p className="text-sm text-[#666] text-center">
-                      Capture a photo of the filled-out borrowing form
-                    </p>
-                    <button
-                      onClick={handleOpenCamera}
-                      className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm sm:text-base"
-                    >
-                      Open Camera
-                    </button>
-                    <div className="w-full">
-                      <p className="text-xs text-[#a6a6a6] text-center mb-2">or upload an image</p>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (!file) return
-                          const reader = new FileReader()
-                          reader.onload = (ev) => {
-                            const img = new Image()
-                            img.onload = () => {
-                              const c = document.createElement("canvas")
-                              const maxDim = 800
-                              let w = img.width
-                              let h = img.height
-                              if (w > maxDim || h > maxDim) {
-                                const ratio = Math.min(maxDim / w, maxDim / h)
-                                w = Math.round(w * ratio)
-                                h = Math.round(h * ratio)
-                              }
-                              c.width = w
-                              c.height = h
-                              const ctx = c.getContext("2d")
-                              if (!ctx) return
-                              ctx.drawImage(img, 0, 0, w, h)
-                              setCapturedImage(c.toDataURL("image/jpeg", 0.7))
-                            }
-                            img.src = ev.target?.result as string
-                          }
-                          reader.readAsDataURL(file)
-                        }}
-                        className="w-full text-sm text-[#666] file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-[#c89116] file:text-white hover:file:bg-[#caa453] cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {capturedImage && !isScanningForm && !showResultModal && !formSuccess && (
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-full aspect-[3/4] bg-black rounded-lg overflow-hidden">
-                  <img
-                    src={capturedImage}
-                    alt="Captured form"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="flex gap-3 w-full">
-                  <button
-                    onClick={retakeForm}
-                    className="flex-1 py-2.5 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm font-medium"
-                  >
-                    Retake
-                  </button>
-                  <button
-                    onClick={() => setShowAiConsentModal(true)}
-                    className="flex-1 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
-                  >
-                    Scan Form
-                  </button>
-                </div>
-              </div>
+              <FormScanner onCapture={handleCapture} />
             )}
 
             {isScanningForm && (
@@ -587,7 +306,7 @@ export default function ScanPage() {
                 </p>
                 <div className="flex gap-3 justify-center">
                   <button
-                    onClick={() => { resetFormMode(); startCamera() }}
+                    onClick={resetFormMode}
                     className="px-4 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
                   >
                     Scan Another
@@ -608,40 +327,6 @@ export default function ScanPage() {
           <p className="text-sm text-red-600 text-center mt-4 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
         )}
       </div>
-
-      {showPermissionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm border border-[#d9d9d9]">
-            <div className="flex flex-col items-center gap-4">
-              <svg className="w-12 h-12 text-[#c89116]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <h3 className="text-lg font-bold text-[#222]">Camera Access Required</h3>
-              <p className="text-sm text-[#666] text-center">
-                To {mode === "qr" ? "scan QR codes" : "scan forms"}, SKEMS needs access to your camera. When your browser asks for permission, tap <strong>Allow</strong>.
-              </p>
-              {error && (
-                <p className="text-sm text-red-600 text-center bg-red-50 px-3 py-2 rounded-lg w-full">{error}</p>
-              )}
-              <div className="flex gap-3 w-full mt-2">
-                <button
-                  onClick={handleCancel}
-                  className="flex-1 px-4 py-2 border border-[#a6a6a6] text-[#666] rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleContinue}
-                  className="flex-1 px-4 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer text-sm font-bold"
-                >
-                  Continue
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showAiConsentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
@@ -693,7 +378,7 @@ export default function ScanPage() {
                   </label>
                   <input
                     type="text"
-                    value={(editableFields as any)[key] ?? ""}
+                    value={editableFields[key] ?? ""}
                     onChange={(e) =>
                       setEditableFields({ ...editableFields, [key]: e.target.value })
                     }
@@ -708,41 +393,84 @@ export default function ScanPage() {
                 Equipment
               </label>
               {editableFields.equipment_list.map((eqItem, idx) => (
-                <div key={idx} className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={eqItem.item}
-                    onChange={(e) => {
-                      const list = [...editableFields.equipment_list]
-                      list[idx] = { ...list[idx], item: e.target.value }
-                      setEditableFields({ ...editableFields, equipment_list: list })
-                    }}
-                    placeholder="Equipment name"
-                    className="flex-1 px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-                  />
-                  <input
-                    type="text"
-                    value={eqItem.quantity}
-                    onChange={(e) => {
-                      const list = [...editableFields.equipment_list]
-                      list[idx] = { ...list[idx], quantity: e.target.value }
-                      setEditableFields({ ...editableFields, equipment_list: list })
-                    }}
-                    placeholder="Qty"
-                    className="w-16 px-2 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] text-center"
-                  />
-                  <button
-                    onClick={() => {
-                      const list = editableFields.equipment_list.filter((_, i) => i !== idx)
-                      setEditableFields({ ...editableFields, equipment_list: list })
-                    }}
-                    className="px-2 py-2 text-red-500 hover:text-red-700 cursor-pointer"
-                    title="Remove item"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                <div key={idx} className="mb-3 p-3 bg-[#f5f5f5] rounded-lg border border-[#d9d9d9]">
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={eqItem.item}
+                      onChange={(e) => {
+                        const list = [...editableFields.equipment_list]
+                        list[idx] = { ...list[idx], item: e.target.value }
+                        setEditableFields({ ...editableFields, equipment_list: list })
+                      }}
+                      placeholder="Equipment name"
+                      className="flex-1 px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                    />
+                    <input
+                      type="number"
+                      value={eqItem.quantity}
+                      onChange={(e) => {
+                        const list = [...editableFields.equipment_list]
+                        list[idx] = { ...list[idx], quantity: e.target.value }
+                        setEditableFields({ ...editableFields, equipment_list: list })
+                      }}
+                      min={1}
+                      placeholder="Qty"
+                      className="w-16 px-2 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] text-center"
+                    />
+                    <button
+                      onClick={() => {
+                        const list = editableFields.equipment_list.filter((_, i) => i !== idx)
+                        setEditableFields({ ...editableFields, equipment_list: list })
+                        setSelectedEquipments(prev => {
+                          const next = { ...prev }
+                          delete next[idx]
+                          return next
+                        })
+                      }}
+                      className="px-2 py-2 text-red-500 hover:text-red-700 cursor-pointer"
+                      title="Remove item"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="mt-2">
+                    <label className="block text-xs font-medium text-[#666] mb-1">Selected Equipment</label>
+                    {selectedEquipments[idx] ? (
+                      <div className="flex items-center justify-between p-2 bg-white rounded-lg border border-[#d9d9d9]">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-sm font-medium text-[#222] truncate">{selectedEquipments[idx]!.name}</span>
+                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+                            selectedEquipments[idx]!.condition === "Working" ? "bg-green-100 text-green-700" :
+                            selectedEquipments[idx]!.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
+                            selectedEquipments[idx]!.condition === "Broken" ? "bg-red-100 text-red-700" :
+                            selectedEquipments[idx]!.condition === "Not checked" ? "bg-gray-100 text-gray-700" :
+                            "bg-purple-100 text-purple-700"
+                          }`}>{selectedEquipments[idx]!.condition}</span>
+                          <span className="text-xs text-[#a6a6a6]">{selectedEquipments[idx]!.id}</span>
+                        </div>
+                        <button
+                          onClick={() => openItemSelector(idx)}
+                          className="ml-2 px-2 py-1 text-xs bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded transition-colors cursor-pointer shrink-0"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between p-2 bg-white rounded-lg border border-red-200">
+                        <span className="text-sm text-red-600">No equipment selected</span>
+                        <button
+                          onClick={() => openItemSelector(idx)}
+                          className="px-2 py-1 text-xs bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded transition-colors cursor-pointer"
+                        >
+                          Select
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
               <button
@@ -761,111 +489,7 @@ export default function ScanPage() {
               </button>
             </div>
 
-            {editableFields.equipment_list.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-[#d9d9d9]">
-                <label className="block text-xs font-medium text-[#666] mb-2">
-                  Select Equipment from Inventory
-                </label>
-                {editableFields.equipment_list.map((fi, fiIdx) => {
-                  const maxQty = formQtyMap.get(fi.item.toLowerCase()) || 1
-                  const groupItems = matchedEquipments.filter(
-                    (eq) => matchedItemMap.get(eq.id) === fi.item.toLowerCase()
-                  )
-                  if (groupItems.length === 0) return null
-
-                  const owners = new Map<string, typeof groupItems>()
-                  for (const eq of groupItems) {
-                    const owner = eq.owner || "Unknown"
-                    if (!owners.has(owner)) owners.set(owner, [])
-                    owners.get(owner)!.push(eq)
-                  }
-                  const selectedForItem = selectedEquipmentIds.filter((id) =>
-                    groupItems.some((g) => g.id === id)
-                  ).length
-
-                  return (
-                    <div key={fiIdx} className="mb-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                      <p className="text-xs font-medium text-green-700 mb-1">
-                        {fi.item} — max {maxQty}
-                      </p>
-                      <p className="text-xs text-green-600 mb-2">
-                        Selected: {selectedForItem} / {maxQty}
-                      </p>
-                      <div className="space-y-2">
-                        {[...owners.entries()].map(([owner, items]) => (
-                          <div key={owner}>
-                            <p className="text-xs text-[#666] font-medium mb-1">Owner: {owner}</p>
-                            <div className="space-y-1">
-                              {items.map((eq) => {
-                                const isSelected = selectedEquipmentIds.includes(eq.id)
-                                const atMax = selectedForItem >= maxQty && !isSelected
-                                return (
-                                  <label
-                                    key={eq.id}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
-                                      isSelected
-                                        ? "bg-green-100 border-green-300 text-green-800"
-                                        : atMax
-                                          ? "border-[#d9d9d9] text-[#a6a6a6] cursor-not-allowed"
-                                          : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
-                                    }`}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      disabled={atMax}
-                                      onChange={() =>
-                                        setSelectedEquipmentIds((prev) =>
-                                          prev.includes(eq.id)
-                                            ? prev.filter((id) => id !== eq.id)
-                                            : [...prev, eq.id],
-                                        )
-                                      }
-                                      className="accent-[#c89116]"
-                                    />
-                                    <span className="font-medium">{eq.name}</span>
-                                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ml-1 ${
-                                      eq.condition === "Working" ? "bg-green-100 text-green-700" :
-                                      eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
-                                      eq.condition === "Broken" ? "bg-red-100 text-red-700" :
-                                      "bg-gray-100 text-[#666]"
-                                    }`}>{eq.condition}</span>
-                                    <span className="text-xs text-[#a6a6a6]">({eq.id})</span>
-                                  </label>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-
-                {unmatchedItems.length > 0 && (
-                  <div className="p-3 bg-red-50 rounded-lg border border-red-200 mb-3">
-                    <p className="text-xs font-medium text-red-700 mb-1">
-                      No match found — remove or add to inventory first:
-                    </p>
-                    <ul className="text-xs text-red-600 list-disc list-inside">
-                      {unmatchedItems.map((item, i) => (
-                        <li key={i}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {matchedEquipments.length === 0 && unmatchedItems.length === 0 && (
-                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-xs font-medium text-red-700">
-                      No matching equipment found in inventory. You must add the equipment to inventory first before recording a borrow.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="mt-5 border-t border-[#d9d9d9] pt-4">
+            <div className="mt-5 border-t border-[#d9d9d9] pt-4 space-y-3">
               <label className="flex items-start gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -874,24 +498,32 @@ export default function ScanPage() {
                   className="mt-0.5 accent-[#c89116]"
                 />
                 <span className="text-sm text-[#666]">
-                  I acknowledge that AI was used to parse this form and the results may contain errors. I have reviewed and verified the information above.
+                  I acknowledge that AI assisted in parsing this form and results may contain errors.
+                </span>
+              </label>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={reviewConfirmed}
+                  onChange={(e) => setReviewConfirmed(e.target.checked)}
+                  className="mt-0.5 accent-[#c89116]"
+                />
+                <span className="text-sm text-[#666]">
+                  I have reviewed, verified, and confirmed that all details are correct.
                 </span>
               </label>
             </div>
 
             <div className="flex gap-3 mt-5">
               <button
-                onClick={() => {
-                  setShowResultModal(false)
-                  setScanResult(null)
-                }}
+                onClick={() => setShowResultModal(false)}
                 className="flex-1 py-2.5 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={submitFormScan}
-                disabled={!aiAcknowledged || isScanningForm || selectedEquipmentIds.length === 0 || unmatchedItems.length > 0}
+                disabled={!aiAcknowledged || !reviewConfirmed || isScanningForm || Object.values(selectedEquipments).some(v => v === null)}
                 className="flex-1 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm"
               >
                 {isScanningForm ? "Submitting..." : "Submit"}
@@ -901,8 +533,102 @@ export default function ScanPage() {
         </div>
       )}
 
-      <canvas ref={canvasRef} className="hidden" />
-      <canvas ref={captureCanvasRef} className="hidden" />
+      {showItemSelector && editableFields && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm sm:max-w-md mx-3">
+            <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">
+              Select Equipment
+            </p>
+            <p className="text-sm text-[#666] mb-4 text-center">
+              For "<span className="font-medium text-[#222]">{editableFields.equipment_list[selectorItemIndex]?.item ?? ""}</span>"
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#666] mb-1">Search</label>
+                <input
+                  type="text"
+                  value={selectorSearch}
+                  onChange={(e) => {
+                    const q = e.target.value
+                    setSelectorSearch(q)
+                    const equipData = queryClient.getQueryData<Equipment[]>(["equipments"]) ?? []
+                    const validEquipData = equipData.filter(
+                      eq => eq.condition !== "Broken" && eq.condition !== "Unavailable"
+                    )
+                    const lq = q.toLowerCase()
+                    setSelectorMatches(validEquipData.filter(eq =>
+                      eq.name.toLowerCase().includes(lq) ||
+                      eq.category.toLowerCase().includes(lq)
+                    ))
+                  }}
+                  placeholder="Search equipment name or category..."
+                  className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                />
+              </div>
+
+              {selectorMatches.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-[#666] mb-1">Pick one</label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {selectorMatches.map(eq => (
+                      <label
+                        key={eq.id}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors ${
+                          selectorSelectedId === eq.id
+                            ? "bg-[#c89116]/10 border-[#c89116]"
+                            : "border-[#d9d9d9] hover:bg-[#f5f5f5]"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="selector-equipment"
+                          checked={selectorSelectedId === eq.id}
+                          onChange={() => setSelectorSelectedId(eq.id)}
+                          className="accent-[#c89116]"
+                        />
+                        <div className="min-w-0">
+                          <p className="font-medium text-[#222] truncate">{eq.name}</p>
+                          <p className="text-xs text-[#a6a6a6]">{eq.id} — {eq.owner ?? "No owner"}</p>
+                        </div>
+                        <span className={`ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+                          eq.condition === "Working" ? "bg-green-100 text-green-700" :
+                          eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
+                          eq.condition === "Broken" ? "bg-red-100 text-red-700" :
+                          eq.condition === "Not checked" ? "bg-gray-100 text-gray-700" :
+                          "bg-purple-100 text-purple-700"
+                        }`}>{eq.condition}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectorMatches.length === 0 && (
+                <p className="text-sm text-[#666] text-center py-4">
+                  No matching equipment found. Try a different search term.
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowItemSelector(false)}
+                className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmItemSelection}
+                disabled={!selectorSelectedId}
+                className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm"
+              >
+                Select
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
