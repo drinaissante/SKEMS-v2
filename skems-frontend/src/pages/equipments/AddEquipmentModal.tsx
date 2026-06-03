@@ -1,13 +1,11 @@
-import { useState } from "react"
-import type { Equipment } from "../../services/api"
+import { useState, useEffect, useRef } from "react"
 import skIconFallback from "../../assets/sk_icon.jpg"
 
 interface EquipmentFormModalProps {
-  equipment?: Equipment
-  onSave: (eq: Equipment) => Promise<void>
+  equipment?: { id: string; name: string; category: string; image: string; owner: string; dateGivenToSK: string; condition: string; comments: string; borrowerName: string; dateBorrowed: string; dateDue: string }
+  onSave: (eq: { name: string; category: string; image: string; owner: string; dateGivenToSK: string; condition: string; comments: string; borrowerName: string; dateBorrowed: string; dateDue: string }, imageFile?: File | null) => Promise<void>
   onClose: () => void
   conditions: string[]
-  imageUpload: (file: File) => Promise<string>
   defaultOwner?: string
 }
 
@@ -16,7 +14,6 @@ export default function EquipmentFormModal({
   onSave,
   onClose,
   conditions,
-  imageUpload,
   defaultOwner = "",
 }: EquipmentFormModalProps) {
   const isEdit = !!equipment
@@ -29,9 +26,19 @@ export default function EquipmentFormModal({
   )
   const [condition, setCondition] = useState(equipment?.condition ?? "Working")
   const [comments, setComments] = useState(equipment?.comments ?? "")
-  const [imageUrl, setImageUrl] = useState(equipment?.image ?? "")
-  const [uploading, setUploading] = useState(false)
+  const [imageUrl] = useState(equipment?.image ?? "")
   const [saving, setSaving] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const prevPreviewRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (prevPreviewRef.current) {
+        URL.revokeObjectURL(prevPreviewRef.current)
+      }
+    }
+  }, [])
 
   const compressImage = (file: File, maxWidth: number, quality: number): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -60,16 +67,20 @@ export default function EquipmentFormModal({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setUploading(true)
     try {
       const compressed = await compressImage(file, 800, 0.7)
       const compressedFile = new File([compressed], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" })
-      const url = await imageUpload(compressedFile)
-      setImageUrl(url)
+
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+
+      const url = URL.createObjectURL(compressedFile)
+      setPreviewUrl(url)
+      prevPreviewRef.current = url
+      setImageFile(compressedFile)
     } catch {
-      // upload failed — keep existing image
-    } finally {
-      setUploading(false)
+      /* keep existing image */
     }
   }
 
@@ -78,7 +89,6 @@ export default function EquipmentFormModal({
     setSaving(true)
     try {
       await onSave({
-        id: equipment?.id ?? "",
         name,
         category,
         image: imageUrl,
@@ -89,7 +99,7 @@ export default function EquipmentFormModal({
         borrowerName: equipment?.borrowerName ?? "",
         dateBorrowed: equipment?.dateBorrowed ?? "",
         dateDue: equipment?.dateDue ?? "",
-      })
+      }, imageFile)
     } finally {
       setSaving(false)
     }
@@ -128,11 +138,8 @@ export default function EquipmentFormModal({
               onChange={handleFileChange}
               className="w-full text-sm text-[#666] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#c89116] file:text-white file:cursor-pointer"
             />
-            {uploading && (
-              <p className="text-xs text-[#666] mt-1">Uploading...</p>
-            )}
             <img
-              src={imageUrl || skIconFallback}
+              src={previewUrl || imageUrl || skIconFallback}
               alt="Preview"
               className="w-20 h-20 object-cover rounded-lg mt-2 border border-[#d9d9d9]"
               decoding="async"
@@ -236,7 +243,7 @@ export default function EquipmentFormModal({
 
           <button
             type="submit"
-            disabled={saving || uploading}
+            disabled={saving}
             className="flex-1 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
           >
             {saving ? "Saving..." : isEdit ? "Save Changes" : "Add"}

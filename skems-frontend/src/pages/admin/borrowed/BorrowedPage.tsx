@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { useToast } from "../../../components/Toast"
+import { useToast } from "../../../hooks/useToast"
 import {
   fetchBorrowedItems,
   updateBorrowedItem,
@@ -72,6 +72,7 @@ export default function BorrowedPage() {
     }) => updateBorrowedItem(equipmentId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+      showToast("Changes saved. Please export to sheets to sync.", "info")
     },
   })
 
@@ -79,6 +80,7 @@ export default function BorrowedPage() {
     mutationFn: (equipmentId: string) => deleteBorrowedItem(equipmentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+      showToast("Record deleted. Please export to sheets to sync.", "info")
     },
   })
 
@@ -88,6 +90,7 @@ export default function BorrowedPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
+      showToast("Equipment returned. Please export to sheets to sync.", "info")
     },
   })
 

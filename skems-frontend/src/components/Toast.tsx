@@ -1,19 +1,12 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
+import { useState, useCallback, type ReactNode } from "react"
 import { FiX, FiCheckCircle, FiAlertCircle, FiInfo } from "react-icons/fi"
-
-type ToastType = "success" | "error" | "info"
+import { ToastContext, type ToastType } from "../context/ToastContext"
 
 interface Toast {
   id: number
   message: string
   type: ToastType
 }
-
-interface ToastContextValue {
-  showToast: (message: string, type?: ToastType) => void
-}
-
-const ToastContext = createContext<ToastContextValue | null>(null)
 
 let nextId = 0
 
@@ -47,7 +40,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed sm:top-4 sm:right-4 sm:bottom-auto bottom-4 left-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
+      <div className="fixed sm:top-4 sm:right-4 sm:bottom-auto bottom-4 left-4 right-4 z-9999 flex flex-col gap-2 pointer-events-none">
         {toasts.map((t) => (
           <div
             key={t.id}
@@ -68,8 +61,5 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   )
 }
 
-export function useToast() {
-  const ctx = useContext(ToastContext)
-  if (!ctx) throw new Error("useToast must be used within ToastProvider")
-  return ctx
-}
+
+

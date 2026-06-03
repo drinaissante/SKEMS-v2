@@ -9,6 +9,7 @@ import {
   type Equipment,
 } from "../../services/api"
 import { uploadImage } from "../../services/supabase"
+import { useToast } from "../../hooks/useToast"
 import EquipmentFormModal from "./AddEquipmentModal"
 import EquipmentCard from "./EquipmentCard"
 import EquipmentCardPlaceholder from "./EquipmentCardPlaceholder"
@@ -21,6 +22,8 @@ const DESKTOP_ITEMS = 8
 export default function EquipmentsPage() {
   const { isAdmin, user } = useAuth()
   const queryClient = useQueryClient()
+  const { showToast } = useToast()
+  const [uploadingImages, setUploadingImages] = useState<Record<string, boolean>>({})
 
   const [search, setSearch] = useState("")
   const [filterCategory, setFilterCategory] = useState("All")
@@ -46,19 +49,30 @@ export default function EquipmentsPage() {
     mutationFn: deleteEquipment,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
+      showToast("Equipment deleted. Please export to sheets to sync.", "info")
     },
   })
 
   const saveMutation = useMutation({
-    mutationFn: async (eq: Equipment) => {
-      if (editingEquipment) {
-        await updateEquipment(eq.id, eq)
-      } else {
-        await addEquipment(eq)
+    mutationFn: async (params: { equipment: Omit<Equipment, "id">; isEdit: boolean; equipmentId?: string; imageFile?: File | null }) => {
+      let id = params.equipmentId
+      if (!params.isEdit) {
+        const created = await addEquipment({ ...params.equipment, image: "" })
+        id = created.id
+      } else if (id) {
+        await updateEquipment(id, params.equipment)
+      }
+
+      if (params.imageFile) {
+        setUploadingImages((prev) => ({ ...prev, [id!]: true }))
+        const url = await uploadImage(params.imageFile)
+        await updateEquipment(id!, { image: url })
+        setUploadingImages((prev) => ({ ...prev, [id!]: false }))
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
+      showToast("Equipment saved! Please export to sheets to sync.", "info")
     },
   })
 
@@ -138,8 +152,8 @@ export default function EquipmentsPage() {
     setDeletingId("")
   }
 
-  const handleSave = async (eq: Equipment) => {
-    await saveMutation.mutateAsync(eq)
+  const handleSave = async (eq: Omit<Equipment, "id">, imageFile?: File | null) => {
+    await saveMutation.mutateAsync({ equipment: eq, isEdit: !!editingEquipment, equipmentId: editingEquipment?.id, imageFile })
     setEditingEquipment(undefined)
   }
 
@@ -226,6 +240,7 @@ export default function EquipmentsPage() {
                     <EquipmentCard
                       key={eq.id}
                       eq={eq}
+                      uploadingImages={uploadingImages}
                       onEdit={isAdmin ? (e) => setEditingEquipment(e) : undefined}
                       onDelete={isAdmin ? handleDelete : undefined}
                     />
@@ -241,6 +256,7 @@ export default function EquipmentsPage() {
                     <EquipmentCard
                       key={eq.id}
                       eq={eq}
+                      uploadingImages={uploadingImages}
                       onEdit={isAdmin ? (e) => setEditingEquipment(e) : undefined}
                       onDelete={isAdmin ? handleDelete : undefined}
                     />
@@ -296,7 +312,6 @@ export default function EquipmentsPage() {
           onSave={handleSave}
           onClose={() => setEditingEquipment(undefined)}
           conditions={conditions}
-          imageUpload={uploadImage}
           defaultOwner={user?.fullName ?? ""}
         />
       )}

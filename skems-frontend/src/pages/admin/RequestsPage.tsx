@@ -6,7 +6,7 @@ import {
   approveAndMoveRequest,
   deleteRequest,
 } from "../../services/supabase"
-import { useToast } from "../../components/Toast"
+import { useToast } from "../../hooks/useToast"
 import { useAuth } from "../../context/AuthContext"
 import { FiSearch, FiChevronDown, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi"
 

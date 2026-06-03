@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { fetchEquipments } from "../../services/api"
 import { submitRequest } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
-import { useToast } from "../../components/Toast"
+import { useToast } from "../../hooks/useToast"
 import { FiPlus, FiTrash2 } from "react-icons/fi"
 
 function todayNow(): string {

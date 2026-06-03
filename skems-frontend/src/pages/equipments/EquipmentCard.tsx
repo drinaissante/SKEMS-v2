@@ -5,11 +5,14 @@ export default function EquipmentCard({
   eq,
   onEdit,
   onDelete,
+  uploadingImages = {},
 }: {
   eq: Equipment
   onEdit?: (eq: Equipment) => void
   onDelete?: (id: string) => void
+  uploadingImages?: Record<string, boolean>
 }) {
+  const uploading = uploadingImages[eq.id]
   return (
     <div className="bg-white rounded-xl shadow border border-[#d9d9d9] p-4 relative">
       <div className="absolute top-2 right-2 z-10 flex gap-1">
@@ -38,7 +41,11 @@ export default function EquipmentCard({
       </div>
 
       <div className="w-full h-32 bg-[#d9d9d9] rounded-lg mb-3 overflow-hidden">
-        <img src={eq.image || skIconFallback} alt={eq.name} className="w-full h-full object-cover" loading="lazy" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = skIconFallback }} />
+        {uploading ? (
+          <div className="w-full h-full bg-[#e0e0e0] animate-pulse rounded-lg" />
+        ) : (
+          <img src={eq.image || skIconFallback} alt={eq.name} className="w-full h-full object-cover" loading="lazy" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = skIconFallback }} />
+        )}
       </div>
 
       <p className="text-xs text-[#a6a6a6] font-mono mb-0.5">{eq.id}</p>
