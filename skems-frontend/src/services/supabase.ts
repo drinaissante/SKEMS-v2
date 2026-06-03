@@ -222,6 +222,7 @@ export async function fetchMyRequests(userId: string) {
     created_at: string;
     user_id: string;
     quantity: number;
+    returned_on: string | null;
   }[];
 }
 
@@ -245,13 +246,18 @@ export async function fetchAllRequests() {
     created_at: string;
     user_id: string;
     quantity: number;
+    returned_on: string | null;
   }[];
 }
 
 export async function updateRequestStatus(requestId: string, status: string) {
+  const updates: Record<string, unknown> = { status }
+  if (status === "Returned") {
+    updates.returned_on = new Date().toISOString()
+  }
   const { error } = await supabase
     .from("requests")
-    .update({ status })
+    .update(updates)
     .eq("id", requestId);
   if (error) throw error;
 }

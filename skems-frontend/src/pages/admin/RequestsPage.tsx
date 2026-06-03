@@ -17,7 +17,9 @@ function formatDateTime(iso: string) {
   if (!iso) return ""
   const d = new Date(iso)
   const pad = (n: number) => String(n).padStart(2, "0")
-  return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  const h = d.getHours()
+  const ampm = h >= 12 ? "PM" : "AM"
+  return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}, ${h % 12 || 12}:${pad(d.getMinutes())} ${ampm}`
 }
 
 export default function RequestsPage() {
@@ -108,6 +110,7 @@ export default function RequestsPage() {
                   <th className="px-3 py-2 sm:px-4 sm:py-3 hidden md:table-cell">Reason</th>
                   <th className="px-3 py-2 sm:px-4 sm:py-3">Borrowed</th>
                   <th className="px-3 py-2 sm:px-4 sm:py-3">Due</th>
+                  <th className="px-3 py-2 sm:px-4 sm:py-3 hidden sm:table-cell">Returned</th>
                   <th className="px-3 py-2 sm:px-4 sm:py-3">Status</th>
                   <th className="px-3 py-2 sm:px-4 sm:py-3">Actions</th>
                 </tr>
@@ -132,6 +135,9 @@ export default function RequestsPage() {
                     </td>
                     <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666] whitespace-nowrap text-xs">
                       {formatDateTime(r.date_due)}
+                    </td>
+                    <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666] whitespace-nowrap text-xs hidden sm:table-cell">
+                      {r.returned_on ? formatDateTime(r.returned_on) : "—"}
                     </td>
                     <td className="px-3 py-2 sm:px-4 sm:py-3">
                       <span
