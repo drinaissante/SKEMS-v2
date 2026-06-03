@@ -13,8 +13,9 @@ function todayNow(): string {
 
 interface FormItem {
   name: string
+  equipmentId: string
+  owner: string
   quantity: number
-  selectedId: string
 }
 
 export default function RequestPage() {
@@ -22,12 +23,16 @@ export default function RequestPage() {
 
   const [formItems, setFormItems] = useState<FormItem[]>([])
   const [newName, setNewName] = useState("")
-  const [newQuantity, setNewQuantity] = useState(1)
   const [reason, setReason] = useState("")
   const [dateBorrowed, setDateBorrowed] = useState("")
   const [dateDue, setDateDue] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const [showSelector, setShowSelector] = useState(false)
+  const [selectorName, setSelectorName] = useState("")
+  const [selectorMatches, setSelectorMatches] = useState<typeof equipments>([])
+  const [selectorSelectedId, setSelectorSelectedId] = useState("")
+  const [selectorQuantity, setSelectorQuantity] = useState(1)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
 
@@ -42,28 +47,58 @@ export default function RequestPage() {
     [allEquipments],
   )
 
-  const addItem = () => {
+  const getMatches = (name: string) => {
+    const q = name.toLowerCase()
+    return equipments.filter(e => e.name.toLowerCase().includes(q))
+  }
+
+  const getAvailableCount = (selectedId: string): number => {
+    if (!selectedId) return 999
+    const selected = equipments.find(e => e.id === selectedId)
+    if (!selected) return 999
+    return equipments.filter(e => e.name === selected.name).length
+  }
+
+  const handleAddClick = () => {
     if (!newName.trim()) return
-    setFormItems(prev => [...prev, { name: newName.trim(), quantity: Math.max(1, newQuantity), selectedId: "" }])
+    const matches = getMatches(newName.trim())
+    if (matches.length === 0) {
+      setError(`No matching equipment found for "${newName.trim()}".`)
+      return
+    }
+    setError("")
+    setSelectorName(newName.trim())
+    setSelectorMatches(matches)
+    setSelectorSelectedId(matches[0].id)
+    setSelectorQuantity(1)
+    setShowSelector(true)
+  }
+
+  const confirmAddItem = () => {
+    const eq = equipments.find(e => e.id === selectorSelectedId)
+    if (!eq) return
+    const max = getAvailableCount(eq.id)
+    setFormItems(prev => [...prev, {
+      name: eq.name,
+      equipmentId: eq.id,
+      owner: eq.owner ?? "",
+      quantity: Math.min(selectorQuantity, max),
+    }])
+    setShowSelector(false)
     setNewName("")
-    setNewQuantity(1)
   }
 
   const removeItem = (idx: number) => {
     setFormItems(prev => prev.filter((_, i) => i !== idx))
   }
 
-  const updateItem = (idx: number, patch: Partial<FormItem>) => {
-    setFormItems(prev => prev.map((item, i) => i === idx ? { ...item, ...patch } : item))
+  const updateQuantity = (idx: number, qty: number) => {
+    setFormItems(prev => prev.map((item, i) => {
+      if (i !== idx) return item
+      const max = getAvailableCount(item.equipmentId)
+      return { ...item, quantity: Math.min(max, Math.max(1, qty)) }
+    }))
   }
-
-  const getMatches = (name: string) => {
-    const q = name.toLowerCase()
-    return equipments.filter(e => e.name.toLowerCase().includes(q))
-  }
-
-  const allSelected = formItems.length > 0 && formItems.every(item => item.selectedId)
-  const hasUnmatched = formItems.some(item => getMatches(item.name).length === 0)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,14 +106,6 @@ export default function RequestPage() {
 
     if (formItems.length === 0) {
       setError("Add at least one equipment item.")
-      return
-    }
-    if (!allSelected) {
-      setError("Select a matching equipment for each item.")
-      return
-    }
-    if (hasUnmatched) {
-      setError("Some items have no matching equipment in inventory.")
       return
     }
     if (!reason || !dateBorrowed || !dateDue) {
@@ -99,11 +126,9 @@ export default function RequestPage() {
 
     try {
       for (const item of formItems) {
-        const eq = equipments.find(e => e.id === item.selectedId)
-        if (!eq) continue
         await submitRequest({
-          equipmentId: item.selectedId,
-          equipmentName: eq.name,
+          equipmentId: item.equipmentId,
+          equipmentName: item.name,
           borrowerName: user?.fullName ?? "",
           studentNumber: user?.studentNumber ?? "",
           reason,
@@ -137,6 +162,8 @@ export default function RequestPage() {
     })
   }
 
+  const maxQty = getAvailableCount(selectorSelectedId)
+
   return (
     <div className="min-h-screen flex items-start justify-center px-3 py-8 bg-[#f5f5f5]">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-5 sm:p-8 border border-[#d9d9d9]">
@@ -166,7 +193,7 @@ export default function RequestPage() {
 
             <div>
               <label className="block text-sm font-medium text-[#666] mb-1">Add Equipment</label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={newName}
@@ -174,69 +201,43 @@ export default function RequestPage() {
                   placeholder="Equipment name..."
                   className="flex-1 px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
                 />
-                <input
-                  type="number"
-                  min={1}
-                  value={newQuantity}
-                  onChange={(e) => setNewQuantity(Number(e.target.value))}
-                  className="w-20 px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] text-center"
-                />
                 <button
                   type="button"
-                  onClick={addItem}
-                  className="px-3 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer"
+                  onClick={handleAddClick}
+                  className="px-3 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
                 >
                   <FiPlus size={18} />
+                  <span className="sm:hidden">Add</span>
                 </button>
               </div>
             </div>
 
             {formItems.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {formItems.map((item, idx) => {
-                  const matches = getMatches(item.name)
+                  const max = getAvailableCount(item.equipmentId)
                   return (
-                    <div key={idx} className="border border-[#d9d9d9] rounded-lg p-3 space-y-2">
-                      <div className="flex gap-2 items-center">
-                        <input
-                          type="text"
-                          value={item.name}
-                          onChange={(e) => updateItem(idx, { name: e.target.value, selectedId: "" })}
-                          className="flex-1 px-2 py-1.5 text-sm border border-[#d9d9d9] rounded focus:outline-none focus:ring-1 focus:ring-[#fdb125] text-[#222]"
-                        />
-                        <input
-                          type="number"
-                          min={1}
-                          value={item.quantity}
-                          onChange={(e) => updateItem(idx, { quantity: Math.max(1, Number(e.target.value)) })}
-                          className="w-16 px-2 py-1.5 text-sm border border-[#d9d9d9] rounded focus:outline-none focus:ring-1 focus:ring-[#fdb125] text-[#222] text-center"
-                        />
-                        <span className="text-xs text-[#a6a6a6]">×</span>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(idx)}
-                          className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors cursor-pointer"
-                        >
-                          <FiTrash2 size={16} />
-                        </button>
+                    <div key={idx} className="border border-[#d9d9d9] rounded-lg p-3 flex items-center gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#222] truncate">{item.name}</p>
+                        <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
                       </div>
-
-                      {matches.length > 0 ? (
-                        <select
-                          value={item.selectedId}
-                          onChange={(e) => updateItem(idx, { selectedId: e.target.value })}
-                          className="w-full px-2 py-1.5 text-sm border border-[#d9d9d9] rounded focus:outline-none focus:ring-1 focus:ring-[#fdb125] text-[#222] bg-white"
-                        >
-                          <option value="">-- Select equipment --</option>
-                          {matches.map(eq => (
-                            <option key={eq.id} value={eq.id}>
-                              {eq.name} ({eq.id}) — {eq.owner ?? "No owner"}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <p className="text-xs text-red-500">No matching equipment found in inventory.</p>
-                      )}
+                      <input
+                        type="number"
+                        min={1}
+                        max={max}
+                        value={item.quantity}
+                        onChange={(e) => updateQuantity(idx, Number(e.target.value))}
+                        className="w-16 px-2 py-1 text-sm border border-[#d9d9d9] rounded focus:outline-none focus:ring-1 focus:ring-[#fdb125] text-[#222] text-center"
+                      />
+                      <span className="text-xs text-[#a6a6a6]">×</span>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(idx)}
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
                     </div>
                   )
                 })}
@@ -259,19 +260,19 @@ export default function RequestPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Date & Time to be Borrowed</label>
-              <div className="flex gap-2">
-                <input type="datetime-local" value={dateBorrowed} onChange={(e) => setDateBorrowed(e.target.value)} className="flex-1 px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
-                <button type="button" onClick={() => setDateBorrowed(todayNow())} className="px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer shrink-0">Today</button>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-[#666]">Date & Time to be Borrowed</label>
+                <button type="button" onClick={() => setDateBorrowed(todayNow())} className="text-xs px-2 py-1 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded transition-colors cursor-pointer">Today</button>
               </div>
+              <input type="datetime-local" value={dateBorrowed} onChange={(e) => setDateBorrowed(e.target.value)} className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Date & Time to be Returned / Due Date</label>
-              <div className="flex gap-2">
-                <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="flex-1 px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
-                <button type="button" onClick={() => setDateDue(todayNow())} className="px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer shrink-0">Today</button>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-[#666]">Date & Time to be Returned / Due Date</label>
+                <button type="button" onClick={() => setDateDue(todayNow())} className="text-xs px-2 py-1 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded transition-colors cursor-pointer">Today</button>
               </div>
+              <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
             </div>
 
             <button
@@ -290,18 +291,15 @@ export default function RequestPage() {
               <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">Confirm Request</p>
 
               <div className="space-y-3 mb-4">
-                {formItems.map((item, idx) => {
-                  const eq = equipments.find(e => e.id === item.selectedId)
-                  return (
-                    <div key={idx} className="border border-[#d9d9d9] rounded-lg p-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-[#222] font-medium">{eq?.name ?? item.name}</span>
-                        <span className="text-[#666]">×{item.quantity}</span>
-                      </div>
-                      <p className="text-xs text-[#a6a6a6]">{eq?.id} — {eq?.owner ?? "No owner"}</p>
+                {formItems.map((item, idx) => (
+                  <div key={idx} className="border border-[#d9d9d9] rounded-lg p-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-[#222] font-medium">{item.name}</span>
+                      <span className="text-[#666]">×{item.quantity}</span>
                     </div>
-                  )
-                })}
+                    <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
+                  </div>
+                ))}
               </div>
 
               <div className="space-y-2 text-sm mb-4">
@@ -345,6 +343,67 @@ export default function RequestPage() {
                     I Understand
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showSelector && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm mx-3">
+              <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">
+                Select Equipment
+              </p>
+              <p className="text-sm text-[#666] mb-4 text-center">
+                Matching "<span className="font-medium text-[#222]">{selectorName}</span>"
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#666] mb-1">Equipment</label>
+                  <select
+                    value={selectorSelectedId}
+                    onChange={(e) => { setSelectorSelectedId(e.target.value); setSelectorQuantity(1) }}
+                    className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] bg-white"
+                  >
+                    {selectorMatches.map(eq => (
+                      <option key={eq.id} value={eq.id}>
+                        {eq.name} ({eq.id}) — {eq.owner ?? "No owner"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#666] mb-1">
+                    Quantity <span className="text-[#a6a6a6] font-normal">(max: {maxQty})</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={maxQty}
+                    value={selectorQuantity}
+                    onChange={(e) => setSelectorQuantity(Math.min(maxQty, Math.max(1, Number(e.target.value))))}
+                    className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => { setShowSelector(false); setNewName("") }}
+                  className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmAddItem}
+                  className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
+                >
+                  Add to Request
+                </button>
               </div>
             </div>
           </div>
