@@ -47,9 +47,12 @@ export default function RequestPage() {
     [allEquipments],
   )
 
-  const getMatches = (name: string) => {
-    const q = name.toLowerCase()
-    return equipments.filter(e => e.name.toLowerCase().includes(q))
+  const getMatches = (query: string) => {
+    const q = query.toLowerCase()
+    return equipments.filter(e =>
+      e.name.toLowerCase().includes(q) ||
+      e.category.toLowerCase().includes(q)
+    )
   }
 
   const getAvailableCount = (selectedId: string): number => {
