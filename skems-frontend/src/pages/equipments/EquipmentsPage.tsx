@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   fetchEquipments,
@@ -45,11 +45,21 @@ export default function EquipmentsPage() {
     queryFn: fetchEquipments,
   })
 
+  const handleSync = useCallback(async () => {
+    showToast("Updating...", "info")
+    const result = await exportToSheets(equipments)
+    if (result.ok) {
+      showToast("Successfully synced!", "success")
+    } else {
+      showToast("Sync failed: " + (result.error ?? "Unknown error"), "error")
+    }
+  }, [equipments, showToast])
+
   const deleteMutation = useMutation({
     mutationFn: deleteEquipment,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
-      showToast("Equipment deleted. Please export to sheets to sync.", "info")
+      showToast("Equipment deleted!", "info", { label: "sync now?", onClick: handleSync })
     },
   })
 
@@ -72,7 +82,7 @@ export default function EquipmentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
-      showToast("Equipment saved! Please export to sheets to sync.", "info")
+      showToast("Equipment saved!", "info", { label: "sync now?", onClick: handleSync })
     },
   })
 

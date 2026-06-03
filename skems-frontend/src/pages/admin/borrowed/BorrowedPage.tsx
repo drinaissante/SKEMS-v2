@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useToast } from "../../../hooks/useToast"
+import { fetchEquipments, exportToSheets } from "../../../services/api"
 import {
   fetchBorrowedItems,
   updateBorrowedItem,
@@ -43,6 +44,21 @@ export default function BorrowedPage() {
     queryFn: fetchBorrowedItems,
   })
 
+  const { data: equipments = [] } = useQuery({
+    queryKey: ["equipments"],
+    queryFn: fetchEquipments,
+  })
+
+  const handleSync = useCallback(async () => {
+    showToast("Updating...", "info")
+    const result = await exportToSheets(equipments)
+    if (result.ok) {
+      showToast("Successfully synced!", "success")
+    } else {
+      showToast("Sync failed: " + (result.error ?? "Unknown error"), "error")
+    }
+  }, [equipments, showToast])
+
   const filtered = useMemo(() => {
     if (!search.trim()) return records
     const q = search.toLowerCase()
@@ -72,7 +88,7 @@ export default function BorrowedPage() {
     }) => updateBorrowedItem(equipmentId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
-      showToast("Changes saved. Please export to sheets to sync.", "info")
+      showToast("Changes saved!", "info", { label: "sync now?", onClick: handleSync })
     },
   })
 
@@ -80,7 +96,7 @@ export default function BorrowedPage() {
     mutationFn: (equipmentId: string) => deleteBorrowedItem(equipmentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
-      showToast("Record deleted. Please export to sheets to sync.", "info")
+      showToast("Record deleted!", "info", { label: "sync now?", onClick: handleSync })
     },
   })
 
@@ -90,7 +106,7 @@ export default function BorrowedPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
-      showToast("Equipment returned. Please export to sheets to sync.", "info")
+      showToast("Equipment returned!", "info", { label: "sync now?", onClick: handleSync })
     },
   })
 

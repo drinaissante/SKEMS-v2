@@ -1,9 +1,14 @@
-import { createContext } from "react";
+import { createContext } from "react"
 
-export type ToastType = "success" | "error" | "info";
+export type ToastType = "success" | "error" | "info"
 
-export interface ToastContextValue {
-  showToast: (message: string, type?: ToastType) => void;
+export interface ToastAction {
+  label: string
+  onClick: () => void
 }
 
-export const ToastContext = createContext<ToastContextValue | null>(null);
+export interface ToastContextValue {
+  showToast: (message: string, type?: ToastType, action?: ToastAction) => void
+}
+
+export const ToastContext = createContext<ToastContextValue | null>(null)
