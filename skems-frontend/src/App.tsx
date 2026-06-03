@@ -69,90 +69,93 @@ function App() {
   useRequestsRealtime()
   useBorrowedRealtime()
   return (
-    <Routes>
-      <Route path='/change-password' element={<ChangePasswordPage />} />
+    <>
+      <Routes>
+        <Route path='/change-password' element={<ChangePasswordPage />} />
 
-      <Route element={<MainLayout />}>
-        <Route path='/' element={<Home />} />
-        <Route path='/login' element={<GuestRoute><LoginPage /></GuestRoute>} />
-        <Route path='/register' element={<GuestRoute><RegisterPage /></GuestRoute>} />
+        <Route element={<MainLayout />}>
+          <Route path='/' element={<Home />} />
+          <Route path='/login' element={<GuestRoute><LoginPage /></GuestRoute>} />
+          <Route path='/register' element={<GuestRoute><RegisterPage /></GuestRoute>} />
 
-        <Route
-          path='/scan'
-          element={
-            <ProtectedRoute>
-              <ScanPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path='/scan'
+            element={
+              <ProtectedRoute>
+                <ScanPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path='/request'
-          element={
-            <UserRoute>
-              <RequestPage />
-            </UserRoute>
-          }
-        />
+          <Route
+            path='/request'
+            element={
+              <UserRoute>
+                <RequestPage />
+              </UserRoute>
+            }
+          />
 
-        <Route
-          path='/profile'
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path='/profile'
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path='/my-requests'
-          element={
-            <ProtectedRoute>
-              <MyRequestsPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path='/my-requests'
+            element={
+              <ProtectedRoute>
+                <MyRequestsPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path='/equipments'
-          element={
-            <AdminRoute>
-              <EquipmentsPage />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path='/equipments'
+            element={
+              <AdminRoute>
+                <EquipmentsPage />
+              </AdminRoute>
+            }
+          />
 
-        <Route
-          path='/admin/users'
-          element={
-            <SuperAdminRoute>
-              <UsersPage />
-            </SuperAdminRoute>
-          }
-        />
+          <Route
+            path='/admin/users'
+            element={
+              <SuperAdminRoute>
+                <UsersPage />
+              </SuperAdminRoute>
+            }
+          />
 
-        <Route
-          path='/admin/requests'
-          element={
-            <AdminRoute>
-              <RequestsPage />
-            </AdminRoute>
-          }
-        />
+          <Route
+            path='/admin/requests'
+            element={
+              <AdminRoute>
+                <RequestsPage />
+              </AdminRoute>
+            }
+          />
 
-        <Route
-          path='/admin/borrowed'
-          element={
-            <AdminRoute>
-              <BorrowedPage />
-            </AdminRoute>
-          }
-        />
-
-      </Route>
-
+          <Route
+            path='/admin/borrowed'
+            element={
+              <AdminRoute>
+                <BorrowedPage />
+              </AdminRoute>
+            }
+          />
+          
+        </Route>
+      </Routes>
+      
       <Analytics />
-    </Routes>
+    </>
+
   )
 }
 
