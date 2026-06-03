@@ -15,6 +15,8 @@ import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
 
 import MainLayout from './layouts/MainLayout'
 
+import { Analytics } from '@vercel/analytics/react'
+
 import { useAuth } from './context/AuthContext'
 import { useEquipmentsRealtime } from './hooks/useEquipmentsRealtime'
 import { useRequestsRealtime } from './hooks/useRequestsRealtime'
@@ -148,6 +150,8 @@ function App() {
         />
 
       </Route>
+
+      <Analytics />
     </Routes>
   )
 }
