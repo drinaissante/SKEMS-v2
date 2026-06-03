@@ -824,6 +824,12 @@ export default function ScanPage() {
                                       className="accent-[#c89116]"
                                     />
                                     <span className="font-medium">{eq.name}</span>
+                                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ml-1 ${
+                                      eq.condition === "Working" ? "bg-green-100 text-green-700" :
+                                      eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
+                                      eq.condition === "Broken" ? "bg-red-100 text-red-700" :
+                                      "bg-gray-100 text-[#666]"
+                                    }`}>{eq.condition}</span>
                                     <span className="text-xs text-[#a6a6a6]">({eq.id})</span>
                                   </label>
                                 )

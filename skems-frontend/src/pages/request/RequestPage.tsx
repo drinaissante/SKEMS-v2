@@ -15,6 +15,7 @@ interface FormItem {
   name: string
   equipmentId: string
   owner: string
+  condition: string
   quantity: number
 }
 
@@ -85,6 +86,7 @@ export default function RequestPage() {
       name: eq.name,
       equipmentId: eq.id,
       owner: eq.owner ?? "",
+      condition: eq.condition,
       quantity: Math.min(selectorQuantity, max),
     }])
     setShowSelector(false)
@@ -224,6 +226,12 @@ export default function RequestPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-[#222] truncate">{item.name}</p>
                         <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
+                        <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${
+                          item.condition === "Working" ? "bg-green-100 text-green-700" :
+                          item.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
+                          item.condition === "Broken" ? "bg-red-100 text-red-700" :
+                          "bg-gray-100 text-[#666]"
+                        }`}>{item.condition}</span>
                       </div>
                       <input
                         type="number"
@@ -372,7 +380,7 @@ export default function RequestPage() {
                   >
                     {selectorMatches.map(eq => (
                       <option key={eq.id} value={eq.id}>
-                        {eq.name} ({eq.id}) — {eq.owner ?? "No owner"}
+                        {eq.name} ({eq.id}) — {eq.owner ?? "No owner"} — {eq.condition}
                       </option>
                     ))}
                   </select>
