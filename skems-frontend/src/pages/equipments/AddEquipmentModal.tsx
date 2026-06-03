@@ -118,7 +118,7 @@ export default function EquipmentFormModal({
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-[#666] mb-1">
-              Name
+              Name <span className="text-red-500">*</span>
             </label>
             <input
               required
@@ -168,7 +168,7 @@ export default function EquipmentFormModal({
 
           <div>
             <label className="block text-sm font-medium text-[#666] mb-1">
-              Owner
+              Owner <span className="text-red-500">*</span>
             </label>
             <input
               required
@@ -180,7 +180,7 @@ export default function EquipmentFormModal({
 
           <div>
             <label className="block text-sm font-medium text-[#666] mb-1">
-              Date Given to SK
+              Date Given to SK <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
               <input

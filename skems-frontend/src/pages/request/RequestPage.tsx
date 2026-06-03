@@ -1,11 +1,12 @@
-import { useState, useMemo, useEffect, useRef } from "react"
+import { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { useSearchParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { fetchEquipments } from "../../services/api"
+import { fetchEquipments, type Equipment } from "../../services/api"
 import { submitRequest } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import { useToast } from "../../hooks/useToast"
-import { FiPlus, FiTrash2 } from "react-icons/fi"
+import { FiPlus, FiTrash2, FiCamera } from "react-icons/fi"
+import QRScanner from "../scan/QRScanner"
 
 function todayNow(): string {
   const d = new Date()
@@ -35,6 +36,7 @@ export default function RequestPage() {
   const [submitting, setSubmitting] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [showSelector, setShowSelector] = useState(false)
+  const [showQrScanner, setShowQrScanner] = useState(false)
   const [selectorSelectedId, setSelectorSelectedId] = useState("")
   const [selectorQuantity, setSelectorQuantity] = useState(1)
   const [success, setSuccess] = useState(false)
@@ -53,27 +55,18 @@ export default function RequestPage() {
     [allEquipments],
   )
 
-  useEffect(() => {
-    if (hasAutoFilled.current || !autoEquipId || !equipments.length) return
-
-    const eq = allEquipments.find(e => e.id === autoEquipId)
-    if (!eq) return
-
+  const addToFormItems = useCallback((eq: Equipment) => {
     if (formItems.some(i => i.equipmentId === eq.id)) {
-      hasAutoFilled.current = true
-      setSearchParams({}, { replace: true })
+      showToast(`${eq.name} already in request`, "error")
       return
     }
 
     const unavailable = ["Borrowed", "Broken", "Unavailable"]
     if (unavailable.includes(eq.condition)) {
       showToast(`${eq.name} is not available for request`, "error")
-      hasAutoFilled.current = true
-      setSearchParams({}, { replace: true })
       return
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormItems(prev => [...prev, {
       name: eq.name,
       equipmentId: eq.id,
@@ -81,10 +74,48 @@ export default function RequestPage() {
       condition: eq.condition,
       quantity: 1,
     }])
-    hasAutoFilled.current = true
-    setSearchParams({}, { replace: true })
     showToast(`${eq.name} added from QR`, "success")
-  }, [autoEquipId, equipments, allEquipments, formItems, setSearchParams, showToast])
+  }, [formItems, showToast])
+
+  const handleQrScan = useCallback((code: string) => {
+    let targetId = code
+
+    if (code.startsWith("http://") || code.startsWith("https://")) {
+      try {
+        const url = new URL(code)
+        const eqId = url.searchParams.get("id")
+        if (url.pathname === "/equipment" && eqId) {
+          targetId = eqId
+        }
+      } catch { /* noop */ }
+
+      fetch(code)
+        .then(res => res.json())
+        .then(data => { targetId = data.item_id || targetId })
+        .catch(() => { /* keep original */ })
+    }
+
+    const eq = allEquipments.find(e => e.id === targetId)
+    if (!eq) {
+      showToast("Equipment not found", "error")
+      return
+    }
+
+    addToFormItems(eq)
+    setShowQrScanner(false)
+    setSearchParams({}, { replace: true })
+  }, [allEquipments, addToFormItems, showToast, setSearchParams])
+
+  useEffect(() => {
+    if (hasAutoFilled.current || !autoEquipId || !equipments.length) return
+
+    const eq = allEquipments.find(e => e.id === autoEquipId)
+    if (!eq) return
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    addToFormItems(eq)
+    hasAutoFilled.current = true
+  }, [autoEquipId, equipments, allEquipments, addToFormItems])
 
   const getAvailableCount = (selectedId: string): number => {
     if (!selectedId) return 999
@@ -226,14 +257,24 @@ export default function RequestPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-[#666] mb-1">Add Equipment <span className="text-red-500">*</span></label>
-              <button
-                type="button"
-                onClick={handleAddClick}
-                className="w-full px-3 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
-              >
-                <FiPlus size={18} />
-                <span>Add Equipment</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleAddClick}
+                  className="flex-1 px-3 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <FiPlus size={18} />
+                  <span>Add Equipment</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowQrScanner(true)}
+                  className="px-3 py-2 border border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <FiCamera size={18} />
+                  <span className="sm:hidden">Scan</span>
+                </button>
+              </div>
             </div>
 
             {formItems.length > 0 && (
@@ -476,6 +517,24 @@ export default function RequestPage() {
                   <span className="hidden sm:inline">Add to Request</span><span className="sm:hidden">Add</span>
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {showQrScanner && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 w-full max-w-lg mx-3">
+              <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">
+                Scan Equipment QR
+              </p>
+              <QRScanner onScan={handleQrScan} />
+              <button
+                type="button"
+                onClick={() => setShowQrScanner(false)}
+                className="w-full py-2 mt-4 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         )}
