@@ -31,7 +31,9 @@ export default function RequestPage() {
     queryFn: fetchEquipments,
   })
   const equipments = useMemo(
-    () => allEquipments.filter((e) => e.condition !== "Borrowed"),
+    () => allEquipments.filter(
+      (e) => e.condition !== "Borrowed" && e.condition !== "Broken" && e.condition !== "Unavailable"
+    ),
     [allEquipments],
   )
 

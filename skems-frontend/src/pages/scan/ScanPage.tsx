@@ -37,6 +37,10 @@ export default function ScanPage() {
   const queryClient = useQueryClient()
   const [matchedEquipments, setMatchedEquipments] = useState<Equipment[]>([])
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<string[]>([])
+  const [showAiConsentModal, setShowAiConsentModal] = useState(false)
+  const [unmatchedItems, setUnmatchedItems] = useState<string[]>([])
+  const [formQtyMap, setFormQtyMap] = useState<Map<string, number>>(new Map())
+  const [matchedItemMap, setMatchedItemMap] = useState<Map<string, string>>(new Map())
 
   const stopCamera = useCallback(() => {
     if (animFrameRef.current)
@@ -189,6 +193,9 @@ export default function ScanPage() {
     setScanResult(null)
     setShowResultModal(false)
     setError("")
+    setUnmatchedItems([])
+    setMatchedEquipments([])
+    setSelectedEquipmentIds([])
     startCamera()
   }, [startCamera])
 
@@ -244,13 +251,34 @@ export default function ScanPage() {
           queryFn: fetchEquipments,
         }) ?? []
       }
+      const validEquipData = equipData.filter(
+        e => e.condition !== "Broken" && e.condition !== "Unavailable"
+      )
+      const formQty = new Map<string, number>()
+      for (const eqItem of fields.equipment_list) {
+        if (eqItem.item) {
+          formQty.set(eqItem.item.toLowerCase(), parseInt(eqItem.quantity) || 1)
+        }
+      }
+      const matchedItem = new Map<string, string>()
       const itemNames = fields.equipment_list.map(e => e.item.toLowerCase()).filter(Boolean)
-      const matches = equipData.filter((eq) => {
+      const matches = validEquipData.filter((eq) => {
         const name = eq.name.toLowerCase()
-        return itemNames.some((part) => name.includes(part))
+        const found = itemNames.find((part) => name.includes(part))
+        if (found) {
+          matchedItem.set(eq.id, found)
+          return true
+        }
+        return false
       })
+      const unmatched = fields.equipment_list
+        .filter(e => e.item && !matches.some(m => m.name.toLowerCase().includes(e.item.toLowerCase())))
+        .map(e => e.item)
       setMatchedEquipments(matches)
-      setSelectedEquipmentIds(matches.map((eq) => eq.id))
+      setMatchedItemMap(matchedItem)
+      setFormQtyMap(formQty)
+      setUnmatchedItems(unmatched)
+      setSelectedEquipmentIds([])
 
       setShowResultModal(true)
       setIsScanningForm(false)
@@ -263,17 +291,33 @@ export default function ScanPage() {
   const submitFormScan = useCallback(async () => {
     if (!editableFields || !user) return
     if (selectedEquipmentIds.length === 0) return
+
+    const selectionCount = new Map<string, number>()
+    for (const eqId of selectedEquipmentIds) {
+      const itemName = matchedItemMap.get(eqId)
+      if (itemName) {
+        selectionCount.set(itemName, (selectionCount.get(itemName) || 0) + 1)
+      }
+    }
+    for (const [name, count] of selectionCount) {
+      const maxQty = formQtyMap.get(name) || 1
+      if (count > maxQty) {
+        setError(`Cannot borrow more than ${maxQty} of "${name}".`)
+        return
+      }
+    }
+
     setIsScanningForm(true)
     setError("")
 
     try {
-      const itemQtyMap = new Map<string, {item: string, quantity: string}>()
+      const itemQtyMap = new Map<string, {item: string}>()
       for (const eq of matchedEquipments) {
         const found = editableFields.equipment_list.find(e =>
           e.item && eq.name.toLowerCase().includes(e.item.toLowerCase())
         )
         if (found) {
-          itemQtyMap.set(eq.id, { item: eq.name, quantity: found.quantity })
+          itemQtyMap.set(eq.id, { item: eq.name })
         }
       }
 
@@ -281,7 +325,7 @@ export default function ScanPage() {
         const info = itemQtyMap.get(eqId)
         await addBorrowedItem({
           equipment_id: eqId,
-          quantity: parseInt(info?.quantity || "1"),
+          quantity: 1,
           full_name: editableFields.full_name,
           date: editableFields.date,
           position_department: editableFields.position_department,
@@ -303,7 +347,7 @@ export default function ScanPage() {
     } finally {
       setIsScanningForm(false)
     }
-  }, [editableFields, user, selectedEquipmentIds, matchedEquipments])
+  }, [editableFields, user, selectedEquipmentIds, matchedEquipments, matchedItemMap, formQtyMap])
 
   const resetFormMode = useCallback(() => {
     setCapturedImage(null)
@@ -314,6 +358,10 @@ export default function ScanPage() {
     setAiAcknowledged(false)
     setFormSuccess(false)
     setError("")
+    setUnmatchedItems([])
+    setMatchedEquipments([])
+    setSelectedEquipmentIds([])
+    setShowAiConsentModal(false)
   }, [])
 
   const handleOpenCamera = useCallback(() => {
@@ -508,7 +556,7 @@ export default function ScanPage() {
                     Retake
                   </button>
                   <button
-                    onClick={scanFormImage}
+                    onClick={() => setShowAiConsentModal(true)}
                     className="flex-1 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
                   >
                     Scan Form
@@ -588,6 +636,38 @@ export default function ScanPage() {
                   className="flex-1 px-4 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer text-sm font-bold"
                 >
                   Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAiConsentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm border border-[#d9d9d9]">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 bg-[#c89116]/10 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-[#c89116]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-[#222] text-center">AI Processing Notice</h3>
+              <p className="text-sm text-[#666] text-center">
+                By clicking <strong>OK</strong>, you acknowledge that the information and image captured will be used and processed by AI to extract form data.
+              </p>
+              <div className="flex gap-3 w-full mt-2">
+                <button
+                  onClick={() => setShowAiConsentModal(false)}
+                  className="flex-1 px-4 py-2 border border-[#a6a6a6] text-[#666] rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { setShowAiConsentModal(false); scanFormImage() }}
+                  className="flex-1 px-4 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer text-sm font-bold"
+                >
+                  OK
                 </button>
               </div>
             </div>
@@ -681,47 +761,101 @@ export default function ScanPage() {
               </button>
             </div>
 
-            {matchedEquipments.length > 0 && (
-              <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
-                <p className="text-xs font-medium text-green-700 mb-2">
-                  Select equipment(s) from inventory to record:
-                </p>
-                <div className="space-y-1.5">
-                  {matchedEquipments.map((eq) => (
-                    <label
-                      key={eq.id}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
-                        selectedEquipmentIds.includes(eq.id)
-                          ? "bg-green-100 border-green-300 text-green-800"
-                          : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedEquipmentIds.includes(eq.id)}
-                        onChange={() =>
-                          setSelectedEquipmentIds((prev) =>
-                            prev.includes(eq.id)
-                              ? prev.filter((id) => id !== eq.id)
-                              : [...prev, eq.id],
-                          )
-                        }
-                        className="accent-[#c89116]"
-                      />
-                      <span className="font-medium">{eq.name}</span>
-                      <span className="text-xs text-[#a6a6a6]">({eq.id})</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
+            {editableFields.equipment_list.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-[#d9d9d9]">
+                <label className="block text-xs font-medium text-[#666] mb-2">
+                  Select Equipment from Inventory
+                </label>
+                {editableFields.equipment_list.map((fi, fiIdx) => {
+                  const maxQty = formQtyMap.get(fi.item.toLowerCase()) || 1
+                  const groupItems = matchedEquipments.filter(
+                    (eq) => matchedItemMap.get(eq.id) === fi.item.toLowerCase()
+                  )
+                  if (groupItems.length === 0) return null
 
-            {matchedEquipments.length === 0 && editableFields.equipment_list.length > 0 && (
-              <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
-                <p className="text-xs font-medium text-red-700">
-                  No matching equipment found in inventory for "{editableFields.equipment_list.map(e => e.item).join(", ")}".<br />
-                  You must add the equipment to inventory first before recording a borrow.
-                </p>
+                  const owners = new Map<string, typeof groupItems>()
+                  for (const eq of groupItems) {
+                    const owner = eq.owner || "Unknown"
+                    if (!owners.has(owner)) owners.set(owner, [])
+                    owners.get(owner)!.push(eq)
+                  }
+                  const selectedForItem = selectedEquipmentIds.filter((id) =>
+                    groupItems.some((g) => g.id === id)
+                  ).length
+
+                  return (
+                    <div key={fiIdx} className="mb-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <p className="text-xs font-medium text-green-700 mb-1">
+                        {fi.item} — max {maxQty}
+                      </p>
+                      <p className="text-xs text-green-600 mb-2">
+                        Selected: {selectedForItem} / {maxQty}
+                      </p>
+                      <div className="space-y-2">
+                        {[...owners.entries()].map(([owner, items]) => (
+                          <div key={owner}>
+                            <p className="text-xs text-[#666] font-medium mb-1">Owner: {owner}</p>
+                            <div className="space-y-1">
+                              {items.map((eq) => {
+                                const isSelected = selectedEquipmentIds.includes(eq.id)
+                                const atMax = selectedForItem >= maxQty && !isSelected
+                                return (
+                                  <label
+                                    key={eq.id}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
+                                      isSelected
+                                        ? "bg-green-100 border-green-300 text-green-800"
+                                        : atMax
+                                          ? "border-[#d9d9d9] text-[#a6a6a6] cursor-not-allowed"
+                                          : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      disabled={atMax}
+                                      onChange={() =>
+                                        setSelectedEquipmentIds((prev) =>
+                                          prev.includes(eq.id)
+                                            ? prev.filter((id) => id !== eq.id)
+                                            : [...prev, eq.id],
+                                        )
+                                      }
+                                      className="accent-[#c89116]"
+                                    />
+                                    <span className="font-medium">{eq.name}</span>
+                                    <span className="text-xs text-[#a6a6a6]">({eq.id})</span>
+                                  </label>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {unmatchedItems.length > 0 && (
+                  <div className="p-3 bg-red-50 rounded-lg border border-red-200 mb-3">
+                    <p className="text-xs font-medium text-red-700 mb-1">
+                      No match found — remove or add to inventory first:
+                    </p>
+                    <ul className="text-xs text-red-600 list-disc list-inside">
+                      {unmatchedItems.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {matchedEquipments.length === 0 && unmatchedItems.length === 0 && (
+                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                    <p className="text-xs font-medium text-red-700">
+                      No matching equipment found in inventory. You must add the equipment to inventory first before recording a borrow.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -751,7 +885,7 @@ export default function ScanPage() {
               </button>
               <button
                 onClick={submitFormScan}
-                disabled={!aiAcknowledged || isScanningForm || selectedEquipmentIds.length === 0}
+                disabled={!aiAcknowledged || isScanningForm || selectedEquipmentIds.length === 0 || unmatchedItems.length > 0}
                 className="flex-1 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm"
               >
                 {isScanningForm ? "Submitting..." : "Submit"}

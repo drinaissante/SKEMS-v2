@@ -71,6 +71,7 @@ Rules:
 - If a field is not visible or empty, set it to null — do not guess
 - Extract exactly what is written on the form
 - Preserve numbers and punctuation exactly as written
+- Only extract the quantity and equipment name exactly as written on the form — do not infer or calculate quantities from inventory or context
 - equipment_list: extract each equipment item as a separate object with "item" and "quantity" keys. For example: "Two (2) Bendiro Lights" → {"item": "Bendiro Lights", "quantity": "2"}; "One (1) Light Diffuser" → {"item": "Light Diffuser", "quantity": "1"}. If no quantity is specified, use "1".
 - Also handle patterns where the quantity comes after the equipment name: "Bendiro Lights - 2" → {"item": "Bendiro Lights", "quantity": "2"}; "Light Stand: 1" → {"item": "Light Stand", "quantity": "1"}; "Lights (2)" → {"item": "Lights", "quantity": "2"}.
 - If the form uses a numbered/bulleted list (1., 2., a., b., •, etc.), extract ALL items as separate entries in the array.
@@ -79,20 +80,26 @@ Rules:
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     console.error("Method not allowed:", req.method);
-    return res.status(405).json({ error: "Something went wrong. Please try again in a few minutes." });
+    return res.status(405).json({
+      error: "Something went wrong. Please try again in a few minutes.",
+    });
   }
 
   const { image } = req.body;
   if (!image) {
     console.error("No image provided");
-    return res.status(400).json({ error: "Something went wrong. Please try again in a few minutes." });
+    return res.status(400).json({
+      error: "Something went wrong. Please try again in a few minutes.",
+    });
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
   if (!supabaseUrl || !supabaseKey) {
     console.error("Supabase env vars not configured");
-    return res.status(500).json({ error: "Something went wrong. Please try again in a few minutes." });
+    return res.status(500).json({
+      error: "Something went wrong. Please try again in a few minutes.",
+    });
   }
 
   const authHeader = req.headers.authorization;
@@ -106,7 +113,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     auth: { persistSession: false },
   });
 
-  const { data: { user: authUser }, error: authError } = await authClient.auth.getUser(token);
+  const {
+    data: { user: authUser },
+    error: authError,
+  } = await authClient.auth.getUser(token);
   if (authError || !authUser) {
     console.error("Auth check failed:", authError?.message);
     return res.status(401).json({ error: "Authentication required." });
@@ -120,19 +130,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (profileError || !profile?.is_admin) {
     console.error("Admin check failed:", profileError?.message);
-    return res.status(403).json({ error: "You do not have permission to scan forms." });
+    return res
+      .status(403)
+      .json({ error: "You do not have permission to scan forms." });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error("GEMINI_API_KEY not configured");
-    return res.status(500).json({ error: "Something went wrong. Please try again in a few minutes." });
+    return res.status(500).json({
+      error: "Something went wrong. Please try again in a few minutes.",
+    });
   }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const MODELS = ["gemini-2.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3-flash", "gemini-3.5-flash"];
+    const MODELS = [
+      "gemini-3.1-flash-lite",
+      "gemini-2.5-flash-lite",
+      "gemini-3-flash",
+      "gemini-3.5-flash",
+    ];
 
     let lastError: unknown;
     for (const modelName of MODELS) {
@@ -152,7 +171,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
-          console.error("Gemini response did not contain valid JSON:", text.substring(0, 500));
+          console.error(
+            "Gemini response did not contain valid JSON:",
+            text.substring(0, 500),
+          );
           return res.status(500).json({
             error: "Something went wrong. Please try again in a few minutes.",
           });
@@ -160,17 +182,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const fields = JSON.parse(jsonMatch[0]);
         if (Array.isArray(fields.equipment_list)) {
-          fields.equipment_list = fields.equipment_list.map((e: {item?: string, quantity?: string}) => {
-            let name = (e.item || "").trim()
-            let qty = e.quantity || ""
-            const trail = name.match(/\s*[—–\-:]\s*(\d+)\s*$|\((\d+)\)\s*$|\s*x(\d+)\s*$/i)
-            if (trail) {
-              const n = trail[1] || trail[2] || trail[3]
-              if (n && (!qty || qty === "1")) qty = n
-              name = name.replace(/[—–\-:]\s*\d+\s*$/, "").replace(/\(\d+\)\s*$/, "").replace(/x\d+\s*$/i, "").trim()
-            }
-            return { item: name, quantity: qty || "1" }
-          })
+          fields.equipment_list = fields.equipment_list.map(
+            (e: { item?: string; quantity?: string }) => {
+              let name = (e.item || "").trim();
+              let qty = e.quantity || "";
+              const trail = name.match(
+                /\s*[—–\-:]\s*(\d+)\s*$|\((\d+)\)\s*$|\s*x(\d+)\s*$/i,
+              );
+              if (trail) {
+                const n = trail[1] || trail[2] || trail[3];
+                if (n && (!qty || qty === "1")) qty = n;
+                name = name
+                  .replace(/[—–\-:]\s*\d+\s*$/, "")
+                  .replace(/\(\d+\)\s*$/, "")
+                  .replace(/x\d+\s*$/i, "")
+                  .trim();
+              }
+              return { item: name, quantity: qty || "1" };
+            },
+          );
         }
 
         try {
@@ -178,14 +208,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { data: equipData, error: equipErr } = await authClient
               .from("equipments")
               .select("equipment_id, name");
+
             if (!equipErr && equipData && equipData.length > 0) {
-              fields.equipment_list = fields.equipment_list.map((e: {item: string, quantity: string}) => {
-                const match = findBestMatch(e.item, equipData);
-                if (match) {
-                  return { item: match.name, quantity: e.quantity };
-                }
-                return e;
-              });
+              fields.equipment_list = fields.equipment_list.map(
+                (e: { item: string; quantity: string }) => {
+                  const match = findBestMatch(e.item, equipData);
+
+                  if (match) {
+                    return { item: match.name, quantity: e.quantity };
+                  }
+
+                  return e;
+                },
+              );
             }
           }
         } catch (e) {
@@ -198,17 +233,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    const msg = lastError instanceof Error ? lastError.message : "Unknown error";
+    const msg =
+      lastError instanceof Error ? lastError.message : "Unknown error";
+
     if (/spikes|high demand/i.test(msg)) {
       console.error("All models overloaded:", msg);
       return res.status(503).json({
-        error: "Service is currently unavailable due to high demand. Please try again later.",
+        error:
+          "Service is currently unavailable due to high demand. Please try again later.",
       });
     }
+
     console.error("All models failed:", msg);
-    return res.status(500).json({ error: "Something went wrong. Please try again in a few minutes." });
+    return res.status(500).json({
+      error: "Something went wrong. Please try again in a few minutes.",
+    });
   } catch (error) {
     console.error("Unexpected error:", error);
-    return res.status(500).json({ error: "Something went wrong. Please try again in a few minutes." });
+    return res.status(500).json({
+      error: "Something went wrong. Please try again in a few minutes.",
+    });
   }
 }

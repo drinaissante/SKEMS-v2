@@ -14,7 +14,7 @@ import EquipmentCard from "./EquipmentCard"
 import EquipmentCardPlaceholder from "./EquipmentCardPlaceholder"
 import { useAuth } from "../../context/AuthContext"
 
-const conditions = ["Working", "Needs Repair", "Broken", "Not checked"]
+const conditions = ["Working", "Needs Repair", "Broken", "Not checked", "Unavailable"]
 const MOBILE_ITEMS = 3
 const DESKTOP_ITEMS = 8
 
