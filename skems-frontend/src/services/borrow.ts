@@ -31,6 +31,7 @@ export interface BorrowRecord {
   return_location: string
   condition_before: string
   condition_after: string
+  returned_on: string | null
   notes: string
   scanned_by: string
   created_at: string

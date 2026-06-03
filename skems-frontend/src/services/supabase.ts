@@ -297,15 +297,35 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
 }
 
 export async function updateRequestStatus(requestId: string, status: string) {
-  const updates: Record<string, unknown> = { status }
-  if (status === "Returned") {
-    updates.returned_on = new Date().toISOString()
-  }
   const { error } = await supabase
     .from("requests")
-    .update(updates)
+    .update({ status })
     .eq("id", requestId);
   if (error) throw error;
+}
+
+export async function returnBorrowedItem(equipmentId: string, conditionAfter: string) {
+  const { error: recordErr } = await supabase
+    .from("borrow_records")
+    .update({
+      returned_on: new Date().toISOString(),
+      condition_after: conditionAfter,
+    })
+    .eq("equipment_id", equipmentId);
+
+  if (recordErr) throw recordErr;
+
+  const { error: equipErr } = await supabase
+    .from("equipments")
+    .update({
+      condition: conditionAfter,
+      borrower_name: null,
+      date_borrowed: null,
+      date_due: null,
+    })
+    .eq("equipment_id", equipmentId);
+
+  if (equipErr) console.error("Failed to reset equipment:", equipErr);
 }
 
 export interface NewBorrowRecord {
@@ -346,6 +366,7 @@ export async function fetchBorrowedItems() {
     return_location: string
     condition_before: string
     condition_after: string
+    returned_on: string | null
     notes: string
     scanned_by: string
     created_at: string

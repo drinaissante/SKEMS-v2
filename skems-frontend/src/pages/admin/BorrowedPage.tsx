@@ -4,6 +4,7 @@ import {
   fetchBorrowedItems,
   updateBorrowedItem,
   deleteBorrowedItem,
+  returnBorrowedItem,
 } from "../../services/supabase"
 import type { BorrowRecord } from "../../services/borrow"
 import { FiChevronDown, FiSearch } from "react-icons/fi"
@@ -60,6 +61,8 @@ export default function BorrowedPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
+  const [returnConfirmId, setReturnConfirmId] = useState<string | null>(null)
+  const [returnCondition, setReturnCondition] = useState<string>("")
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -107,6 +110,14 @@ export default function BorrowedPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (equipmentId: string) => deleteBorrowedItem(equipmentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+    },
+  })
+
+  const returnMutation = useMutation({
+    mutationFn: ({ equipmentId, conditionAfter }: { equipmentId: string; conditionAfter: string }) =>
+      returnBorrowedItem(equipmentId, conditionAfter),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
     },
@@ -191,9 +202,10 @@ export default function BorrowedPage() {
                     <th className="px-4 py-3 font-medium">Equipment ID</th>
                     <th className="px-4 py-3 font-medium">Equipment</th>
                     <th className="px-4 py-3 font-medium text-center">Qty</th>
-                    <th className="px-4 py-3 font-medium whitespace-nowrap">Date Borrowed</th>
-                    <th className="px-4 py-3 font-medium whitespace-nowrap">Date Due</th>
+                    <th className="px-4 py-3 font-medium whitespace-nowrap">Borrowed</th>
                     <th className="px-4 py-3 font-medium text-center">Before</th>
+                    <th className="px-4 py-3 font-medium whitespace-nowrap">Due</th>
+                    <th className="px-4 py-3 font-medium whitespace-nowrap">Returned On</th>
                     <th className="px-4 py-3 font-medium text-center">After</th>
                     <th className="px-4 py-3 font-medium text-center">Notes</th>
                     <th className="px-4 py-3 font-medium text-center">Actions</th>
@@ -210,12 +222,20 @@ export default function BorrowedPage() {
                       <td className="px-4 py-3 min-w-40">{r.equipment_requested}</td>
                       <td className="px-4 py-3 text-center font-medium">{r.quantity}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-xs">{formatDate(r.date_time_borrowing)}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-xs">{formatDate(r.date_time_return)}</td>
                       <td className="px-4 py-3 text-center">{ConditionBadges(r.condition_before)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs">{formatDate(r.date_time_return)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-xs">{r.returned_on ? formatDate(r.returned_on) : "—"}</td>
                       <td className="px-4 py-3 text-center">{ConditionBadges(r.condition_after)}</td>
                       <td className="px-4 py-3 text-center text-xs text-[#666] min-w-24">{r.notes || "—"}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex gap-1 justify-center">
+                          <button
+                            onClick={() => setReturnConfirmId(r.equipment_id)}
+                            disabled={returnMutation.isPending && returnMutation.variables === r.equipment_id}
+                            className="px-4 py-2 text-xs font-bold rounded-lg bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                          >
+                            {returnMutation.isPending && returnMutation.variables === r.equipment_id ? "..." : "Returned"}
+                          </button>
                           <button
                             onClick={() => handleEdit(r)}
                             className="px-4 py-2 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white transition-colors cursor-pointer"
@@ -260,23 +280,37 @@ export default function BorrowedPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="font-bold px-1.5 py-0.5 rounded bg-[#caa453]/20 text-[#caa453] shrink-0">Borrowed</span>
-                      <span className="text-[#666]">{formatDate(r.date_time_borrowing)}</span>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="flex items-center gap-1.5">
+                        <span className="font-bold px-1.5 py-0.5 rounded bg-[#caa453]/20 text-[#caa453] shrink-0">Borrowed</span>
+                        <span className="text-[#666]">{formatDate(r.date_time_borrowing)}</span>
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 shrink-0">Before</span>
+                        {ConditionBadges(r.condition_before)}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 text-xs">
                       <span className="font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 shrink-0">Due</span>
                       <span className="text-[#666]">{formatDate(r.date_time_return)}</span>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs mt-2">
-                    <span className="font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 shrink-0">Before</span>
-                    {ConditionBadges(r.condition_before)}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs mt-1">
-                    <span className="font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 shrink-0">After</span>
-                    {ConditionBadges(r.condition_after)}
+                    {r.returned_on ? (
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="flex items-center gap-1.5">
+                          <span className="font-bold px-1.5 py-0.5 rounded bg-[#a6a6a6] text-white shrink-0">Returned</span>
+                          <span className="text-[#666]">{formatDate(r.returned_on)}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 shrink-0">After</span>
+                          {ConditionBadges(r.condition_after)}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <span className="font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 shrink-0">After</span>
+                        {ConditionBadges(r.condition_after)}
+                      </div>
+                    )}
                   </div>
 
                   {expandedRow === r.equipment_id && (
@@ -302,6 +336,13 @@ export default function BorrowedPage() {
                         <span className="font-medium text-[#222] text-right max-w-48">{r.notes || "—"}</span>
                       </div>
                       <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={() => setReturnConfirmId(r.equipment_id)}
+                          disabled={returnMutation.isPending && returnMutation.variables === r.equipment_id}
+                          className="flex-1 py-2.5 text-xs font-bold rounded-lg bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        >
+                          {returnMutation.isPending && returnMutation.variables === r.equipment_id ? "..." : "Returned"}
+                        </button>
                         <button
                           onClick={() => handleEdit(r)}
                           className="flex-1 py-2.5 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white transition-colors cursor-pointer"
@@ -492,6 +533,58 @@ export default function BorrowedPage() {
                 className="flex-1 py-2 bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
               >
                 {deleteMutation.isPending ? "..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {returnConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm">
+            <p className="text-base sm:text-lg font-bold text-[#222] mb-2 text-center">Mark as Returned</p>
+            <p className="text-sm text-[#666] mb-4 text-center">
+              Select the condition of the equipment after return.
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center mb-6">
+              {CONDITION_OPTIONS.map((c) => (
+                <label
+                  key={c}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
+                    returnCondition === c
+                      ? "bg-[#c89116] text-white border-[#c89116]"
+                      : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="returnCondition"
+                    checked={returnCondition === c}
+                    onChange={() => setReturnCondition(c)}
+                    className="hidden"
+                  />
+                  {c}
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setReturnConfirmId(null); setReturnCondition("") }}
+                className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!returnCondition) return
+                  returnMutation.mutate({ equipmentId: returnConfirmId, conditionAfter: returnCondition })
+                  setReturnConfirmId(null)
+                  setReturnCondition("")
+                }}
+                disabled={!returnCondition || returnMutation.isPending}
+                className="flex-1 py-2 bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
+              >
+                {returnMutation.isPending ? "..." : "Confirm Return"}
               </button>
             </div>
           </div>
