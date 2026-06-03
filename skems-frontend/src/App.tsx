@@ -13,6 +13,7 @@ import ProfilePage from './pages/profile/ProfilePage'
 import UsersPage from './pages/admin/UsersPage'
 import RequestsPage from './pages/admin/RequestsPage'
 import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
+import NotFound from './pages/NotFound'
 
 import MainLayout from './layouts/MainLayout'
 import { ToastProvider } from './components/Toast'
@@ -162,6 +163,8 @@ function App() {
               </AdminRoute>
             }
           />
+
+          <Route path='*' element={<NotFound />} />
           
         </Route>
       </Routes>
