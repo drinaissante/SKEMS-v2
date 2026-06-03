@@ -55,6 +55,7 @@ export default function RequestsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+      queryClient.invalidateQueries({ queryKey: ["equipments"] })
     },
     onError: (err) => {
       alert("Failed to approve request: " + err.message)

@@ -120,6 +120,7 @@ export default function BorrowedPage() {
       returnBorrowedItem(equipmentId, conditionAfter),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+      queryClient.invalidateQueries({ queryKey: ["equipments"] })
     },
   })
 

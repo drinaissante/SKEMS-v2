@@ -56,17 +56,13 @@ export default function EquipmentCard({
       <div className="flex items-center justify-between mt-3">
         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
           eq.condition === "Working" ? "bg-green-100 text-green-700" :
+          eq.condition === "Borrowed" ? "bg-[#c89116] text-white" :
           eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
           eq.condition === "Broken" ? "bg-red-100 text-red-700" :
           "bg-gray-100 text-[#666]"
         }`}>
           {eq.condition}
         </span>
-        {eq.borrowerName && (
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#c89116] text-white">
-            Borrowed
-          </span>
-        )}
       </div>
 
       {eq.borrowerName && (

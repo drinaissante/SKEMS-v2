@@ -69,6 +69,7 @@ Rules:
 - Use proper spacing between words (e.g. "JamesGabrielDeLuna" → "James Gabriel De Luna")
 - For dates use format like "March 30, 2026"
 - If a field is not visible or empty, set it to null — do not guess
+- If the image does not contain a borrowing form or any readable form data, return ALL fields as null and equipment_list as an empty array — do not hallucinate or guess values
 - Extract exactly what is written on the form
 - Preserve numbers and punctuation exactly as written
 - Only extract the quantity and equipment name exactly as written on the form — do not infer or calculate quantities from inventory or context

@@ -114,6 +114,21 @@ export default function ScanPage() {
         return_location: data.fields.return_location ?? "",
       }
 
+      const hasContent =
+        fields.full_name?.trim() ||
+        fields.purpose_of_use?.trim() ||
+        fields.date_time_borrowing?.trim() ||
+        fields.date_time_return?.trim() ||
+        (Array.isArray(fields.equipment_list) &&
+          fields.equipment_list.length > 0 &&
+          fields.equipment_list.some((e: { item?: string }) => e.item?.trim()))
+
+      if (!hasContent) {
+        setError("No form detected. Please capture a clear image of the borrowing form.")
+        setIsScanningForm(false)
+        return
+      }
+
       setEditableFields({ ...fields })
       setAiAcknowledged(false)
       setReviewConfirmed(false)
@@ -274,7 +289,7 @@ export default function ScanPage() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen flex flex-col px-3 py-8 bg-[#f5f5f5]">
+    <div className="min-h-screen flex flex-col items-center px-3 py-8 bg-[#f5f5f5]">
       <div className="w-full max-w-lg bg-white rounded-xl shadow-lg px-3 py-2 sm:p-6 border border-[#d9d9d9]">
         <div className="flex gap-1 mb-5 bg-[#f5f5f5] rounded-lg p-1">
           <button
@@ -318,10 +333,10 @@ export default function ScanPage() {
                   </svg>
                 </div>
                 <p className="text-base sm:text-lg font-bold text-green-600 mb-2">
-                  Borrow Record Created!
+                  Request Submitted!
                 </p>
                 <p className="text-sm text-[#666] mb-4">
-                  The borrowed item has been recorded and equipment synced.
+                  The request has been submitted for approval.
                 </p>
                 <div className="flex gap-3 justify-center">
                   <button
