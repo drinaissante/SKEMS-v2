@@ -25,7 +25,6 @@ export default function BorrowedDesktopTable({
         <thead>
           <tr className="bg-[#222] text-white text-left">
             <th className="px-4 py-3 font-medium">Borrower</th>
-            <th className="px-4 py-3 font-medium">Equipment ID</th>
             <th className="px-4 py-3 font-medium">Equipment</th>
             <th className="px-4 py-3 font-medium text-center">Qty</th>
             <th className="px-4 py-3 font-medium whitespace-nowrap">Borrowed</th>
@@ -44,8 +43,10 @@ export default function BorrowedDesktopTable({
                 <div className="font-medium">{r.full_name}</div>
                 <div className="text-xs text-[#a6a6a6]">{r.position_department}</div>
               </td>
-              <td className="px-4 py-3 font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</td>
-              <td className="px-4 py-3 min-w-40">{r.equipment_requested}</td>
+              <td className="px-4 py-3">
+                <div className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</div>
+                <div className="text-sm text-[#222]">{r.equipment_requested}</div>
+              </td>
               <td className="px-4 py-3 text-center font-medium">{r.quantity}</td>
               <td className="px-4 py-3 whitespace-nowrap text-xs">{formatDate(r.date_time_borrowing)}</td>
               <td className="px-4 py-3 text-center">{ConditionBadges(r.condition_before)}</td>

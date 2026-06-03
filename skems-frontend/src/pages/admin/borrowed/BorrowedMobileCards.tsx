@@ -28,11 +28,11 @@ export default function BorrowedMobileCards({
         <div key={r.equipment_id} className="bg-white rounded-xl shadow border border-[#d9d9d9] p-3 sm:p-4">
           <div className="flex items-start justify-between gap-3 mb-2">
             <div className="min-w-0">
+              <p className="text-xs font-mono text-[#c89116] font-bold">{r.equipment_id} ×{r.quantity}</p>
               <p className="font-bold text-[#222] text-sm sm:text-base truncate">
                 {r.equipment_requested}
               </p>
               <p className="text-xs text-[#a6a6a6] truncate">{r.full_name}{r.position_department ? ` — ${r.position_department}` : ""}</p>
-              <p className="text-xs font-mono text-[#c89116] font-bold mt-0.5">{r.equipment_id} ×{r.quantity}</p>
             </div>
             <button
               onClick={() => onToggleRow(r.equipment_id)}
@@ -60,7 +60,7 @@ export default function BorrowedMobileCards({
               <span className="font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 shrink-0">Due</span>
               <span className="text-[#666]">{formatDate(r.date_time_return)}</span>
             </div>
-            {r.returned_on ? (
+            {r.returned_on && (
               <div className="flex justify-between items-center text-xs">
                 <span className="flex items-center gap-1.5">
                   <span className="font-bold px-1.5 py-0.5 rounded bg-[#a6a6a6] text-white shrink-0">Returned</span>
@@ -71,11 +71,6 @@ export default function BorrowedMobileCards({
                   {ConditionBadges(r.condition_after)}
                 </span>
               </div>
-            ) : (
-              <div className="flex items-center gap-1.5 text-xs">
-                <span className="font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 shrink-0">After</span>
-                {ConditionBadges(r.condition_after)}
-              </div>
             )}
           </div>
 
@@ -85,9 +80,9 @@ export default function BorrowedMobileCards({
                 <span>Owner</span>
                 <span className="font-medium text-[#222] text-right max-w-48">{r.owner || "—"}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-0.5">
                 <span>Purpose</span>
-                <span className="font-medium text-[#222] text-right max-w-48">{r.purpose_of_use || "—"}</span>
+                <span className="font-medium text-[#222] break-words">{r.purpose_of_use || "—"}</span>
               </div>
               <div className="flex justify-between">
                 <span>Pickup</span>
