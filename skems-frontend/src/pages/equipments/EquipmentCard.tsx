@@ -16,7 +16,7 @@ export default function EquipmentCard({
         {onEdit && (
           <button
             onClick={() => onEdit(eq)}
-            className="w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-[#666] hover:text-[#c89116] hover:shadow-md transition-all cursor-pointer"
+            className="w-9 h-9 md:w-7 md:h-7 bg-white rounded-full shadow flex items-center justify-center text-[#666] hover:text-[#c89116] hover:shadow-md transition-all cursor-pointer"
             title="Edit equipment"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,7 +27,7 @@ export default function EquipmentCard({
         {onDelete && (
           <button
             onClick={() => onDelete(eq.id)}
-            className="w-7 h-7 bg-white rounded-full shadow flex items-center justify-center text-red-500 hover:text-red-700 hover:shadow-md transition-all cursor-pointer"
+            className="w-9 h-9 md:w-7 md:h-7 bg-white rounded-full shadow flex items-center justify-center text-red-500 hover:text-red-700 hover:shadow-md transition-all cursor-pointer"
             title="Delete equipment"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
