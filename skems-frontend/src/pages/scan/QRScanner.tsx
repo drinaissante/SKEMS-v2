@@ -9,13 +9,11 @@ export default function QRScanner({ onScan }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const animFrameRef = useRef<number>(0)
 
-  const [status, setStatus] = useState<"idle" | "scanning" | "found">("idle")
+  const [status, setStatus] = useState<"idle" | "scanning" | "found" | "no-qr">("idle")
   const [error, setError] = useState("")
 
   const stopCamera = useCallback(() => {
-    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop())
       streamRef.current = null
@@ -29,50 +27,43 @@ export default function QRScanner({ onScan }: QRScannerProps) {
         video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
       })
       streamRef.current = stream
+      const video = videoRef.current
+      if (video) {
+        video.srcObject = stream
+        video.play()
+      }
       setStatus("scanning")
     } catch {
       setError("Camera access was denied.")
     }
   }, [])
 
-  useEffect(() => {
-    if (status !== "scanning" || !streamRef.current) return
-
+  const capture = useCallback(() => {
     const video = videoRef.current
     const canvas = canvasRef.current
     if (!video || !canvas) return
 
-    video.srcObject = streamRef.current
-    video.play()
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
 
-    const tick = () => {
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const code = jsQR(imageData.data, imageData.width, imageData.height)
 
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-        const code = jsQR(imageData.data, imageData.width, imageData.height)
-
-        if (code) {
-          setStatus("found")
-          stopCamera()
-          onScan(code.data)
-          return
-        }
-      }
-
-      animFrameRef.current = requestAnimationFrame(tick)
+    if (code) {
+      setStatus("found")
+      stopCamera()
+      onScan(code.data)
+    } else {
+      setStatus("no-qr")
     }
+  }, [onScan, stopCamera])
 
-    animFrameRef.current = requestAnimationFrame(tick)
-
-    return () => {
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
-    }
-  }, [status, onScan, stopCamera])
+  const retry = useCallback(() => {
+    setStatus("scanning")
+  }, [])
 
   useEffect(() => {
     return () => stopCamera()
@@ -90,9 +81,47 @@ export default function QRScanner({ onScan }: QRScannerProps) {
   if (status === "scanning") {
     return (
       <div className="relative w-full h-[60vh] bg-black rounded-lg overflow-hidden">
-        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline autoPlay />
+        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
         <canvas ref={canvasRef} className="hidden" />
-        <p className="absolute top-3 left-1/2 -translate-x-1/2 text-sm text-white/80">Scanning for QR code...</p>
+        <p className="absolute top-3 left-1/2 -translate-x-1/2 text-sm text-white/80">Camera ready</p>
+        <button
+          onClick={capture}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 px-8 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-full text-base transition-colors cursor-pointer shadow-lg"
+        >
+          Capture
+        </button>
+        <button
+          onClick={stopCamera}
+          className="absolute top-3 right-3 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors cursor-pointer"
+        >
+          Stop
+        </button>
+      </div>
+    )
+  }
+
+  if (status === "no-qr") {
+    return (
+      <div className="relative w-full h-[60vh] bg-black rounded-lg overflow-hidden">
+        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
+        <canvas ref={canvasRef} className="hidden" />
+        <p className="absolute top-3 left-1/2 -translate-x-1/2 text-sm text-red-400 bg-black/60 px-3 py-1 rounded">
+          No QR code detected
+        </p>
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
+          <button
+            onClick={capture}
+            className="px-8 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-full text-base transition-colors cursor-pointer shadow-lg"
+          >
+            Try Again
+          </button>
+          <button
+            onClick={retry}
+            className="px-4 py-3 border border-white/40 text-white/80 hover:text-white hover:border-white/70 font-medium rounded-full text-sm transition-colors cursor-pointer"
+          >
+            Dismiss
+          </button>
+        </div>
         <button
           onClick={stopCamera}
           className="absolute top-3 right-3 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors cursor-pointer"

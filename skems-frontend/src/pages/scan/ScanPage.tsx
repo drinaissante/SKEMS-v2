@@ -41,11 +41,8 @@ export default function ScanPage() {
   const [selectorItemIndex, setSelectorItemIndex] = useState(0)
 
   const handleQrScan = useCallback((code: string) => {
-    const goToRequest = (id: string, name?: string) => {
-      const params = new URLSearchParams()
-      params.set("id", id)
-      if (name) params.set("name", name)
-      navigate(`/request?${params.toString()}`)
+    const goToEquipment = (id: string) => {
+      navigate(`/equipment?id=${id}`)
     }
 
     if (code.startsWith("http://") || code.startsWith("https://")) {
@@ -53,17 +50,17 @@ export default function ScanPage() {
         const url = new URL(code)
         const eqId = url.searchParams.get("id")
         if (url.pathname === "/equipment" && eqId) {
-          goToRequest(eqId)
+          goToEquipment(eqId)
           return
         }
       } catch { /* noop */ }
 
       fetch(code)
         .then(res => res.json())
-        .then(data => goToRequest(data.item_id || code, data.equipment_name))
-        .catch(() => goToRequest(code))
+        .then(data => goToEquipment(data.item_id || code))
+        .catch(() => goToEquipment(code))
     } else {
-      goToRequest(code)
+      goToEquipment(code)
     }
   }, [navigate])
 
@@ -167,7 +164,7 @@ export default function ScanPage() {
       showToast(err instanceof Error ? err.message : "Scan failed", "error")
       setIsScanningForm(false)
     }
-  }, [capturedImage, queryClient])
+  }, [capturedImage, queryClient, showToast])
 
   const openItemSelector = useCallback((idx: number) => {
     setSelectorItemIndex(idx)
@@ -251,7 +248,7 @@ export default function ScanPage() {
     } finally {
       setIsScanningForm(false)
     }
-  }, [editableFields, user, selectedEquipments])
+  }, [editableFields, user, showToast, selectedEquipments])
 
   const resetFormMode = useCallback(() => {
     setCapturedImage(null)
