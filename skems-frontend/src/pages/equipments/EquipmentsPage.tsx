@@ -36,7 +36,6 @@ export default function EquipmentsPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   const [syncing, setSyncing] = useState(false)
-  const [syncMessage, setSyncMessage] = useState("")
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deletingId, setDeletingId] = useState("")
 
@@ -47,13 +46,14 @@ export default function EquipmentsPage() {
 
   const handleSync = useCallback(async () => {
     showToast("Updating...", "info")
-    const result = await exportToSheets(equipments)
+    const fresh = await queryClient.fetchQuery({ queryKey: ["equipments"], queryFn: fetchEquipments })
+    const result = await exportToSheets(fresh)
     if (result.ok) {
       showToast("Successfully synced!", "success")
     } else {
       showToast("Sync failed: " + (result.error ?? "Unknown error"), "error")
     }
-  }, [equipments, showToast])
+  }, [showToast, queryClient])
 
   const deleteMutation = useMutation({
     mutationFn: deleteEquipment,
@@ -136,18 +136,16 @@ export default function EquipmentsPage() {
   const handleExport = async () => {
     try {
       setSyncing(true)
-      setSyncMessage("")
       const result = await exportToSheets(equipments)
       setSyncing(false)
       if (result.ok) {
-        setSyncMessage("Synced!")
-        setTimeout(() => setSyncMessage(""), 3000)
+        showToast("Successfully synced!", "success")
       } else {
-        setSyncMessage(result.error ?? "Sync failed")
+        showToast("Sync failed: " + (result.error ?? "Unknown error"), "error")
       }
     } catch (err) {
       setSyncing(false)
-      setSyncMessage(err instanceof Error ? err.message : "Unknown error")
+      showToast("Sync failed: " + (err instanceof Error ? err.message : "Unknown error"), "error")
     }
   }
 
@@ -232,9 +230,6 @@ export default function EquipmentsPage() {
           >
             {syncing ? "Preparing..." : "Export to Sheet"}
           </button>
-          {syncMessage && (
-            <span className="text-sm text-[#666] break-all max-w-full">{syncMessage}</span>
-          )}
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto">

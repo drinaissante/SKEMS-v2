@@ -44,20 +44,21 @@ export default function BorrowedPage() {
     queryFn: fetchBorrowedItems,
   })
 
-  const { data: equipments = [] } = useQuery({
+  useQuery({
     queryKey: ["equipments"],
     queryFn: fetchEquipments,
   })
 
   const handleSync = useCallback(async () => {
     showToast("Updating...", "info")
-    const result = await exportToSheets(equipments)
+    const fresh = await queryClient.fetchQuery({ queryKey: ["equipments"], queryFn: fetchEquipments })
+    const result = await exportToSheets(fresh)
     if (result.ok) {
       showToast("Successfully synced!", "success")
     } else {
       showToast("Sync failed: " + (result.error ?? "Unknown error"), "error")
     }
-  }, [equipments, showToast])
+  }, [showToast, queryClient])
 
   const filtered = useMemo(() => {
     if (!search.trim()) return records
