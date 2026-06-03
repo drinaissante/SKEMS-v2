@@ -25,7 +25,6 @@ export default function RequestPage() {
   const { showToast } = useToast()
 
   const [formItems, setFormItems] = useState<FormItem[]>([])
-  const [newName, setNewName] = useState("")
   const [reason, setReason] = useState("")
   const [positionDepartment, setPositionDepartment] = useState("")
   const [pickupLocation, setPickupLocation] = useState("")
@@ -35,8 +34,6 @@ export default function RequestPage() {
   const [submitting, setSubmitting] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [showSelector, setShowSelector] = useState(false)
-  const [selectorName, setSelectorName] = useState("")
-  const [selectorMatches, setSelectorMatches] = useState<typeof equipments>([])
   const [selectorSelectedId, setSelectorSelectedId] = useState("")
   const [selectorQuantity, setSelectorQuantity] = useState(1)
   const [success, setSuccess] = useState(false)
@@ -52,14 +49,6 @@ export default function RequestPage() {
     [allEquipments],
   )
 
-  const getMatches = (query: string) => {
-    const q = query.toLowerCase()
-    return equipments.filter(e =>
-      e.name.toLowerCase().includes(q) ||
-      e.category.toLowerCase().includes(q)
-    )
-  }
-
   const getAvailableCount = (selectedId: string): number => {
     if (!selectedId) return 999
     const selected = equipments.find(e => e.id === selectedId)
@@ -68,26 +57,11 @@ export default function RequestPage() {
   }
 
   const handleAddClick = () => {
-    if (!newName.trim()) return
-    const matches = getMatches(newName.trim())
-    if (matches.length === 0) {
-      const q = newName.trim().toLowerCase()
-      const existing = allEquipments.find(e =>
-        e.name.toLowerCase().includes(q) ||
-        e.category.toLowerCase().includes(q)
-      )
-      if (existing?.condition === "Borrowed") {
-        showToast(`"${existing.name}" is currently borrowed out.`, "error")
-      } else if (existing?.condition === "Broken" || existing?.condition === "Unavailable") {
-        showToast(`"${existing.name}" is unavailable.`, "error")
-      } else {
-        showToast(`No matching equipment found for "${newName.trim()}".`, "error")
-      }
+    if (equipments.length === 0) {
+      showToast("No equipment available.", "error")
       return
     }
-    setSelectorName(newName.trim())
-    setSelectorMatches(matches)
-    setSelectorSelectedId(matches[0].id)
+    setSelectorSelectedId(equipments[0].id)
     setSelectorQuantity(1)
     setShowSelector(true)
   }
@@ -104,7 +78,6 @@ export default function RequestPage() {
       quantity: Math.min(selectorQuantity, max),
     }])
     setShowSelector(false)
-    setNewName("")
   }
 
   const removeItem = (idx: number) => {
@@ -216,23 +189,14 @@ export default function RequestPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-[#666] mb-1">Add Equipment <span className="text-red-500">*</span></label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Equipment name..."
-                  className="flex-1 px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddClick}
-                  className="px-3 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
-                >
-                  <FiPlus size={18} />
-                  <span className="sm:hidden">Add</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleAddClick}
+                className="w-full px-3 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
+              >
+                <FiPlus size={18} />
+                <span>Add Equipment</span>
+              </button>
             </div>
 
             {formItems.length > 0 && (
@@ -412,7 +376,7 @@ export default function RequestPage() {
                 Select Equipment
               </p>
               <p className="text-sm text-[#666] mb-4 text-center">
-                Matching "<span className="font-medium text-[#222]">{selectorName}</span>"
+                {equipments.length} available
               </p>
 
               <div className="space-y-4">
@@ -423,14 +387,14 @@ export default function RequestPage() {
                     onChange={(e) => { setSelectorSelectedId(e.target.value); setSelectorQuantity(1) }}
                     className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] bg-white"
                   >
-                    {selectorMatches.map(eq => (
+                    {equipments.map(eq => (
                       <option key={eq.id} value={eq.id}>
                         {eq.name} ({eq.id})
                       </option>
                     ))}
                   </select>
                   {(() => {
-                    const sel = selectorMatches.find(eq => eq.id === selectorSelectedId)
+                    const sel = equipments.find(eq => eq.id === selectorSelectedId)
                     if (!sel) return null
                     return (
                       <div className="mt-2 p-2 bg-[#f5f5f5] rounded-lg text-sm space-y-1">
@@ -462,7 +426,7 @@ export default function RequestPage() {
               <div className="flex gap-3 mt-6">
                 <button
                   type="button"
-                  onClick={() => { setShowSelector(false); setNewName("") }}
+                  onClick={() => setShowSelector(false)}
                   className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
                 >
                   Cancel
