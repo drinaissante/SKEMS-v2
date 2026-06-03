@@ -11,7 +11,7 @@ import MyRequestsPage from './pages/myrequests/MyRequestsPage'
 import ProfilePage from './pages/profile/ProfilePage'
 import UsersPage from './pages/admin/UsersPage'
 import RequestsPage from './pages/admin/RequestsPage'
-import BorrowedPage from './pages/admin/BorrowedPage'
+import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
 
 import MainLayout from './layouts/MainLayout'
 

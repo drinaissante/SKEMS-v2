@@ -1,5 +1,5 @@
-import type { BorrowRecord } from "../../../services/borrow"
-import { formatDate, CONDITION_OPTIONS } from "../../../services/borrowedConstants"
+import type { BorrowRecord } from "../../../constants/borrow"
+import { formatDate, CONDITION_OPTIONS } from "../../../constants/borrowedConstants"
 import { FiX } from "react-icons/fi"
 
 /* ───────── Edit Modal ───────── */

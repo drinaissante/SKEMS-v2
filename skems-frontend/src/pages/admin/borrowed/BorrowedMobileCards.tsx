@@ -1,5 +1,5 @@
-import type { BorrowRecord } from "../../../services/borrow"
-import { formatDate } from "../../../services/borrowedConstants"
+import type { BorrowRecord } from "../../../constants/borrow"
+import { formatDate } from "../../../constants/borrowedConstants"
 import ConditionBadges from "./BorrowedUtils"
 import { FiChevronDown, FiCheckCircle, FiEdit2, FiTrash2 } from "react-icons/fi"
 

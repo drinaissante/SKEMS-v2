@@ -6,9 +6,9 @@ import {
   deleteBorrowedItem,
   returnBorrowedItem,
 } from "../../../services/supabase"
-import type { BorrowRecord } from "../../../services/borrow"
+import type { BorrowRecord } from "../../../constants/borrow"
 import { FiSearch } from "react-icons/fi"
-import { MOBILE_ITEMS, DESKTOP_ITEMS } from "../../../services/borrowedConstants"
+import { MOBILE_ITEMS, DESKTOP_ITEMS } from "../../../constants/borrowedConstants"
 import BorrowedDesktopTable from "./BorrowedDesktopTable"
 import BorrowedMobileCards from "./BorrowedMobileCards"
 import { EditModal, DeleteModal, ReturnModal } from "./BorrowedModals"

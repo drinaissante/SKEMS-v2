@@ -1,4 +1,4 @@
-import { conditionColors } from "../../../services/borrowedConstants"
+import { conditionColors } from "../../../constants/borrowedConstants"
 
 export default function ConditionBadges(value: string) {
   if (!value) return <span className="text-[#a6a6a6] text-xs">—</span>
