@@ -1,0 +1,228 @@
+import type { BorrowRecord } from "../../../services/borrow"
+import { formatDate, CONDITION_OPTIONS } from "../../../services/borrowedConstants"
+import { FiX } from "react-icons/fi"
+
+/* ───────── Edit Modal ───────── */
+interface EditModalProps {
+  editing: BorrowRecord | null
+  editConditionBefore: string[]
+  editConditionAfter: string[]
+  editNotes: string
+  onToggleBefore: (c: string) => void
+  onToggleAfter: (c: string) => void
+  onNotesChange: (v: string) => void
+  onClose: () => void
+  onSave: () => void
+  updatePending: boolean
+}
+
+export function EditModal({
+  editing, editConditionBefore, editConditionAfter, editNotes,
+  onToggleBefore, onToggleAfter, onNotesChange,
+  onClose, onSave, updatePending,
+}: EditModalProps) {
+  if (!editing) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-[#222]">Edit Borrow Record</h2>
+          <button onClick={onClose} className="p-1 text-[#666] hover:text-[#222] transition-colors cursor-pointer"><FiX size={20} /></button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Borrower</p>
+            <p className="text-sm font-medium text-[#222]">{editing.full_name}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Equipment</p>
+            <p className="text-sm font-mono text-[#c89116] font-bold">{editing.equipment_id}</p>
+            <p className="text-sm text-[#222]">{editing.equipment_requested} ×{editing.quantity}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Borrowed</p>
+            <p className="text-sm text-[#222]">{formatDate(editing.date_time_borrowing)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Due</p>
+            <p className="text-sm text-[#222]">{formatDate(editing.date_time_return)}</p>
+          </div>
+
+          <div>
+            <label className="text-xs text-[#a6a6a6] uppercase font-bold mb-1 block">Condition Before</label>
+            <div className="flex flex-wrap gap-2">
+              {CONDITION_OPTIONS.map((c) => (
+                <label
+                  key={c}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
+                    editConditionBefore.includes(c)
+                      ? "bg-[#c89116] text-white border-[#c89116]"
+                      : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={editConditionBefore.includes(c)}
+                    onChange={() => onToggleBefore(c)}
+                    className="hidden"
+                  />
+                  {c}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-[#a6a6a6] uppercase font-bold mb-1 block">Condition After</label>
+            <div className="flex flex-wrap gap-2">
+              {CONDITION_OPTIONS.map((c) => (
+                <label
+                  key={c}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
+                    editConditionAfter.includes(c)
+                      ? "bg-[#c89116] text-white border-[#c89116]"
+                      : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={editConditionAfter.includes(c)}
+                    onChange={() => onToggleAfter(c)}
+                    className="hidden"
+                  />
+                  {c}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-[#a6a6a6] uppercase font-bold mb-1 block">Notes</label>
+            <textarea
+              value={editNotes}
+              onChange={(e) => onNotesChange(e.target.value)}
+              className="w-full border border-[#d9d9d9] rounded-lg px-3 py-2 text-sm text-[#222] resize-none"
+              rows={3}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-2 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl border border-[#d9d9d9] text-sm font-bold text-[#666] hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onSave}
+            disabled={updatePending}
+            className="flex-1 py-2.5 rounded-xl bg-[#c89116] hover:bg-[#caa453] text-sm font-bold text-white transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          >
+            {updatePending ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ───────── Delete Modal ───────── */
+interface DeleteModalProps {
+  showDeleteConfirm: boolean
+  deleteItemId: string | null
+  deleteItemLabel: string
+  onClose: () => void
+  onDelete: () => void
+  deletePending: boolean
+}
+
+export function DeleteModal({
+  showDeleteConfirm, deleteItemId, deleteItemLabel,
+  onClose, onDelete, deletePending,
+}: DeleteModalProps) {
+  if (!showDeleteConfirm || !deleteItemId) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-lg font-bold text-[#222] mb-2">Delete Record</h2>
+        <p className="text-sm text-[#666] mb-6">
+          Are you sure you want to delete the borrow record for <span className="font-bold text-[#222]">{deleteItemLabel}</span>? This action cannot be undone.
+        </p>
+        <div className="flex gap-2">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[#d9d9d9] text-sm font-bold text-[#666] hover:bg-[#f5f5f5] transition-colors cursor-pointer">Cancel</button>
+          <button onClick={onDelete} disabled={deletePending} className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed">
+            {deletePending ? "Deleting…" : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ───────── Return Modal ───────── */
+interface ReturnModalProps {
+  returnConfirmId: string | null
+  returnCondition: string
+  returnItemLabel: string
+  onConditionChange: (c: string) => void
+  onClose: () => void
+  onConfirm: () => void
+  returnPending: boolean
+}
+
+export function ReturnModal({
+  returnConfirmId, returnCondition, returnItemLabel,
+  onConditionChange, onClose, onConfirm, returnPending,
+}: ReturnModalProps) {
+  if (!returnConfirmId) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-lg font-bold text-[#222] mb-2">Mark as Returned</h2>
+        <p className="text-sm text-[#666] mb-4">
+          Confirm return of <span className="font-bold text-[#222]">{returnItemLabel}</span> and select its condition.
+        </p>
+
+        <div className="flex flex-wrap gap-2 justify-center mb-6">
+          {CONDITION_OPTIONS.map((c) => (
+            <label
+              key={c}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
+                returnCondition === c
+                  ? "bg-[#c89116] text-white border-[#c89116]"
+                  : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
+              }`}
+            >
+              <input
+                type="radio"
+                name="returnCondition"
+                checked={returnCondition === c}
+                onChange={() => onConditionChange(c)}
+                className="hidden"
+              />
+              {c}
+            </label>
+          ))}
+        </div>
+
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[#d9d9d9] text-sm font-bold text-[#666] hover:bg-[#f5f5f5] transition-colors cursor-pointer">Cancel</button>
+          <button onClick={onConfirm} disabled={returnPending} className="flex-1 py-2.5 rounded-xl bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed">
+            {returnPending ? "..." : "Confirm Return"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
