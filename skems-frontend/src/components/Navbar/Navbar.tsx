@@ -17,12 +17,20 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-4 text-sm">
           {isLoggedIn && (
-            <Link
-              to="/scan"
-              className="px-3 py-1.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
-            >
-              Scan
-            </Link>
+            <>
+              <Link
+                to="/scan"
+                className="px-3 py-1.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
+              >
+                Scan
+              </Link>
+              <Link
+                to="/request"
+                className="px-3 py-1.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
+              >
+                Request
+              </Link>
+            </>
           )}
 
           {isLoggedIn ? (
@@ -121,6 +129,13 @@ export default function Navbar() {
                 className="px-4 py-3 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors text-center"
               >
                 Scan
+              </Link>
+              <Link
+                to="/request"
+                onClick={() => setSidebarOpen(false)}
+                className="px-4 py-3 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors text-center"
+              >
+                Request
               </Link>
 
                   {isAdmin && (

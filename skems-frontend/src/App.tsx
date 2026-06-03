@@ -24,6 +24,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return isLoggedIn ? <>{children}</> : <Navigate to="/login" replace />
 }
 
+function UserRoute({ children }: { children: React.ReactNode }) {
+  const { isLoggedIn } = useAuth()
+
+  return isLoggedIn ? <>{children}</> : <Navigate to="/" replace />
+}
+
 function GuestRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuth()
 
@@ -77,9 +83,9 @@ function App() {
         <Route
           path='/request'
           element={
-            <ProtectedRoute>
+            <UserRoute>
               <RequestPage />
-            </ProtectedRoute>
+            </UserRoute>
           }
         />
 

@@ -17,6 +17,7 @@ interface Request {
   status: string
   created_at: string
   user_id: string
+  quantity: number
 }
 
 const statusColors: Record<string, string> = {
@@ -124,6 +125,7 @@ export default function RequestsPage() {
               <thead>
                 <tr className="bg-[#222] text-white text-left">
                   <th className="px-3 py-2 sm:px-4 sm:py-3">Equipment</th>
+                  <th className="px-3 py-2 sm:px-4 sm:py-3">Qty</th>
                   <th className="px-3 py-2 sm:px-4 sm:py-3">Borrower</th>
                   <th className="px-3 py-2 sm:px-4 sm:py-3 hidden sm:table-cell">Student #</th>
                   <th className="px-3 py-2 sm:px-4 sm:py-3 hidden md:table-cell">Reason</th>
@@ -140,6 +142,7 @@ export default function RequestsPage() {
                       {r.equipment_name}
                       <span className="text-[#a6a6a6] text-xs ml-1">{r.equipment_id}</span>
                     </td>
+                    <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666] text-center">{r.quantity}</td>
                     <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666]">{r.borrower_name}</td>
                     <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666] hidden sm:table-cell">
                       {r.student_number}

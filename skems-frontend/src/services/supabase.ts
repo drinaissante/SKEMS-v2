@@ -184,6 +184,7 @@ export async function submitRequest(data: {
   dateBorrowed: string;
   dateDue: string;
   userId: string;
+  quantity: number;
 }) {
   const { error } = await supabase.from("requests").insert({
     equipment_id: data.equipmentId,
@@ -195,6 +196,7 @@ export async function submitRequest(data: {
     date_due: data.dateDue,
     user_id: data.userId,
     status: "Pending",
+    quantity: data.quantity,
   });
   if (error) throw error;
 }
@@ -219,6 +221,7 @@ export async function fetchMyRequests(userId: string) {
     status: string;
     created_at: string;
     user_id: string;
+    quantity: number;
   }[];
 }
 
@@ -241,6 +244,7 @@ export async function fetchAllRequests() {
     status: string;
     created_at: string;
     user_id: string;
+    quantity: number;
   }[];
 }
 

@@ -12,6 +12,7 @@ interface Request {
   date_due: string
   status: string
   created_at: string
+  quantity: number
 }
 
 const statusColors: Record<string, string> = {
@@ -71,7 +72,7 @@ export default function MyRequestsPage() {
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div>
-                    <p className="font-bold text-[#222]">{r.equipment_name}</p>
+                    <p className="font-bold text-[#222]">{r.equipment_name} <span className="text-[#a6a6a6] font-normal">×{r.quantity}</span></p>
                     <p className="text-xs text-[#a6a6a6]">{r.reason}</p>
                   </div>
                   <span
