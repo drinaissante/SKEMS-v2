@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { fetchEquipments, type Equipment } from "../../services/api"
 import { supabase, submitRequest } from "../../services/supabase"
+import { useToast } from "../../components/Toast"
 import { useAuth } from "../../context/AuthContext"
 import type { ScannedFormFields } from "../../constants/borrow"
 import { normalizeDate } from "../../constants/scanConstants"
@@ -18,6 +19,7 @@ type ScanMode = "qr" | "form"
 export default function ScanPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const queryClient = useQueryClient()
 
   const [mode, setMode] = useState<ScanMode>("qr")
@@ -29,7 +31,6 @@ export default function ScanPage() {
   const [aiAcknowledged, setAiAcknowledged] = useState(false)
   const [reviewConfirmed, setReviewConfirmed] = useState(false)
   const [formSuccess, setFormSuccess] = useState(false)
-  const [error, setError] = useState("")
   const [showAiConsentModal, setShowAiConsentModal] = useState(false)
 
   const [selectedEquipments, setSelectedEquipments] = useState<
@@ -65,11 +66,10 @@ export default function ScanPage() {
   const scanFormImage = useCallback(async () => {
     if (!capturedImage) return
     setIsScanningForm(true)
-    setError("")
 
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.access_token) {
-      setError("Authentication required")
+      showToast("Authentication required", "error")
       setIsScanningForm(false)
       return
     }
@@ -115,7 +115,7 @@ export default function ScanPage() {
           fields.equipment_list.some((e: { item?: string }) => e.item?.trim()))
 
       if (!hasContent) {
-        setError("No form detected. Please capture a clear image of the borrowing form.")
+        showToast("No form detected. Please capture a clear image of the borrowing form.", "error")
         setIsScanningForm(false)
         return
       }
@@ -155,7 +155,7 @@ export default function ScanPage() {
       setShowResultModal(true)
       setIsScanningForm(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Scan failed")
+      showToast(err instanceof Error ? err.message : "Scan failed", "error")
       setIsScanningForm(false)
     }
   }, [capturedImage, queryClient])
@@ -196,20 +196,19 @@ export default function ScanPage() {
     }
     for (const key of fieldKeys) {
       if (!(editableFields[key] as string)?.trim()) {
-        setError(`"${labels[key]}" is required.`)
+        showToast(`"${labels[key]}" is required.`, "error")
         return
       }
     }
 
     for (let i = 0; i < editableFields.equipment_list.length; i++) {
       if (!selectedEquipments[i]) {
-        setError(`Select equipment for item "${editableFields.equipment_list[i].item}".`)
+        showToast(`Select equipment for item "${editableFields.equipment_list[i].item}".`, "error")
         return
       }
     }
 
     setIsScanningForm(true)
-    setError("")
 
     try {
       for (let i = 0; i < editableFields.equipment_list.length; i++) {
@@ -239,7 +238,7 @@ export default function ScanPage() {
       setShowResultModal(false)
       setFormSuccess(true)
     } catch {
-      setError("Failed to submit. Please try again.")
+      showToast("Failed to submit. Please try again.", "error")
     } finally {
       setIsScanningForm(false)
     }
@@ -253,7 +252,6 @@ export default function ScanPage() {
     setAiAcknowledged(false)
     setReviewConfirmed(false)
     setFormSuccess(false)
-    setError("")
     setSelectedEquipments({})
     setShowAiConsentModal(false)
     setShowItemSelector(false)
@@ -300,10 +298,6 @@ export default function ScanPage() {
 
             {formSuccess && <ScanSuccess onScanAnother={resetFormMode} />}
           </>
-        )}
-
-        {error && mode !== "qr" && (
-          <p className="text-sm text-red-600 text-center mt-4 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
         )}
       </div>
 

@@ -6,6 +6,7 @@ import {
   approveAndMoveRequest,
   deleteRequest,
 } from "../../services/supabase"
+import { useToast } from "../../components/Toast"
 import { useAuth } from "../../context/AuthContext"
 import { FiSearch, FiChevronDown, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi"
 
@@ -32,6 +33,7 @@ function formatDateTime(iso: string) {
 export default function RequestsPage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { showToast } = useToast()
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("All")
   const [currentPage, setCurrentPage] = useState(1)
@@ -60,7 +62,7 @@ export default function RequestsPage() {
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
     },
     onError: (err) => {
-      alert("Failed to approve request: " + err.message)
+      showToast("Failed to approve request: " + err.message, "error")
     },
   })
 

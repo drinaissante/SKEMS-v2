@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { fetchEquipments } from "../../services/api"
 import { submitRequest } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
+import { useToast } from "../../components/Toast"
 import { FiPlus, FiTrash2 } from "react-icons/fi"
 
 function todayNow(): string {
@@ -21,6 +22,7 @@ interface FormItem {
 
 export default function RequestPage() {
   const { user } = useAuth()
+  const { showToast } = useToast()
 
   const [formItems, setFormItems] = useState<FormItem[]>([])
   const [newName, setNewName] = useState("")
@@ -38,7 +40,6 @@ export default function RequestPage() {
   const [selectorSelectedId, setSelectorSelectedId] = useState("")
   const [selectorQuantity, setSelectorQuantity] = useState(1)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
 
   const { data: allEquipments = [], isLoading } = useQuery({
     queryKey: ["equipments"],
@@ -76,15 +77,14 @@ export default function RequestPage() {
         e.category.toLowerCase().includes(q)
       )
       if (existing?.condition === "Borrowed") {
-        setError(`"${existing.name}" is currently borrowed out.`)
+        showToast(`"${existing.name}" is currently borrowed out.`, "error")
       } else if (existing?.condition === "Broken" || existing?.condition === "Unavailable") {
-        setError(`"${existing.name}" is unavailable.`)
+        showToast(`"${existing.name}" is unavailable.`, "error")
       } else {
-        setError(`No matching equipment found for "${newName.trim()}".`)
+        showToast(`No matching equipment found for "${newName.trim()}".`, "error")
       }
       return
     }
-    setError("")
     setSelectorName(newName.trim())
     setSelectorMatches(matches)
     setSelectorSelectedId(matches[0].id)
@@ -121,18 +121,17 @@ export default function RequestPage() {
 
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
-    setError("")
 
     if (formItems.length === 0) {
-      setError("Add at least one equipment item.")
+      showToast("Add at least one equipment item.", "error")
       return
     }
     if (!reason || !positionDepartment || !pickupLocation || !returnLocation || !dateBorrowed || !dateDue) {
-      setError("Please fill in all fields.")
+      showToast("Please fill in all fields.", "error")
       return
     }
     if (new Date(dateDue) < new Date(dateBorrowed)) {
-      setError("Return date must be after borrow date.")
+      showToast("Return date must be after borrow date.", "error")
       return
     }
 
@@ -171,7 +170,7 @@ export default function RequestPage() {
       setDateBorrowed("")
       setDateDue("")
     } catch {
-      setError("Failed to submit request. Please try again.")
+      showToast("Failed to submit request. Please try again.", "error")
     }
 
     setSubmitting(false)
@@ -320,8 +319,6 @@ export default function RequestPage() {
               </div>
               <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
             </div>
-
-            {error && <p className="text-red-600 text-sm text-center mb-2">{error}</p>}
 
             <button
               type="submit"

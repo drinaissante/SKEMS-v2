@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useToast } from "../../../components/Toast"
 import {
   fetchBorrowedItems,
   updateBorrowedItem,
@@ -15,6 +16,7 @@ import { EditModal, DeleteModal, ReturnModal } from "./BorrowedModals"
 
 export default function BorrowedPage() {
   const queryClient = useQueryClient()
+  const { showToast } = useToast()
   const [editing, setEditing] = useState<BorrowRecord | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
   const [search, setSearch] = useState("")
@@ -121,7 +123,7 @@ export default function BorrowedPage() {
       })
       setEditing(null)
     } catch {
-      console.error("Something went wrong saving.");
+      showToast("Failed to save changes.", "error")
     }
   }
 
@@ -130,7 +132,7 @@ export default function BorrowedPage() {
       await deleteMutation.mutateAsync(equipmentId)
       setShowDeleteConfirm(null)
     } catch {
-      console.error("Something went wrong deleting.");
+      showToast("Failed to delete record.", "error")
     }
   }
 

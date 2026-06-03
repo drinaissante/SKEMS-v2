@@ -14,6 +14,7 @@ import RequestsPage from './pages/admin/RequestsPage'
 import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
 
 import MainLayout from './layouts/MainLayout'
+import { ToastProvider } from './components/Toast'
 
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
@@ -71,6 +72,7 @@ function App() {
   useBorrowedRealtime()
   return (
     <>
+      <ToastProvider>
       <Routes>
         <Route path='/change-password' element={<ChangePasswordPage />} />
 
@@ -156,6 +158,7 @@ function App() {
       
       <Analytics />
       <SpeedInsights />
+      </ToastProvider>
     </>
 
   )
