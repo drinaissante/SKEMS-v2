@@ -231,10 +231,10 @@ export default function BorrowedPage() {
                         <div className="flex gap-1 justify-center">
                           <button
                             onClick={() => setReturnConfirmId(r.equipment_id)}
-                            disabled={returnMutation.isPending && returnMutation.variables === r.equipment_id}
+                            disabled={returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id}
                             className="px-4 py-2 text-xs font-bold rounded-lg bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
                           >
-                            {returnMutation.isPending && returnMutation.variables === r.equipment_id ? "..." : "Returned"}
+                            {returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id ? "..." : "Returned"}
                           </button>
                           <button
                             onClick={() => handleEdit(r)}
@@ -338,10 +338,10 @@ export default function BorrowedPage() {
                       <div className="flex gap-2 pt-2">
                         <button
                           onClick={() => setReturnConfirmId(r.equipment_id)}
-                          disabled={returnMutation.isPending && returnMutation.variables === r.equipment_id}
+                          disabled={returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id}
                           className="flex-1 py-2.5 text-xs font-bold rounded-lg bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
                         >
-                          {returnMutation.isPending && returnMutation.variables === r.equipment_id ? "..." : "Returned"}
+                          {returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id ? "..." : "Returned"}
                         </button>
                         <button
                           onClick={() => handleEdit(r)}
