@@ -475,8 +475,12 @@ export async function uploadQRCode(equipmentId: string): Promise<string> {
     margin: 2,
   })
 
-  const res = await fetch(qrDataUrl)
-  const blob = await res.blob()
+  const base64 = qrDataUrl.split(",")[1]
+  const byteString = atob(base64)
+  const ab = new ArrayBuffer(byteString.length)
+  const ia = new Uint8Array(ab)
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i)
+  const blob = new Blob([ab], { type: "image/png" })
 
   const { error: uploadErr } = await supabase.storage
     .from("sk-equipments")
