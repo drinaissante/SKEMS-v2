@@ -82,7 +82,7 @@ export default function BorrowedMobileCards({
               </div>
               <div className="flex flex-col gap-0.5">
                 <span>Purpose</span>
-                <span className="font-medium text-[#222] break-words">{r.purpose_of_use || "—"}</span>
+                <span className="font-medium text-[#222] wrap-break-word">{r.purpose_of_use || "—"}</span>
               </div>
               <div className="flex justify-between">
                 <span>Pickup</span>

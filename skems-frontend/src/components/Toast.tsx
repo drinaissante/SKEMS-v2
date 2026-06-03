@@ -58,7 +58,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                     removeToast(t.id)
                     t.action!.onClick()
                   }}
-                  className="underline ml-1 hover:opacity-80 cursor-pointer"
+                  className="underline ml-1 text-[#c89116] hover:opacity-80 cursor-pointer"
                 >
                   {t.action.label}
                 </button>

@@ -61,7 +61,7 @@ export default function EquipmentsPage() {
     mutationFn: deleteEquipment,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
-      showToast("Equipment deleted!", "info", { label: "sync now?", onClick: handleSync })
+      showToast("Equipment deleted!", "info", { label: "Sync now?", onClick: handleSync })
     },
   })
 
@@ -88,7 +88,7 @@ export default function EquipmentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
-      showToast("Equipment saved!", "info", { label: "sync now?", onClick: handleSync })
+      showToast("Equipment saved!", "info", { label: "Sync now?", onClick: handleSync })
     },
   })
 
