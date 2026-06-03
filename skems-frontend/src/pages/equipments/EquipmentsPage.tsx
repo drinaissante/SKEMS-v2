@@ -192,7 +192,7 @@ export default function EquipmentsPage() {
   }, [paginatedItems])
 
   return (
-    <div className="flex flex-col h-full md:min-h-0 bg-[#f5f5f5]">
+    <div className="flex flex-col flex-1 min-h-0 bg-[#f5f5f5]">
       <div className="flex flex-col flex-1 min-h-0 max-w-6xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#222] mb-4">
           Equipment Management
@@ -214,47 +214,49 @@ export default function EquipmentsPage() {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4 items-center relative z-10">
+        <div className="flex flex-col md:flex-row gap-2 mb-4 relative z-10">
           <input
             type="text"
             placeholder="Search by name or owner..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-35 px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+            className="w-full md:flex-1 min-w-35 px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
           />
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <select
-            value={filterCondition}
-            onChange={(e) => setFilterCondition(e.target.value)}
-            className="px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
-          >
-            <option value="All">All Conditions</option>
-            {conditions.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <button
-            onClick={handleExport}
-            disabled={syncing}
-            className="px-3 py-2 text-sm bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
-          >
-            {syncing ? "Preparing..." : "Export to Sheet"}
-          </button>
-          <button
-            onClick={handleExportQR}
-            disabled={exportingQR}
-            className="px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
-          >
-            {exportingQR ? "Generating..." : "Export QR Codes"}
-          </button>
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="flex-1 md:flex-none px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <select
+              value={filterCondition}
+              onChange={(e) => setFilterCondition(e.target.value)}
+              className="flex-1 md:flex-none px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
+            >
+              <option value="All">All Conditions</option>
+              {conditions.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleExport}
+              disabled={syncing}
+              className="flex-1 md:flex-none px-3 py-2 text-sm bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+            >
+              {syncing ? "Preparing..." : "Export to Sheet"}
+            </button>
+            <button
+              onClick={handleExportQR}
+              disabled={exportingQR}
+              className="flex-1 md:flex-none px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+            >
+              {exportingQR ? "Generating..." : "Export QR Codes"}
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
@@ -333,7 +335,6 @@ export default function EquipmentsPage() {
           )}
         </div>
 
-        <div className="h-16 md:hidden" />
       </div>
 
       <button
