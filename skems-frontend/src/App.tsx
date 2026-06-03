@@ -5,6 +5,7 @@ import LoginPage from './pages/login/LoginPage'
 import RegisterPage from './pages/register/RegisterPage'
 import ChangePasswordPage from './pages/auth/ChangePasswordPage'
 import ScanPage from './pages/scan/ScanPage'
+import EquipmentDetailPage from './pages/equipment/EquipmentDetailPage'
 import EquipmentsPage from './pages/equipments/EquipmentsPage'
 import RequestPage from './pages/request/RequestPage'
 import MyRequestsPage from './pages/myrequests/MyRequestsPage'
@@ -113,6 +114,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyRequestsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path='/equipment'
+            element={
+              <ProtectedRoute>
+                <EquipmentDetailPage />
               </ProtectedRoute>
             }
           />
