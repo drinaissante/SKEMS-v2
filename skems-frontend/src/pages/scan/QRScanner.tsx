@@ -27,11 +27,6 @@ export default function QRScanner({ onScan }: QRScannerProps) {
         video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
       })
       streamRef.current = stream
-      const video = videoRef.current
-      if (video) {
-        video.srcObject = stream
-        video.play()
-      }
       setStatus("scanning")
     } catch {
       setError("Camera access was denied.")
@@ -64,6 +59,16 @@ export default function QRScanner({ onScan }: QRScannerProps) {
   const retry = useCallback(() => {
     setStatus("scanning")
   }, [])
+
+  useEffect(() => {
+    if (status !== "scanning" || !streamRef.current) return
+
+    const video = videoRef.current
+    if (!video) return
+
+    video.srcObject = streamRef.current
+    video.play().catch(err => console.error("Video play failed:", err))
+  }, [status])
 
   useEffect(() => {
     return () => stopCamera()
