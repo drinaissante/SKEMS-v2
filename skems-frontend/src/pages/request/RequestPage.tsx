@@ -70,7 +70,18 @@ export default function RequestPage() {
     if (!newName.trim()) return
     const matches = getMatches(newName.trim())
     if (matches.length === 0) {
-      setError(`No matching equipment found for "${newName.trim()}".`)
+      const q = newName.trim().toLowerCase()
+      const existing = allEquipments.find(e =>
+        e.name.toLowerCase().includes(q) ||
+        e.category.toLowerCase().includes(q)
+      )
+      if (existing?.condition === "Borrowed") {
+        setError(`"${existing.name}" is currently borrowed out.`)
+      } else if (existing?.condition === "Broken" || existing?.condition === "Unavailable") {
+        setError(`"${existing.name}" is unavailable.`)
+      } else {
+        setError(`No matching equipment found for "${newName.trim()}".`)
+      }
       return
     }
     setError("")
@@ -204,8 +215,6 @@ export default function RequestPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <p className="text-red-600 text-sm text-center">{error}</p>}
-
             <div>
               <label className="block text-sm font-medium text-[#666] mb-1">Add Equipment <span className="text-red-500">*</span></label>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -283,7 +292,7 @@ export default function RequestPage() {
 
             <div>
               <label htmlFor="positionDepartment" className="block text-sm font-medium text-[#666] mb-1">Position / Department <span className="text-red-500">*</span></label>
-              <input required id="positionDepartment" type="text" value={positionDepartment} onChange={(e) => setPositionDepartment(e.target.value)} maxLength={100} placeholder="e.g. Student, SK Kagawad" className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
+              <input required id="positionDepartment" type="text" value={positionDepartment} onChange={(e) => setPositionDepartment(e.target.value)} maxLength={100} placeholder="e.g. Videographer, Photographer" className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
             </div>
 
             <div>
@@ -312,10 +321,12 @@ export default function RequestPage() {
               <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
             </div>
 
+            {error && <p className="text-red-600 text-sm text-center mb-2">{error}</p>}
+
             <button
               type="submit"
               disabled={submitting || isLoading || formItems.length === 0}
-              className="w-full mt-2 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm sm:text-base"
+              className="w-full py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm sm:text-base"
             >
               {submitting ? "Submitting..." : "Submit Request"}
             </button>

@@ -272,6 +272,17 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
 
   if (fetchErr || !request) throw new Error("Request not found");
 
+  const { data: activeBorrow } = await supabase
+    .from("borrow_records")
+    .select("equipment_id")
+    .eq("equipment_id", request.equipment_id)
+    .is("returned_on", null)
+    .maybeSingle();
+
+  if (activeBorrow) {
+    throw new Error("This equipment is currently borrowed out. Please wait for it to be returned before approving.");
+  }
+
   await addBorrowedItem({
     equipment_id: request.equipment_id,
     quantity: request.quantity,
