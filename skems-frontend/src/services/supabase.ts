@@ -47,16 +47,13 @@ export async function signIn(
   let email = identifier;
 
   if (!identifier.includes("@")) {
-    const { data: profile, error: lookupError } = await supabase
-      .from("profiles")
-      .select("id, email")
-      .eq("student_number", identifier)
-      .single();
+    const { data, error: lookupError } = await supabase
+      .rpc("lookup_email_by_student_number", { p_student_number: identifier });
 
-    if (lookupError || !profile) {
+    if (lookupError || !data?.length) {
       throw new Error("No account found with that student number");
     }
-    email = profile.email;
+    email = data[0].email;
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
