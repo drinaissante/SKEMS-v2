@@ -229,6 +229,20 @@ export default function EquipmentFormModal({
               rows={3}
             />
           </div>
+
+          {isEdit && (
+            <div>
+              <label className="block text-sm font-medium text-[#666] mb-1">
+                QR Code
+              </label>
+              <img
+                src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sk-equipments/qr-codes/${equipment!.id}.png`}
+                alt="QR Code"
+                className="w-20 h-20 object-cover rounded-lg border border-[#d9d9d9]"
+                decoding="async"
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex gap-3 mt-6">

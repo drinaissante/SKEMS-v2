@@ -43,12 +43,21 @@ export default function ScanPage() {
   const handleQrScan = useCallback((code: string) => {
     const goToRequest = (id: string, name?: string) => {
       const params = new URLSearchParams()
-      params.set("equipment", id)
+      params.set("id", id)
       if (name) params.set("name", name)
       navigate(`/request?${params.toString()}`)
     }
 
     if (code.startsWith("http://") || code.startsWith("https://")) {
+      try {
+        const url = new URL(code)
+        const eqId = url.searchParams.get("id")
+        if (url.pathname === "/equipment" && eqId) {
+          goToRequest(eqId)
+          return
+        }
+      } catch { /* noop */ }
+
       fetch(code)
         .then(res => res.json())
         .then(data => goToRequest(data.item_id || code, data.equipment_name))

@@ -451,3 +451,46 @@ export async function deleteBorrowedItem(equipmentId: string) {
     .eq("equipment_id", equipmentId);
   if (error) throw error;
 }
+
+export async function uploadQRCode(equipmentId: string): Promise<string> {
+  const path = `qr-codes/${equipmentId}.png`
+
+  const { data: existing } = await supabase.storage
+    .from("sk-equipments")
+    .download(path)
+
+  if (existing) {
+    const { data: publicUrlData } = supabase.storage
+      .from("sk-equipments")
+      .getPublicUrl(path)
+    return publicUrlData.publicUrl
+  }
+
+  const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin
+  const qrContent = `${baseUrl}/equipment?id=${equipmentId}`
+
+  const { default: QRCode } = await import("qrcode")
+  const qrDataUrl = await QRCode.toDataURL(qrContent, {
+    width: 300,
+    margin: 2,
+  })
+
+  const res = await fetch(qrDataUrl)
+  const blob = await res.blob()
+
+  const { error: uploadErr } = await supabase.storage
+    .from("sk-equipments")
+    .upload(path, blob, { contentType: "image/png", upsert: false })
+
+  if (uploadErr) {
+    const { data: publicUrlData } = supabase.storage
+      .from("sk-equipments")
+      .getPublicUrl(path)
+    return publicUrlData.publicUrl
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from("sk-equipments")
+    .getPublicUrl(path)
+  return publicUrlData.publicUrl
+}

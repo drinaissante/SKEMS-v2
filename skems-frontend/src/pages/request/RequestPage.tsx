@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
+import { useSearchParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { fetchEquipments } from "../../services/api"
 import { submitRequest } from "../../services/supabase"
@@ -37,6 +38,9 @@ export default function RequestPage() {
   const [selectorSelectedId, setSelectorSelectedId] = useState("")
   const [selectorQuantity, setSelectorQuantity] = useState(1)
   const [success, setSuccess] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const autoEquipId = searchParams.get("id")
+  const hasAutoFilled = useRef(false)
 
   const { data: allEquipments = [], isLoading } = useQuery({
     queryKey: ["equipments"],
@@ -48,6 +52,39 @@ export default function RequestPage() {
     ),
     [allEquipments],
   )
+
+  useEffect(() => {
+    if (hasAutoFilled.current || !autoEquipId || !equipments.length) return
+
+    const eq = allEquipments.find(e => e.id === autoEquipId)
+    if (!eq) return
+
+    if (formItems.some(i => i.equipmentId === eq.id)) {
+      hasAutoFilled.current = true
+      setSearchParams({}, { replace: true })
+      return
+    }
+
+    const unavailable = ["Borrowed", "Broken", "Unavailable"]
+    if (unavailable.includes(eq.condition)) {
+      showToast(`${eq.name} is not available for request`, "error")
+      hasAutoFilled.current = true
+      setSearchParams({}, { replace: true })
+      return
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFormItems(prev => [...prev, {
+      name: eq.name,
+      equipmentId: eq.id,
+      owner: eq.owner ?? "",
+      condition: eq.condition,
+      quantity: 1,
+    }])
+    hasAutoFilled.current = true
+    setSearchParams({}, { replace: true })
+    showToast(`${eq.name} added from QR`, "success")
+  }, [autoEquipId, equipments, allEquipments, formItems, setSearchParams, showToast])
 
   const getAvailableCount = (selectedId: string): number => {
     if (!selectedId) return 999

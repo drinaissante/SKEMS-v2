@@ -8,7 +8,8 @@ import {
   exportToSheets,
   type Equipment,
 } from "../../services/api"
-import { uploadImage } from "../../services/supabase"
+import { uploadImage, uploadQRCode } from "../../services/supabase"
+import { generateQRDoc } from "../../utils/qrExport"
 import { useToast } from "../../hooks/useToast"
 import EquipmentFormModal from "./AddEquipmentModal"
 import EquipmentCard from "./EquipmentCard"
@@ -36,6 +37,7 @@ export default function EquipmentsPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   const [syncing, setSyncing] = useState(false)
+  const [exportingQR, setExportingQR] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deletingId, setDeletingId] = useState("")
 
@@ -78,6 +80,10 @@ export default function EquipmentsPage() {
         const url = await uploadImage(params.imageFile)
         await updateEquipment(id!, { image: url })
         setUploadingImages((prev) => ({ ...prev, [id!]: false }))
+      }
+
+      if (id) {
+        await uploadQRCode(id)
       }
     },
     onSuccess: () => {
@@ -146,6 +152,18 @@ export default function EquipmentsPage() {
     } catch (err) {
       setSyncing(false)
       showToast("Sync failed: " + (err instanceof Error ? err.message : "Unknown error"), "error")
+    }
+  }
+
+  const handleExportQR = async () => {
+    try {
+      setExportingQR(true)
+      await generateQRDoc(equipments)
+      showToast("QR codes exported!", "success")
+    } catch (err) {
+      showToast("Export failed: " + (err instanceof Error ? err.message : "Unknown error"), "error")
+    } finally {
+      setExportingQR(false)
     }
   }
 
@@ -229,6 +247,13 @@ export default function EquipmentsPage() {
             className="px-3 py-2 text-sm bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
           >
             {syncing ? "Preparing..." : "Export to Sheet"}
+          </button>
+          <button
+            onClick={handleExportQR}
+            disabled={exportingQR}
+            className="px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+          >
+            {exportingQR ? "Generating..." : "Export QR Codes"}
           </button>
         </div>
 
