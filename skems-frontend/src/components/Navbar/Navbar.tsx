@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext"
 export default function Navbar() {
   const { isLoggedIn, isAdmin, isSuperAdmin, user, logout } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   return (
     <div className="sticky top-0 z-50 shadow-xl">
@@ -53,18 +54,38 @@ export default function Navbar() {
                   )}
                 </>
               )}
-              <Link to="/my-requests" className="hover:text-[#fdb125] transition-colors">
-                My Requests
-              </Link>
-              <Link to="/profile" className="hover:text-[#fdb125] transition-colors">
-                {user?.fullName ?? "Profile"}
-              </Link>
-              <button
-                onClick={logout}
-                className="px-3 py-1.5 rounded border border-[#a6a6a6] hover:bg-white/10 transition-colors cursor-pointer"
-              >
-                Logout
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-1 hover:text-[#fdb125] transition-colors cursor-pointer"
+                >
+                  {user?.fullName ?? "Profile"}
+                  <svg className={`w-4 h-4 transition-transform ${profileOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {profileOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
+                    <div className="absolute right-0 top-full mt-1 z-50 bg-[#222] border border-[#a6a6a6]/30 rounded-lg shadow-xl py-1 min-w-40">
+                      <Link
+                        to="/my-requests"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                      >
+                        My Requests
+                      </Link>
+                      <hr className="border-[#a6a6a6]/30" />
+                      <button
+                        onClick={() => { logout(); setProfileOpen(false) }}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors cursor-pointer"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </>
           ) : (
             <>
