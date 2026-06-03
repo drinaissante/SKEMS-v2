@@ -100,7 +100,7 @@ export default function RequestPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
     setError("")
 
@@ -165,7 +165,7 @@ export default function RequestPage() {
   const maxQty = getAvailableCount(selectorSelectedId)
 
   return (
-    <div className="min-h-screen flex items-start justify-center px-3 py-8 bg-[#f5f5f5]">
+    <div className="min-h-screen flex items-center justify-center px-3 py-8 bg-[#f5f5f5]">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-5 sm:p-8 border border-[#d9d9d9]">
         <h2 className="text-xl sm:text-2xl font-bold text-center text-[#222] mb-5">
           Equipment Request
@@ -192,7 +192,7 @@ export default function RequestPage() {
             {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Add Equipment</label>
+              <label className="block text-sm font-medium text-[#666] mb-1">Add Equipment <span className="text-red-500">*</span></label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
@@ -255,13 +255,13 @@ export default function RequestPage() {
             </div>
 
             <div>
-              <label htmlFor="reason" className="block text-sm font-medium text-[#666] mb-1">Reason for Borrowing</label>
+              <label htmlFor="reason" className="block text-sm font-medium text-[#666] mb-1">Reason for Borrowing <span className="text-red-500">*</span></label>
               <textarea required id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Describe why you need this equipment..." className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-[#666]">Date & Time to be Borrowed</label>
+                <label className="block text-sm font-medium text-[#666]">Date & Time to be Borrowed <span className="text-red-500">*</span></label>
                 <button type="button" onClick={() => setDateBorrowed(todayNow())} className="text-xs px-2 py-1 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded transition-colors cursor-pointer">Today</button>
               </div>
               <input type="datetime-local" value={dateBorrowed} onChange={(e) => setDateBorrowed(e.target.value)} className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
@@ -269,7 +269,7 @@ export default function RequestPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-[#666]">Date & Time to be Returned / Due Date</label>
+                <label className="block text-sm font-medium text-[#666]">Date & Time to be Returned / Due Date <span className="text-red-500">*</span></label>
                 <button type="button" onClick={() => setDateDue(todayNow())} className="text-xs px-2 py-1 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded transition-colors cursor-pointer">Today</button>
               </div>
               <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
