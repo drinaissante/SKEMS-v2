@@ -144,7 +144,7 @@ export default function BorrowedPage() {
       })
       setEditing(null)
     } catch {
-
+      console.error("Something went wrong saving.");
     }
   }
 
@@ -153,7 +153,7 @@ export default function BorrowedPage() {
       await deleteMutation.mutateAsync(equipmentId)
       setShowDeleteConfirm(null)
     } catch {
-
+      console.error("Something went wrong deleting.");
     }
   }
 
