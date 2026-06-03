@@ -87,3 +87,12 @@ body {
 .animate-slide-in {
   animation: slide-in 0.25s ease-out;
 }
+
+@keyframes shrink-bar {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.animate-shrink-bar {
+  animation: shrink-bar 10s linear forwards;
+}

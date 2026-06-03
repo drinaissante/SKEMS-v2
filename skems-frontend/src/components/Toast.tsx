@@ -17,11 +17,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const showToast = useCallback((message: string, type: ToastType = "info", action?: ToastAction) => {
     const id = nextId++
     setToasts((prev) => [...prev, { id, message, type, action }])
-    if (!action) {
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id))
-      }, 3500)
-    }
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id))
+    }, action ? 10000 : 3500)
   }, [])
 
   const removeToast = useCallback((id: number) => {
@@ -47,7 +45,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-start gap-2.5 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium animate-slide-in ${colorMap[t.type]}`}
+            className={`pointer-events-auto relative flex items-start gap-2.5 px-4 pt-3 pb-2.5 rounded-lg shadow-lg text-white text-sm font-medium animate-slide-in overflow-hidden ${colorMap[t.type]}`}
           >
             <span className="shrink-0 mt-0.5">{iconMap[t.type]}</span>
             <span className="flex-1">
@@ -70,6 +68,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             >
               <FiX size={16} />
             </button>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-b-lg overflow-hidden">
+              <div className="h-full bg-white/30 rounded-b-lg animate-shrink-bar" />
+            </div>
           </div>
         ))}
       </div>
