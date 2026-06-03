@@ -304,6 +304,14 @@ export async function updateRequestStatus(requestId: string, status: string) {
   if (error) throw error;
 }
 
+export async function deleteRequest(requestId: string) {
+  const { error } = await supabase
+    .from("requests")
+    .delete()
+    .eq("id", requestId);
+  if (error) throw error;
+}
+
 export async function returnBorrowedItem(equipmentId: string, conditionAfter: string) {
   const { error: recordErr } = await supabase
     .from("borrow_records")

@@ -4,9 +4,10 @@ import {
   fetchAllRequests,
   updateRequestStatus,
   approveAndMoveRequest,
+  deleteRequest,
 } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
-import { FiSearch, FiChevronDown } from "react-icons/fi"
+import { FiSearch, FiChevronDown, FiTrash2 } from "react-icons/fi"
 
 const MOBILE_ITEMS = 5
 const DESKTOP_ITEMS = 10
@@ -37,6 +38,7 @@ export default function RequestsPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
   const [confirmApproveId, setConfirmApproveId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -65,6 +67,13 @@ export default function RequestsPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       updateRequestStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (requestId: string) => deleteRequest(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
     },
@@ -111,6 +120,12 @@ export default function RequestsPage() {
     if (!confirmApproveId) return
     approveMutation.mutate(confirmApproveId)
     setConfirmApproveId(null)
+  }
+
+  const confirmDelete = () => {
+    if (!confirmDeleteId) return
+    deleteMutation.mutate(confirmDeleteId)
+    setConfirmDeleteId(null)
   }
 
   const toggleRow = (id: string) => {
@@ -200,31 +215,41 @@ export default function RequestsPage() {
                         </span>
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3">
-                        {r.status === "Pending" && (
-                          <div className="flex gap-1">
+                        <div className="flex items-center gap-1">
+                          {r.status === "Pending" && (
+                            <>
+                              <button
+                                onClick={() => handleStatus(r.id, "Approved")}
+                                disabled={approveMutation.isPending}
+                                className="px-3 py-2 text-xs bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white rounded transition-colors cursor-pointer disabled:cursor-not-allowed"
+                              >
+                                {approveMutation.isPending && approveMutation.variables === r.id ? "..." : "Approve"}
+                              </button>
+                              <button
+                                onClick={() => handleStatus(r.id, "Denied")}
+                                className="px-3 py-2 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors cursor-pointer"
+                              >
+                                Deny
+                              </button>
+                            </>
+                          )}
+                          {r.status === "Approved" && (
+                            <button
+                              onClick={() => handleStatus(r.id, "Returned")}
+                              className="px-3 py-2 text-xs bg-[#222] hover:bg-[#666] text-white rounded transition-colors cursor-pointer"
+                            >
+                              Mark Returned
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleStatus(r.id, "Approved")}
-                            disabled={approveMutation.isPending}
-                            className="px-3 py-2 text-xs bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white rounded transition-colors cursor-pointer disabled:cursor-not-allowed"
+                            onClick={() => setConfirmDeleteId(r.id)}
+                            disabled={deleteMutation.isPending}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed ml-auto"
+                            title="Delete"
                           >
-                            {approveMutation.isPending && approveMutation.variables === r.id ? "..." : "Approve"}
+                            {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={15} />}
                           </button>
-                          <button
-                            onClick={() => handleStatus(r.id, "Denied")}
-                            className="px-3 py-2 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors cursor-pointer"
-                          >
-                            Deny
-                          </button>
-                          </div>
-                        )}
-                        {r.status === "Approved" && (
-                          <button
-                            onClick={() => handleStatus(r.id, "Returned")}
-                            className="px-3 py-2 text-xs bg-[#222] hover:bg-[#666] text-white rounded transition-colors cursor-pointer"
-                          >
-                            Mark Returned
-                          </button>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -330,6 +355,14 @@ export default function RequestsPage() {
                             Mark Returned
                           </button>
                         )}
+                        <button
+                          onClick={() => setConfirmDeleteId(r.id)}
+                          disabled={deleteMutation.isPending}
+                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0"
+                          title="Delete"
+                        >
+                          {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={16} />}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -380,6 +413,35 @@ export default function RequestsPage() {
                   className="px-5 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors cursor-pointer"
                 >
                   OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {confirmDeleteId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setConfirmDeleteId(null)}>
+            <div
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-lg font-bold text-[#222] mb-2">Delete Request</h2>
+              <p className="text-sm text-[#666] mb-6">
+                Are you sure you want to delete this request? This action cannot be undone.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmDeleteId(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-[#d9d9d9] text-sm font-bold text-[#666] hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleteMutation.isPending}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                >
+                  {deleteMutation.isPending ? "Deleting…" : "Delete"}
                 </button>
               </div>
             </div>
