@@ -7,7 +7,7 @@ import {
   returnBorrowedItem,
 } from "../../services/supabase"
 import type { BorrowRecord } from "../../services/borrow"
-import { FiChevronDown, FiSearch } from "react-icons/fi"
+import { FiChevronDown, FiSearch, FiCheckCircle, FiEdit2, FiTrash2 } from "react-icons/fi"
 
 const CONDITION_OPTIONS = ["Good", "Fair", "Poor", "Damaged"] as const
 
@@ -229,25 +229,30 @@ export default function BorrowedPage() {
                       <td className="px-4 py-3 text-center text-xs text-[#666] min-w-24">{r.notes || "—"}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex gap-1 justify-center">
-                          <button
-                            onClick={() => setReturnConfirmId(r.equipment_id)}
-                            disabled={returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id}
-                            className="px-4 py-2 text-xs font-bold rounded-lg bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
-                          >
-                            {returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id ? "..." : "Returned"}
-                          </button>
+                          {!r.returned_on && (
+                            <button
+                              onClick={() => setReturnConfirmId(r.equipment_id)}
+                              disabled={returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                              title="Mark as Returned"
+                            >
+                              {returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id ? <span className="text-xs">...</span> : <FiCheckCircle size={15} />}
+                            </button>
+                          )}
                           <button
                             onClick={() => handleEdit(r)}
-                            className="px-4 py-2 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white transition-colors cursor-pointer"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white transition-colors cursor-pointer"
+                            title="Edit"
                           >
-                            Edit
+                            <FiEdit2 size={15} />
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(r.equipment_id)}
                             disabled={deleteMutation.isPending && deleteMutation.variables === r.equipment_id}
-                            className="px-4 py-2 text-xs font-bold rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                            title="Delete"
                           >
-                            {deleteMutation.isPending && deleteMutation.variables === r.equipment_id ? "..." : "Delete"}
+                            {deleteMutation.isPending && deleteMutation.variables === r.equipment_id ? <span className="text-xs">...</span> : <FiTrash2 size={15} />}
                           </button>
                         </div>
                       </td>
@@ -336,25 +341,30 @@ export default function BorrowedPage() {
                         <span className="font-medium text-[#222] text-right max-w-48">{r.notes || "—"}</span>
                       </div>
                       <div className="flex gap-2 pt-2">
-                        <button
-                          onClick={() => setReturnConfirmId(r.equipment_id)}
-                          disabled={returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id}
-                          className="flex-1 py-2.5 text-xs font-bold rounded-lg bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
-                        >
-                          {returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id ? "..." : "Returned"}
-                        </button>
+                        {!r.returned_on && (
+                          <button
+                            onClick={() => setReturnConfirmId(r.equipment_id)}
+                            disabled={returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id}
+                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                            title="Mark as Returned"
+                          >
+                            {returnMutation.isPending && returnMutation.variables?.equipmentId === r.equipment_id ? <span className="text-xs">...</span> : <FiCheckCircle size={16} />}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleEdit(r)}
-                          className="flex-1 py-2.5 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white transition-colors cursor-pointer"
+                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white transition-colors cursor-pointer"
+                          title="Edit"
                         >
-                          Edit
+                          <FiEdit2 size={16} />
                         </button>
                         <button
                           onClick={() => setShowDeleteConfirm(r.equipment_id)}
                           disabled={deleteMutation.isPending && deleteMutation.variables === r.equipment_id}
-                          className="flex-1 py-2.5 text-xs font-bold rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                          title="Delete"
                         >
-                          {deleteMutation.isPending && deleteMutation.variables === r.equipment_id ? "..." : "Delete"}
+                          {deleteMutation.isPending && deleteMutation.variables === r.equipment_id ? <span className="text-xs">...</span> : <FiTrash2 size={16} />}
                         </button>
                       </div>
                     </div>

@@ -56,6 +56,9 @@ export default function RequestsPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
     },
+    onError: (err) => {
+      alert("Failed to approve request: " + err.message)
+    },
   })
 
   const statusMutation = useMutation({
