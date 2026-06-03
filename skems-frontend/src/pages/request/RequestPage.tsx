@@ -362,7 +362,7 @@ export default function RequestPage() {
 
         {showSelector && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm mx-3">
+            <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm sm:max-w-md mx-3">
               <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">
                 Select Equipment
               </p>
@@ -380,10 +380,23 @@ export default function RequestPage() {
                   >
                     {selectorMatches.map(eq => (
                       <option key={eq.id} value={eq.id}>
-                        {eq.name} ({eq.id}) — {eq.owner ?? "No owner"} — {eq.condition}
+                        {eq.name} ({eq.id})
                       </option>
                     ))}
                   </select>
+                  {(() => {
+                    const sel = selectorMatches.find(eq => eq.id === selectorSelectedId)
+                    if (!sel) return null
+                    return (
+                      <div className="mt-2 p-2 bg-[#f5f5f5] rounded-lg text-sm space-y-1">
+                        <p className="font-medium text-[#222]">{sel.name}</p>
+                        <p className="text-xs text-[#a6a6a6]">{sel.id} — {sel.owner ?? "No owner"}</p>
+                        <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full ${sel.condition === "Working" ? "bg-green-100 text-green-700" : sel.condition === "Needs Repair" ? "bg-yellow-100 text-yellow-700" : sel.condition === "Broken" ? "bg-red-100 text-red-700" : sel.condition === "Not checked" ? "bg-gray-100 text-gray-700" : "bg-purple-100 text-purple-700"}`}>
+                          {sel.condition}
+                        </span>
+                      </div>
+                    )
+                  })()}
                 </div>
 
                 <div>
@@ -414,7 +427,7 @@ export default function RequestPage() {
                   onClick={confirmAddItem}
                   className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
                 >
-                  Add to Request
+                  <span className="hidden sm:inline">Add to Request</span><span className="sm:hidden">Add</span>
                 </button>
               </div>
             </div>
