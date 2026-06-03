@@ -3,7 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   fetchAllRequests,
   updateRequestStatus,
+  approveAndMoveRequest,
 } from "../../services/supabase"
+import { useAuth } from "../../context/AuthContext"
 import { FiSearch, FiChevronDown } from "react-icons/fi"
 
 const MOBILE_ITEMS = 5
@@ -19,6 +21,7 @@ const statusColors: Record<string, string> = {
 function formatDateTime(iso: string) {
   if (!iso) return ""
   const d = new Date(iso)
+  if (isNaN(d.getTime())) return iso
   const pad = (n: number) => String(n).padStart(2, "0")
   const h = d.getHours()
   const ampm = h >= 12 ? "PM" : "AM"
@@ -26,12 +29,14 @@ function formatDateTime(iso: string) {
 }
 
 export default function RequestsPage() {
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("All")
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
+  const [confirmApproveId, setConfirmApproveId] = useState<string | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -43,6 +48,14 @@ export default function RequestsPage() {
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["admin-requests"],
     queryFn: fetchAllRequests,
+  })
+
+  const approveMutation = useMutation({
+    mutationFn: (requestId: string) => approveAndMoveRequest(requestId, user!.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
+      queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+    },
   })
 
   const statusMutation = useMutation({
@@ -83,7 +96,17 @@ export default function RequestsPage() {
   }, [filtered, currentPage, itemsPerPage])
 
   const handleStatus = (id: string, status: string) => {
-    statusMutation.mutate({ id, status })
+    if (status === "Approved") {
+      setConfirmApproveId(id)
+    } else {
+      statusMutation.mutate({ id, status })
+    }
+  }
+
+  const confirmApprove = () => {
+    if (!confirmApproveId) return
+    approveMutation.mutate(confirmApproveId)
+    setConfirmApproveId(null)
   }
 
   const toggleRow = (id: string) => {
@@ -175,18 +198,19 @@ export default function RequestsPage() {
                       <td className="px-3 py-2 sm:px-4 sm:py-3">
                         {r.status === "Pending" && (
                           <div className="flex gap-1">
-                            <button
-                              onClick={() => handleStatus(r.id, "Approved")}
-                              className="px-3 py-2 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors cursor-pointer"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleStatus(r.id, "Denied")}
-                              className="px-3 py-2 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors cursor-pointer"
-                            >
-                              Deny
-                            </button>
+                          <button
+                            onClick={() => handleStatus(r.id, "Approved")}
+                            disabled={approveMutation.isPending}
+                            className="px-3 py-2 text-xs bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white rounded transition-colors cursor-pointer disabled:cursor-not-allowed"
+                          >
+                            {approveMutation.isPending && approveMutation.variables === r.id ? "..." : "Approve"}
+                          </button>
+                          <button
+                            onClick={() => handleStatus(r.id, "Denied")}
+                            className="px-3 py-2 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors cursor-pointer"
+                          >
+                            Deny
+                          </button>
                           </div>
                         )}
                         {r.status === "Approved" && (
@@ -243,8 +267,24 @@ export default function RequestsPage() {
                         <span className="font-medium text-[#222]">{r.student_number}</span>
                       </div>
                       <div className="flex justify-between">
+                        <span>Position/Dept</span>
+                        <span className="font-medium text-[#222] text-right max-w-48">{r.position_department || "—"}</span>
+                      </div>
+                      <div className="flex justify-between">
                         <span>Reason</span>
                         <span className="font-medium text-[#222] text-right max-w-48">{r.reason}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Pickup Loc.</span>
+                        <span className="font-medium text-[#222] text-right max-w-48">{r.pickup_location || "—"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Return Loc.</span>
+                        <span className="font-medium text-[#222] text-right max-w-48">{r.return_location || "—"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Owner</span>
+                        <span className="font-medium text-[#222] text-right max-w-48">{r.owner || "—"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Borrowed</span>
@@ -263,18 +303,19 @@ export default function RequestsPage() {
                       <div className="flex gap-2 pt-2">
                         {r.status === "Pending" && (
                           <>
-                            <button
-                              onClick={() => handleStatus(r.id, "Approved")}
-                              className="flex-1 py-2.5 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors cursor-pointer"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleStatus(r.id, "Denied")}
-                              className="flex-1 py-2.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors cursor-pointer"
-                            >
-                              Deny
-                            </button>
+                              <button
+                                onClick={() => handleStatus(r.id, "Approved")}
+                                disabled={approveMutation.isPending}
+                                className="flex-1 py-2.5 text-xs font-bold bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                              >
+                                {approveMutation.isPending && approveMutation.variables === r.id ? "..." : "Approve"}
+                              </button>
+                              <button
+                                onClick={() => handleStatus(r.id, "Denied")}
+                                className="flex-1 py-2.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors cursor-pointer"
+                              >
+                                Deny
+                              </button>
                           </>
                         )}
                         {r.status === "Approved" && (
@@ -314,6 +355,31 @@ export default function RequestsPage() {
               </div>
             )}
           </>
+        )}
+
+        {confirmApproveId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
+              <h2 className="text-lg font-bold text-[#222] mb-3">Confirm Approval</h2>
+              <p className="text-sm text-[#666] mb-6">
+                This request will be moved to the borrowed items page.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setConfirmApproveId(null)}
+                  className="px-5 py-2 text-sm font-bold bg-[#d9d9d9] hover:bg-[#a6a6a6] text-[#222] rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmApprove}
+                  className="px-5 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors cursor-pointer"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -36,7 +36,7 @@ export default function Navbar() {
 
           {isLoggedIn ? (
             <>
-                  {isAdmin && (
+              {isAdmin && (
                 <>
                   <Link to="/equipments" className="hover:text-[#fdb125] transition-colors">
                     Equipment
@@ -54,6 +54,7 @@ export default function Navbar() {
                   )}
                 </>
               )}
+
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}

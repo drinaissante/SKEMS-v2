@@ -60,6 +60,17 @@ export default function ScanPage() {
     setShowAiConsentModal(true)
   }, [])
 
+  function normalizeDate(raw: string): string {
+    if (!raw) return ""
+    const cleaned = raw.replace(/^(Date\s*[:of\s]*|Borrowed\s*[:on]*|Due\s*[:]*|Return\s*[:]*)/i, "").trim()
+    const d = new Date(cleaned)
+    if (!isNaN(d.getTime())) {
+      const pad = (n: number) => String(n).padStart(2, "0")
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+    }
+    return raw
+  }
+
   const scanFormImage = useCallback(async () => {
     if (!capturedImage) return
     setIsScanningForm(true)
@@ -97,8 +108,8 @@ export default function ScanPage() {
         owner: data.fields.owner ?? "",
         equipment_list: Array.isArray(data.fields.equipment_list) ? data.fields.equipment_list : [],
         purpose_of_use: data.fields.purpose_of_use ?? "",
-        date_time_borrowing: data.fields.date_time_borrowing ?? "",
-        date_time_return: data.fields.date_time_return ?? "",
+        date_time_borrowing: normalizeDate(data.fields.date_time_borrowing ?? ""),
+        date_time_return: normalizeDate(data.fields.date_time_return ?? ""),
         pickup_location: data.fields.pickup_location ?? "",
         return_location: data.fields.return_location ?? "",
       }

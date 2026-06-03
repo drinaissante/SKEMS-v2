@@ -25,6 +25,9 @@ export default function RequestPage() {
   const [formItems, setFormItems] = useState<FormItem[]>([])
   const [newName, setNewName] = useState("")
   const [reason, setReason] = useState("")
+  const [positionDepartment, setPositionDepartment] = useState("")
+  const [pickupLocation, setPickupLocation] = useState("")
+  const [returnLocation, setReturnLocation] = useState("")
   const [dateBorrowed, setDateBorrowed] = useState("")
   const [dateDue, setDateDue] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -113,7 +116,7 @@ export default function RequestPage() {
       setError("Add at least one equipment item.")
       return
     }
-    if (!reason || !dateBorrowed || !dateDue) {
+    if (!reason || !positionDepartment || !pickupLocation || !returnLocation || !dateBorrowed || !dateDue) {
       setError("Please fill in all fields.")
       return
     }
@@ -141,12 +144,19 @@ export default function RequestPage() {
           dateDue,
           userId: user?.id ?? "",
           quantity: item.quantity,
+          positionDepartment,
+          pickupLocation,
+          returnLocation,
+          owner: item.owner,
         })
       }
 
       setSuccess(true)
       setFormItems([])
       setReason("")
+      setPositionDepartment("")
+      setPickupLocation("")
+      setReturnLocation("")
       setDateBorrowed("")
       setDateDue("")
     } catch {
@@ -272,6 +282,21 @@ export default function RequestPage() {
             </div>
 
             <div>
+              <label htmlFor="positionDepartment" className="block text-sm font-medium text-[#666] mb-1">Position / Department <span className="text-red-500">*</span></label>
+              <input required id="positionDepartment" type="text" value={positionDepartment} onChange={(e) => setPositionDepartment(e.target.value)} maxLength={100} placeholder="e.g. Student, SK Kagawad" className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
+            </div>
+
+            <div>
+              <label htmlFor="pickupLocation" className="block text-sm font-medium text-[#666] mb-1">Pickup Location <span className="text-red-500">*</span></label>
+              <input required id="pickupLocation" type="text" value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
+            </div>
+
+            <div>
+              <label htmlFor="returnLocation" className="block text-sm font-medium text-[#666] mb-1">Return Location <span className="text-red-500">*</span></label>
+              <input required id="returnLocation" type="text" value={returnLocation} onChange={(e) => setReturnLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
+            </div>
+
+            <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-[#666]">Date & Time to be Borrowed <span className="text-red-500">*</span></label>
                 <button type="button" onClick={() => setDateBorrowed(todayNow())} className="text-xs px-2 py-1 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded transition-colors cursor-pointer">Today</button>
@@ -326,6 +351,18 @@ export default function RequestPage() {
                 <div className="flex justify-between">
                   <span className="text-[#666]">Reason</span>
                   <span className="text-[#222] font-medium text-right max-w-60 wrap-break-word">{reason}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#666]">Position/Dept</span>
+                  <span className="text-[#222] font-medium text-right max-w-60">{positionDepartment}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#666]">Pickup Loc.</span>
+                  <span className="text-[#222] font-medium text-right max-w-60">{pickupLocation}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#666]">Return Loc.</span>
+                  <span className="text-[#222] font-medium text-right max-w-60">{returnLocation}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#666]">Borrow Date</span>

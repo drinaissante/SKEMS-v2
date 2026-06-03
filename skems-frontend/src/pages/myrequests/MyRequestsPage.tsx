@@ -13,6 +13,7 @@ const statusColors: Record<string, string> = {
 function formatDateTime(iso: string) {
   if (!iso) return ""
   const d = new Date(iso)
+  if (isNaN(d.getTime())) return iso
   const pad = (n: number) => String(n).padStart(2, "0")
   const h = d.getHours()
   const ampm = h >= 12 ? "PM" : "AM"

@@ -182,6 +182,10 @@ export async function submitRequest(data: {
   dateDue: string;
   userId: string;
   quantity: number;
+  positionDepartment: string;
+  pickupLocation: string;
+  returnLocation: string;
+  owner: string;
 }) {
   const { error } = await supabase.from("requests").insert({
     equipment_id: data.equipmentId,
@@ -194,6 +198,10 @@ export async function submitRequest(data: {
     user_id: data.userId,
     status: "Pending",
     quantity: data.quantity,
+    position_department: data.positionDepartment,
+    pickup_location: data.pickupLocation,
+    return_location: data.returnLocation,
+    owner: data.owner,
   });
   if (error) throw error;
 }
@@ -220,6 +228,10 @@ export async function fetchMyRequests(userId: string) {
     user_id: string;
     quantity: number;
     returned_on: string | null;
+    position_department: string;
+    pickup_location: string;
+    return_location: string;
+    owner: string;
   }[];
 }
 
@@ -244,7 +256,44 @@ export async function fetchAllRequests() {
     user_id: string;
     quantity: number;
     returned_on: string | null;
+    position_department: string;
+    pickup_location: string;
+    return_location: string;
+    owner: string;
   }[];
+}
+
+export async function approveAndMoveRequest(requestId: string, adminUserId: string) {
+  const { data: request, error: fetchErr } = await supabase
+    .from("requests")
+    .select("*")
+    .eq("id", requestId)
+    .single();
+
+  if (fetchErr || !request) throw new Error("Request not found");
+
+  await addBorrowedItem({
+    equipment_id: request.equipment_id,
+    quantity: request.quantity,
+    full_name: request.borrower_name,
+    date: request.date_borrowed?.split("T")[0] ?? "",
+    position_department: request.position_department ?? "",
+    owner: request.owner ?? "",
+    equipment_requested: request.equipment_name,
+    purpose_of_use: request.reason,
+    date_time_borrowing: request.date_borrowed,
+    date_time_return: request.date_due,
+    pickup_location: request.pickup_location ?? "",
+    return_location: request.return_location ?? "",
+    scanned_by: adminUserId,
+  });
+
+  const { error: delErr } = await supabase
+    .from("requests")
+    .delete()
+    .eq("id", requestId);
+
+  if (delErr) throw delErr;
 }
 
 export async function updateRequestStatus(requestId: string, status: string) {
