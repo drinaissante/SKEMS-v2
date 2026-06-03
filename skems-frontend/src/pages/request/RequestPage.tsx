@@ -256,7 +256,8 @@ export default function RequestPage() {
 
             <div>
               <label htmlFor="reason" className="block text-sm font-medium text-[#666] mb-1">Reason for Borrowing <span className="text-red-500">*</span></label>
-              <textarea required id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Describe why you need this equipment..." className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
+              <textarea required id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={200} placeholder="Describe why you need this equipment..." className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] resize-none" />
+              <p className="text-xs text-right text-[#a6a6a6] mt-1">{reason.length}/200</p>
             </div>
 
             <div>
@@ -313,7 +314,7 @@ export default function RequestPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#666]">Reason</span>
-                  <span className="text-[#222] font-medium text-right max-w-60 break-words">{reason}</span>
+                  <span className="text-[#222] font-medium text-right max-w-60 wrap-break-word">{reason}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#666]">Borrow Date</span>
