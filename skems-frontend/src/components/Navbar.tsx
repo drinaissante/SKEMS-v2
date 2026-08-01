@@ -9,14 +9,14 @@ export default function Navbar() {
 
   return (
     <div className="sticky top-0 z-50 shadow-2xl">
-      <nav className="flex items-center justify-between gap-3 px-10 py-6 bg-[#050505] text-white font-bold">
+      <nav className="flex items-center justify-between gap-3 px-10 py-5 bg-[#050505] text-white font-bold">
 
         <Link to="/" className="flex items-center gap-3.5 shrink-0 select-none">
           <img src="/sk_icon_no_bg.png" height={45} width={45} alt="SK logo" decoding="async" fetchPriority="high" />
-          <span className="text-[#f7cf1ccb] text-xl uppercase">Sine Kultura</span>
+          <span className="text-[#f7cf1ccb] text-lg uppercase">Sine Kultura</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-4 text-sm">
+        <div className="hidden md:flex items-center gap-8 text-sm">
           {isLoggedIn && (
             <>
               <Link
@@ -90,11 +90,11 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <div className="flex uppercase text-s font-medium gap-3">
-                <span>Home</span>
-                <span>Our Work</span>
-                <span>About</span>
-                <span>Partnerships</span>
+              <div className="flex uppercase text-xs font-medium gap-7 *:transition-colors *:duration-200 *:hover:text-[#c89116] *:cursor-pointer">
+                <Link to="/"> Home </Link>
+                <Link to="/our-work"> Our Work </Link>
+                <Link to="/about"> About </Link>
+                <Link to="/partnerships"> Partnerships </Link>
               </div>
 
 
@@ -135,7 +135,9 @@ export default function Navbar() {
         }`}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#a6a6a6]/30">
-          <span className="text-[#fdb125] font-bold text-lg">Menu</span>
+          <img src="/sk_icon_no_bg.png" height={20} width={20} alt="SK logo" decoding="async" fetchPriority="high" />
+          <span className="text-[#f7cf1ccb] text-xs uppercase">Sine Kultura</span>
+          
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"

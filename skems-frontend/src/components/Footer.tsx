@@ -14,17 +14,30 @@ export default function Footer() {
           </div>
         </div>
 
-        <div>
-          <p>EXPLORE</p>
+        <div className="flex flex-col [&_span]:text-gray-400/50 gap-3">
+          <div className="text-lg font-bold text-white uppercase">
+            Explore
+          </div>
+
+          <span>Portfolio</span>
+          <span>Meet The Team</span>
+          <span>Work With Us</span>
+
         </div>
 
-        <div>
-          <p>CONTACT</p>
+        <div className="flex flex-col [&_span]:text-gray-400/50 gap-3 pb-8">
+          <div className="text-lg font-bold text-white uppercase">
+            Contact Us
+          </div>
+
+          
+          <span>Email: official@sinekultura.com</span>
+          <span>Location: BulSU Office of Culture and Arts</span>
         </div>
           
       </div>
       
-      <p className="text-md text-[#a6a6a6] sm:text-sm">
+      <p className="text-center align-middle pt-10 text-[#a6a6a6]/50 sm:text-xs">
         &copy; {new Date().getFullYear()} Sine Kultura All rights reserved.
       </p>
 
