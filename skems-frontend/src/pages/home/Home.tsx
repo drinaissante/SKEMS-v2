@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
-import mainMp4 from "../../assets/main.mp4"
+
+import mainMp4 from "../../assets/hero-bg.mp4"
 
 export default function Home() {
   const { isLoggedIn, user } = useAuth()

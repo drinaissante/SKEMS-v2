@@ -37,7 +37,7 @@
   :root {
     --text: #9ca3af;
     --text-h: #f3f4f6;
-    --bg: var(--gray-near-black);
+    --bg: #050505;
     --border: #2e303a;
     --accent: #fdb125;
     --accent-bg: rgba(253, 177, 37, 0.15);

@@ -8,12 +8,12 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
 
   return (
-    <div className="sticky top-0 z-50 shadow-xl">
-      <nav className="flex items-center justify-between gap-3 px-5 py-3 bg-[#222] text-white font-bold">
+    <div className="sticky top-0 z-50 shadow-2xl">
+      <nav className="flex items-center justify-between gap-3 px-10 py-6 bg-[#050505] text-white font-bold">
 
-        <Link to="/" className="flex items-center gap-2 shrink-0 select-none">
-          <img src="/sk_icon_no_bg.png" height={30} width={30} alt="SK logo" decoding="async" fetchPriority="high" />
-          <span className="text-[#fdb125] text-lg">SKEMS</span>
+        <Link to="/" className="flex items-center gap-3.5 shrink-0 select-none">
+          <img src="/sk_icon_no_bg.png" height={45} width={45} alt="SK logo" decoding="async" fetchPriority="high" />
+          <span className="text-[#f7cf1ccb] text-xl uppercase">Sine Kultura</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-4 text-sm">
@@ -90,9 +90,14 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/register" className="hover:text-[#fdb125] transition-colors">
-                Register
-              </Link>
+              <div className="flex uppercase text-s font-medium gap-3">
+                <span>Home</span>
+                <span>Our Work</span>
+                <span>About</span>
+                <span>Partnerships</span>
+              </div>
+
+
               <Link
                 to="/login"
                 className="px-3 py-2.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
