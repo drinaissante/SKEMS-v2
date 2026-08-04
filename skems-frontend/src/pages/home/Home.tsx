@@ -2,15 +2,45 @@ import { Link } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 
 import mainMp4 from "../../assets/hero-bg.mp4"
+import { useEffect, useState } from "react"
+import { cacheHeroVideo, getCachedHeroVideo } from "../../utils/videoCache"
 
 export default function Home() {
   const { isLoggedIn, user } = useAuth()
 
+  const [ bgUrl, setBgUrl ] = useState('');
+
+  useEffect(() => {
+    const init = async () => {
+      const cachedBlobUrl = await getCachedHeroVideo();
+
+      if (cachedBlobUrl) {
+        setBgUrl(cachedBlobUrl);
+      } else {
+        setBgUrl(mainMp4)
+
+        await cacheHeroVideo(mainMp4);
+      }
+    }
+
+    init();
+
+    return () => {
+      if (bgUrl && bgUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(bgUrl);
+      }
+    };
+  }, []);
+
   return (
     <div className="relative min-h-screen">
-      <video autoPlay muted loop playsInline preload="auto" className="absolute inset-0 w-full h-full object-cover">
-        <source src={mainMp4} type="video/mp4" />
-      </video>
+
+      {bgUrl && (
+        <video autoPlay muted loop playsInline  className="absolute inset-0 w-full h-full object-cover">
+          <source src={bgUrl} type="video/mp4" />
+        </video>
+      )}
+
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center">
