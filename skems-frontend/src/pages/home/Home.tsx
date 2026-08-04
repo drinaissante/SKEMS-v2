@@ -2,14 +2,13 @@ import { Link } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 
 import mainMp4 from "../../assets/hero-bg.mp4"
-import sk_header from "../../assets/sk_header.png"
 
 export default function Home() {
   const { isLoggedIn, user } = useAuth()
 
   return (
     <div className="relative min-h-screen">
-      <video autoPlay muted loop playsInline poster={sk_header} preload="auto" className="absolute inset-0 w-full h-full object-cover">
+      <video autoPlay muted loop playsInline preload="auto" className="absolute inset-0 w-full h-full object-cover">
         <source src={mainMp4} type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-black/50" />
