@@ -40,19 +40,27 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 [&_span]:text-gray-400/50 select-none">
+        <div className="flex flex-col gap-3 select-none [&_span]:transition-colors [&_span]:duration-200 [&_span]:hover:text-[#c89116]">
           <div className="text-lg font-bold text-white uppercase">
             Explore
           </div>
 
           {/* TODO Work With Us = Contact on home page*/}
-          <Link to="/our-work">Portfolio</Link>
-          <Link to="/about">Meet The Team</Link>
-          <Link to="/contact">Work With Us</Link>
+          <Link to="/our-work">
+            <span> Portfolio </span>
+          </Link>
+
+          <Link to="/about">
+            <span> Meet The Team </span>
+          </Link>
+
+          <Link to="/contact">
+            <span> Work With Us </span>
+          </Link>
 
         </div>
 
-        <div className="flex flex-col gap-3 [&_span]:text-white/70">
+        <div className="flex flex-col gap-3">
           <div className="text-lg font-bold text-white uppercase">
             Contact Us
           </div>
