@@ -2,7 +2,7 @@ import { Link } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 
 import mainMp4 from "../../assets/hero-bg.mp4"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cacheHeroVideo, getCachedHeroVideo } from "../../utils/videoCache"
 import { usePageTitle } from "../../hooks/usePageTitle"
 
@@ -34,8 +34,28 @@ export default function Home() {
     };
   }, []);
 
+
+    const lineRef = useRef<HTMLDivElement>(null)
+    const [shown, setShown] = useState(false)
+  
+    // reanimate gold gradient line on scroll
+    useEffect(() => {
+      const el = lineRef.current
+      if (!el) return
+  
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          setShown(entry.isIntersecting)
+        },
+        { threshold: 0.4 },
+      )
+      observer.observe(el)
+      return () => observer.disconnect()
+    }, [])
+
   return (
-    <div className="relative min-h-screen">
+    <>
+      <div className="relative min-h-screen">
 
       {bgUrl && (
         <video autoPlay muted loop playsInline  className="absolute inset-0 w-full h-full object-cover">
@@ -46,15 +66,14 @@ export default function Home() {
       <div className="absolute inset-0 bg-black/50" />
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-widest mb-4">
-          WELCOME!
-        </h1>
 
         {isLoggedIn ? (
           <>
+            {/* make this typing animated when logged in */}
             <p className="text-white/80 text-sm sm:text-base mb-8 max-w-md">
               Welcome back, {user?.fullName}! What would you like to do today?
             </p>
+
             <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 w-full max-w-3xl">
               <Link
                 to="/scan"
@@ -84,9 +103,8 @@ export default function Home() {
           </>
         ) : (
           <>
-            <p className="text-white/80 text-sm sm:text-base mb-8 max-w-md">
-              Sine Kultura. Register or log in to borrow
-              cameras, lighting gear, and more.
+            <p className="text-white/80 text-lg sm:text-lg mb-8 max-w-md">
+              Same passion, new vision.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3 w-full max-w-md">
               <Link
@@ -104,7 +122,134 @@ export default function Home() {
             </div>
           </>
         )}
+
       </div>
     </div>
+
+    <section className="bg-[#050505] px-4 py-6">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white text-center mb-2">
+          Latest Masterpieces
+        </h2>
+        <p className="text-sm sm:text-base text-gray-400 text-center mb-8 max-w-xl mx-auto">
+          A glimpse into our recent cinematic and photographic journeys.
+        </p>
+
+        {/*  TODO: placeholders */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-xl shadow border border-[#d9d9d9] overflow-hidden"
+            >
+              <div className="w-full h-40 bg-[#d9d9d9]" />
+              <div className="p-4">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#caa453]/20 text-[#c89116]">
+                  Placeholder
+                </span>
+                <h3 className="font-bold text-[#222] text-sm sm:text-base mt-2">
+                  Placeholder Title
+                </h3>
+                <p className="text-xs text-[#a6a6a6] mt-1">
+                  Placeholder description text.
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-10">
+          <Link
+            to="/our-work"
+            className="inline-block px-10 py-3 border-2 border-[#c89116] text-[#c89116] bg-transparent hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-lg transition-colors text-sm sm:text-base uppercase"
+          >
+            View Full Portfolio
+          </Link>
+        </div>
+      </div>
+    </section>
+
+
+    <section className="bg-transparent px-4 py-6">
+    
+    {/* the gold bar */}
+    <div
+      ref={lineRef}
+      className={`h-0.5 mx-auto mb-8 bg-linear-to-r from-transparent via-[#fdb125] to-transparent ${shown ? "animate-gold-grow" : ""}`}
+    />
+      <div className="max-w-3xl mx-auto">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white text-center mb-8">
+          Partner With Us
+        </h2>
+
+        <form
+          className="bg-white rounded-xl shadow border p-5 sm:p-8 space-y-4"
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <div>
+            <label htmlFor="partner-name" className="block text-sm font-medium text-[#666] mb-1">
+              Organization / Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="partner-name"
+              type="text"
+              required
+              maxLength={150}
+              placeholder="Organization or your full name"
+              className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="partner-email" className="block text-sm font-medium text-[#666] mb-1">
+              Email Address <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="partner-email"
+              type="email"
+              required
+              maxLength={254}
+              placeholder="you@organization.com"
+              className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="partner-details" className="block text-sm font-medium text-[#666] mb-1">
+              Project Details <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="partner-details"
+              required
+              rows={5}
+              maxLength={3000}
+              placeholder="Describe your project, goals, and how you'd like to partner..."
+              className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] resize-y"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="partner-letter" className="block text-sm font-medium text-[#666] mb-1">
+              Attach Formal Letter / Proposal <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="partner-letter"
+              type="file"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              className="w-full text-sm text-[#666] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#c89116] file:text-white file:cursor-pointer"
+            />
+            <p className="text-xs text-[#a6a6a6] mt-1">Accepted formats: PDF, Word (.doc, .docx)</p>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm sm:text-base"
+          >
+            Send Request
+          </button>
+        </form>
+      </div>
+    </section>
+    </>
   )
 }
