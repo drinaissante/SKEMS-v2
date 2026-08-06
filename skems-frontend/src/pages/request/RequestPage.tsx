@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext"
 import { useToast } from "../../hooks/useToast"
 import { FiPlus, FiTrash2, FiCamera } from "react-icons/fi"
 import QRScanner from "../scan/QRScanner"
+import { usePageTitle } from "../../hooks/usePageTitle"
 
 function todayNow(): string {
   const d = new Date()
@@ -23,6 +24,7 @@ interface FormItem {
 }
 
 export default function RequestPage() {
+  usePageTitle("Request")
   const { user } = useAuth()
   const { showToast } = useToast()
 

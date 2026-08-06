@@ -13,10 +13,12 @@ import AiConsentModal from "./AiConsentModal"
 import ResultModal from "./ResultModal"
 import ItemSelectorModal from "./ItemSelectorModal"
 import ScanSuccess from "./ScanSuccess"
+import { usePageTitle } from "../../hooks/usePageTitle"
 
 type ScanMode = "qr" | "form"
 
 export default function ScanPage() {
+  usePageTitle("Scan")
   const { user } = useAuth()
   const navigate = useNavigate()
   const { showToast } = useToast()

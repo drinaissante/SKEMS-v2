@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom"
 import { FiEye, FiEyeOff } from "react-icons/fi"
 import { supabase, updatePassword, signOut } from "../../services/supabase"
 import skHeaderPng from "../../assets/sk_header.png"
+import { usePageTitle } from "../../hooks/usePageTitle"
 
 export default function ChangePasswordPage() {
+  usePageTitle("Change Password")
   const navigate = useNavigate()
   const [sessionReady, setSessionReady] = useState(false)
   const [noSession, setNoSession] = useState(false)

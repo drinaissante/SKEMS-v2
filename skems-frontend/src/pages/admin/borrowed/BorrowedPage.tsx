@@ -14,8 +14,10 @@ import { MOBILE_ITEMS, DESKTOP_ITEMS } from "../../../constants/borrowedConstant
 import BorrowedDesktopTable from "./BorrowedDesktopTable"
 import BorrowedMobileCards from "./BorrowedMobileCards"
 import { EditModal, DeleteModal, ReturnModal } from "./BorrowedModals"
+import { usePageTitle } from "../../../hooks/usePageTitle"
 
 export default function BorrowedPage() {
+  usePageTitle("Borrowed")
   const queryClient = useQueryClient()
   const { showToast } = useToast()
   const [editing, setEditing] = useState<BorrowRecord | null>(null)

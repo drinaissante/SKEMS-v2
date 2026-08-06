@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { fetchMyRequests } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
+import { usePageTitle } from "../../hooks/usePageTitle"
 
 const statusColors: Record<string, string> = {
   Pending: "bg-[#caa453] text-white",
@@ -21,6 +22,7 @@ function formatDateTime(iso: string) {
 }
 
 export default function MyRequestsPage() {
+  usePageTitle("My Requests")
   const { user } = useAuth()
 
   const { data: requests = [], isLoading } = useQuery({

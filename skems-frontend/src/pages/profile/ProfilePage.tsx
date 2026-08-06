@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useAuth } from "../../context/AuthContext"
 import { updatePassword, fetchDiscordLink } from "../../services/supabase"
+import { usePageTitle } from "../../hooks/usePageTitle"
 
 interface DiscordLink {
   user_id: string
@@ -11,6 +12,7 @@ interface DiscordLink {
 }
 
 export default function ProfilePage() {
+  usePageTitle("Profile")
   const { user, updateUser } = useAuth()
 
   const [fullName, setFullName] = useState(user?.fullName ?? "")

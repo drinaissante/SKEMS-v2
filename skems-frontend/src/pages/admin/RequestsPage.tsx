@@ -9,6 +9,7 @@ import {
 import { useToast } from "../../hooks/useToast"
 import { useAuth } from "../../context/AuthContext"
 import { FiSearch, FiChevronDown, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi"
+import { usePageTitle } from "../../hooks/usePageTitle"
 
 const MOBILE_ITEMS = 5
 const DESKTOP_ITEMS = 10
@@ -31,6 +32,7 @@ function formatDateTime(iso: string) {
 }
 
 export default function RequestsPage() {
+  usePageTitle("Manage Requests")
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const { showToast } = useToast()

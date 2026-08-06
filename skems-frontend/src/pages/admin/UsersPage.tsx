@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { fetchAllProfiles, toggleAdmin } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
+import { usePageTitle } from "../../hooks/usePageTitle"
 import { FiSearch } from "react-icons/fi"
 
 const MOBILE_ITEMS = 8
@@ -14,9 +15,17 @@ interface Profile {
   is_admin: boolean
   is_superadmin: boolean
   email: string
+  discord_link: {
+    user_id: string
+    discord_id: string
+    discord_username: string | null
+    discord_avatar: string | null
+    linked_at: string
+  } | null
 }
 
 export default function UsersPage() {
+  usePageTitle("Manage Users")
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
@@ -113,6 +122,7 @@ export default function UsersPage() {
                     <th className="px-4 py-3 font-medium">Full Name</th>
                     <th className="px-4 py-3 font-medium">Student Number</th>
                     <th className="px-4 py-3 font-medium hidden sm:table-cell">Email</th>
+                    <th className="px-4 py-3 font-medium text-center">Discord</th>
                     <th className="px-4 py-3 font-medium text-center">Admin</th>
                     <th className="px-4 py-3 font-medium text-center">Toggle</th>
                   </tr>
@@ -124,6 +134,17 @@ export default function UsersPage() {
                       <td className="px-4 py-3 whitespace-nowrap">{p.student_number}</td>
                       <td className="px-4 py-3 hidden sm:table-cell text-[#666] whitespace-nowrap">
                         {p.email}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {p.discord_link ? (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                            Linked
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-[#666]">
+                            Not linked
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-center">
                         {p.is_admin ? (

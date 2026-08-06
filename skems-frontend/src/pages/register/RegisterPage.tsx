@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext"
 import skHeaderPng from "../../assets/sk_header.png"
 import sinekulturaMp4 from "../../assets/sinekultura.mp4"
 import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 // uses crypto to generate (built in in browser)
 const generatePassword = (length: number): string => {
@@ -20,6 +21,7 @@ const generatePassword = (length: number): string => {
 };
 
 export default function RegisterPage() {
+  usePageTitle("Register")
   const [ captchaToken, setCaptchaToken ] = useState<string>();
 
   const captcha = useRef<HCaptcha | null>(null);

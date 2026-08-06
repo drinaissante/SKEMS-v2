@@ -6,8 +6,10 @@ import { FiEye, FiEyeOff } from "react-icons/fi"
 import loginMp4 from "../../assets/login.mp4"
 
 import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { usePageTitle } from "../../hooks/usePageTitle";
 
 export default function LoginPage() {
+  usePageTitle("Login")
   const [ captchaToken, setCaptchaToken ] = useState<string>();
 
   const captcha = useRef<HCaptcha | null>(null);

@@ -15,12 +15,14 @@ import EquipmentFormModal from "./AddEquipmentModal"
 import EquipmentCard from "./EquipmentCard"
 import EquipmentCardPlaceholder from "./EquipmentCardPlaceholder"
 import { useAuth } from "../../context/AuthContext"
+import { usePageTitle } from "../../hooks/usePageTitle"
 
 const conditions = ["Working", "Borrowed", "Needs Repair", "Broken", "Not checked", "Unavailable"]
 const MOBILE_ITEMS = 3
 const DESKTOP_ITEMS = 8
 
 export default function EquipmentsPage() {
+  usePageTitle("Equipment")
   const { isAdmin, user } = useAuth()
   const queryClient = useQueryClient()
   const { showToast } = useToast()

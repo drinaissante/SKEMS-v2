@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext"
 import { useToast } from "../../hooks/useToast"
 import EquipmentFormModal from "../equipments/AddEquipmentModal"
 import skIconFallback from "../../assets/sk_icon.jpg"
+import { usePageTitle } from "../../hooks/usePageTitle"
 
 const conditions = ["Working", "Borrowed", "Needs Repair", "Broken", "Not checked", "Unavailable"]
 
@@ -28,6 +29,8 @@ export default function EquipmentDetailPage() {
     () => equipments.find((eq) => eq.id === equipmentId) ?? null,
     [equipments, equipmentId],
   )
+
+  usePageTitle(equipment?.name ?? "Equipment")
 
   const qrUrl = equipmentId
     ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/sk-equipments/qr-codes/${equipmentId}.png`

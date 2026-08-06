@@ -4,8 +4,10 @@ import { useAuth } from "../../context/AuthContext"
 import mainMp4 from "../../assets/hero-bg.mp4"
 import { useEffect, useState } from "react"
 import { cacheHeroVideo, getCachedHeroVideo } from "../../utils/videoCache"
+import { usePageTitle } from "../../hooks/usePageTitle"
 
 export default function Home() {
+  usePageTitle("Home")
   const { isLoggedIn, user } = useAuth()
 
   const [ bgUrl, setBgUrl ] = useState('');
