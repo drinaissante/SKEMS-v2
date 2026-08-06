@@ -27,8 +27,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { code, discordId, discordUsername, discordGlobalName, discordAvatar } =
     req.body ?? {};
   if (!code || !discordId) {
-    return res.status(400).json({ ok: false, error: "Missing code or discordId" });
+    return res
+      .status(400)
+      .json({ ok: false, error: "Missing code or discordId" });
   }
+  const trimmedCode = String(code).trim();
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -45,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { data: profile, error: profileErr } = await serviceClient
       .from("profiles")
       .select("id, full_name, student_number, position, created_at")
-      .eq("link_code", code)
+      .eq("link_code", trimmedCode)
       .maybeSingle();
 
     if (profileErr) {
@@ -72,16 +75,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ valid: false });
     }
 
-    const { error: upsertErr } = await serviceClient.from("discord_links").upsert(
-      {
-        user_id: profile.id,
-        discord_id: discordId,
-        discord_username: discordGlobalName ?? discordUsername ?? null,
-        discord_avatar: discordAvatar ?? null,
-        linked_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" },
-    );
+    const { error: upsertErr } = await serviceClient
+      .from("discord_links")
+      .upsert(
+        {
+          user_id: profile.id,
+          discord_id: discordId,
+          discord_username: discordGlobalName ?? discordUsername ?? null,
+          discord_avatar: discordAvatar ?? null,
+          linked_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
 
     if (upsertErr) {
       console.error("[verify] Upsert failed:", upsertErr);
