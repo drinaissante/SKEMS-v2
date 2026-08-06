@@ -1,12 +1,20 @@
 import { useState, useMemo, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { fetchAllProfiles, toggleAdmin } from "../../services/supabase"
+import { fetchAllProfiles, fetchAllDiscordLinks, toggleAdmin } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { FiSearch } from "react-icons/fi"
 
 const MOBILE_ITEMS = 8
 const DESKTOP_ITEMS = 15
+
+interface DiscordLink {
+  user_id: string
+  discord_id: string
+  discord_username: string | null
+  discord_avatar: string | null
+  linked_at: string
+}
 
 interface Profile {
   id: string
@@ -15,13 +23,7 @@ interface Profile {
   is_admin: boolean
   is_superadmin: boolean
   email: string
-  discord_link: {
-    user_id: string
-    discord_id: string
-    discord_username: string | null
-    discord_avatar: string | null
-    linked_at: string
-  } | null
+  discordLink: DiscordLink | null
 }
 
 export default function UsersPage() {
@@ -44,6 +46,11 @@ export default function UsersPage() {
     queryFn: fetchAllProfiles,
   })
 
+  const { data: discordLinks = [], isLoading: linksLoading } = useQuery({
+    queryKey: ["discord-links"],
+    queryFn: fetchAllDiscordLinks,
+  })
+
   const toggleMutation = useMutation({
     mutationFn: ({
       profileId,
@@ -59,8 +66,13 @@ export default function UsersPage() {
     },
   })
 
+  const profilesWithDiscord = useMemo(() => {
+    const map = new Map(discordLinks.map((l) => [l.user_id, l]))
+    return profiles.map((p) => ({ ...p, discordLink: map.get(p.id) ?? null }))
+  }, [profiles, discordLinks])
+
   const filtered = useMemo(
-    () => profiles.filter((p) => {
+    () => profilesWithDiscord.filter((p) => {
       const q = search.toLowerCase()
       return (
         !q ||
@@ -69,7 +81,7 @@ export default function UsersPage() {
         p.email.toLowerCase().includes(q)
       )
     }),
-    [profiles, search],
+    [profilesWithDiscord, search],
   )
 
   const itemsPerPage = isMobile ? MOBILE_ITEMS : DESKTOP_ITEMS
@@ -107,7 +119,7 @@ export default function UsersPage() {
           />
         </div>
 
-        {isLoading ? (
+        {isLoading || linksLoading ? (
           <p className="text-center text-[#666] py-10">Loading users...</p>
         ) : filtered.length === 0 ? (
           <p className="text-center text-[#666] py-10">
@@ -136,7 +148,7 @@ export default function UsersPage() {
                         {p.email}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {p.discord_link ? (
+                        {p.discordLink ? (
                           <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
                             Linked
                           </span>

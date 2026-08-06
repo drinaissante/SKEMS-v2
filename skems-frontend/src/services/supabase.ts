@@ -161,7 +161,7 @@ export async function resetPassword(email: string, redirectTo: string, captchaTo
 export async function fetchAllProfiles() {
   const { data, error } = await supabase
     .from("profiles")
-    .select("*, discord_link:discord_links(*)")
+    .select("*")
     .order("full_name", { ascending: true });
 
   if (error) throw error;
@@ -173,13 +173,21 @@ export async function fetchAllProfiles() {
     is_superadmin: boolean;
     email: string;
     position: string | null;
-    discord_link: {
-      user_id: string;
-      discord_id: string;
-      discord_username: string | null;
-      discord_avatar: string | null;
-      linked_at: string;
-    } | null;
+  }[];
+}
+
+export async function fetchAllDiscordLinks() {
+  const { data, error } = await supabase
+    .from("discord_links")
+    .select("user_id, discord_id, discord_username, discord_avatar, linked_at");
+
+  if (error) throw error;
+  return data as {
+    user_id: string;
+    discord_id: string;
+    discord_username: string | null;
+    discord_avatar: string | null;
+    linked_at: string;
   }[];
 }
 
