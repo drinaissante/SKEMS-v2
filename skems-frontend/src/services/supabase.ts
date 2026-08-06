@@ -87,7 +87,25 @@ export async function fetchProfile(userId: string) {
     is_admin: boolean;
     is_superadmin: boolean;
     email: string;
+    link_code: string;
   };
+}
+
+export async function fetchDiscordLink(userId: string) {
+  const { data, error } = await supabase
+    .from("discord_links")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as {
+    user_id: string;
+    discord_id: string;
+    discord_username: string | null;
+    discord_avatar: string | null;
+    linked_at: string;
+  } | null;
 }
 
 export async function uploadImage(file: File): Promise<string> {

@@ -14,6 +14,7 @@ export interface User {
   studentNumber: string
   isAdmin: boolean
   isSuperAdmin: boolean
+  linkCode: string
 }
 
 interface AuthContextType {
@@ -52,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       studentNumber: profile.student_number,
       isAdmin: profile.is_admin,
       isSuperAdmin: profile.is_superadmin,
+      linkCode: profile.link_code,
     })
   }
 
