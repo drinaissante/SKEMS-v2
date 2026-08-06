@@ -31,6 +31,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [studentNumber, setStudentNumber] = useState("")
+  const [position, setPosition] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -45,7 +46,7 @@ export default function RegisterPage() {
     e.preventDefault()
     setError("")
 
-    if (!fullName || !email || !studentNumber || !password) {
+    if (!fullName || !email || !studentNumber || !position || !password) {
       setError("Please fill in all fields")
       return
     }
@@ -65,7 +66,7 @@ export default function RegisterPage() {
 
     setLoading(true)
 
-    const ok = await register({ fullName, email, studentNumber, password, captchaToken })
+    const ok = await register({ fullName, email, studentNumber, position, password, captchaToken })
 
     setLoading(false)
 
@@ -160,6 +161,24 @@ export default function RegisterPage() {
                     value={studentNumber}
                     maxLength={20}
                     onChange={(e) => setStudentNumber(e.target.value)}
+                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  />
+              </div>
+
+              <div>
+                <label htmlFor="position" className="block text-sm font-medium text-[#666] mb-1">
+                  Position
+                </label>
+
+                  <input
+                    required
+                    autoComplete="organization-title"
+                    id="position"
+                    type="text"
+                    value={position}
+                    maxLength={100}
+                    placeholder="e.g. Videographer, Auditor"
+                    onChange={(e) => setPosition(e.target.value)}
                     className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
                   />
               </div>

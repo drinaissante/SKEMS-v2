@@ -44,7 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { data: profile, error: profileErr } = await serviceClient
       .from("profiles")
-      .select("id, full_name")
+      .select("id, full_name, student_number, position, created_at")
       .eq("link_code", code)
       .maybeSingle();
 
@@ -92,6 +92,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       valid: true,
       websiteUserId: profile.id,
       websiteUsername: profile.full_name,
+      studentNumber: profile.student_number ?? null,
+      position: profile.position ?? null,
+      registeredAt: profile.created_at ?? null,
     });
   } catch (error) {
     console.error("[verify] Unexpected error:", error);

@@ -17,6 +17,7 @@ export default function ProfilePage() {
 
   const [fullName, setFullName] = useState(user?.fullName ?? "")
   const [studentNumber, setStudentNumber] = useState(user?.studentNumber ?? "")
+  const [position, setPosition] = useState(user?.position ?? "")
   const [email, setEmail] = useState(user?.email ?? "")
   const [password, setPassword] = useState("")
   const [showEmail, setShowEmail] = useState(false)
@@ -55,7 +56,7 @@ export default function ProfilePage() {
         setSaving(false)
         return
       }
-      await updateUser({ fullName, studentNumber, email })
+      await updateUser({ fullName, studentNumber, position, email })
       if (password) {
         await updatePassword(password)
         setPassword("")
@@ -134,6 +135,21 @@ export default function ProfilePage() {
                 value={studentNumber}
                 maxLength={20}
                 onChange={(e) => setStudentNumber(e.target.value)}
+                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#666] mb-1">
+                Position
+              </label>
+
+              <input
+                type="text"
+                value={position}
+                maxLength={100}
+                placeholder="e.g. Videographer, Auditor"
+                onChange={(e) => setPosition(e.target.value)}
                 className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
               />
             </div>

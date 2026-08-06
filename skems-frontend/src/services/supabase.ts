@@ -16,6 +16,7 @@ export async function signUp(
   password: string,
   fullName: string,
   studentNumber: string,
+  position: string,
   captchaToken: string,
 ) {
   if (!email || !password || !fullName || !studentNumber) {
@@ -32,6 +33,7 @@ export async function signUp(
       data: {
         full_name: fullName,
         student_number: studentNumber,
+        position,
       },
     },
   });
@@ -88,6 +90,7 @@ export async function fetchProfile(userId: string) {
     is_superadmin: boolean;
     email: string;
     link_code: string;
+    position: string | null;
   };
 }
 
@@ -124,7 +127,11 @@ export async function uploadImage(file: File): Promise<string> {
 
 export async function updateProfile(
   userId: string,
-  updates: { full_name?: string; student_number?: string },
+  updates: {
+    full_name?: string;
+    student_number?: string;
+    position?: string;
+  },
 ) {
   const { error } = await supabase
     .from("profiles")
@@ -165,6 +172,7 @@ export async function fetchAllProfiles() {
     is_admin: boolean;
     is_superadmin: boolean;
     email: string;
+    position: string | null;
     discord_link: {
       user_id: string;
       discord_id: string;
