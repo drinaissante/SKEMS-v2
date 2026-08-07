@@ -9,11 +9,12 @@ export default function Navbar() {
 
   return (
     <div className="sticky top-0 z-50 shadow-2xl">
-      <nav className="flex items-center justify-between gap-3 px-10 py-5 bg-[#050505] text-white font-bold">
+      <nav className="flex items-center justify-between gap-3 px-10 py-4 bg-[#080808a8] text-white font-bold">
 
         <Link to="/" className="flex items-center gap-3.5 shrink-0 select-none">
-          <img src="/sk_icon_no_bg.png" height={45} width={45} alt="SK logo" decoding="async" fetchPriority="high" />
-          <span className="text-[#f7cf1ccb] text-lg uppercase">Sine Kultura</span>
+          <img src="/sk_icon_no_bg.png" className="h-10 w-10 md:h-8 md:w-8" alt="SK logo" decoding="async" fetchPriority="high" />
+          <div className="md:hidden shrink-0 pl-5" />
+          <span className="text-[#f7cf1ccb] text-md uppercase">Sine Kultura</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm">
@@ -111,7 +112,7 @@ export default function Navbar() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setSidebarOpen(true)}
-          className="md:hidden p-3 hover:bg-white/10 rounded transition-colors cursor-pointer"
+          className="md:hidden hover:bg-white/10 rounded transition-colors cursor-pointer"
           aria-label="Open menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
