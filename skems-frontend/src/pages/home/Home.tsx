@@ -69,7 +69,7 @@ export default function Home() {
 
           {isLoggedIn ? (
             <>
-              {/* make this typing animated when logged in */}
+              {/* TODO: make this typing animated when logged in */}
               <p className="text-white/80 text-sm sm:text-base mb-8 max-w-md">
                 Welcome back, {user?.fullName}! What would you like to do today?
               </p>
@@ -109,13 +109,13 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row justify-center gap-3 w-full max-w-md">
                 <Link
                   to="/register"
-                  className="w-full sm:flex-1 px-10 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors shadow text-sm sm:text-base"
+                  className="w-full sm:flex-1 px-10 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors duration-200 shadow text-sm sm:text-base"
                 >
                   Register
                 </Link>
                 <Link
                   to="/login"
-                  className="w-full sm:flex-1 px-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-lg transition-colors text-sm sm:text-base"
+                  className="w-full sm:flex-1 px-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-lg transition-colors duration-200 text-sm sm:text-base"
                 >
                   Login
                 </Link>
