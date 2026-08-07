@@ -115,7 +115,7 @@ export default function Home() {
               </Link>
               <Link
                 to="/login"
-                className="w-full sm:flex-1 px-10 py-3 border-2 border-[#c89116] text-[#c89116] bg-white/10 hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-lg transition-colors text-sm sm:text-base"
+                className="w-full sm:flex-1 px-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-lg transition-colors text-sm sm:text-base"
               >
                 Login
               </Link>
@@ -170,21 +170,27 @@ export default function Home() {
     </section>
 
 
-    <section className="bg-transparent px-4 py-6">
+    <section className="py-6">
     
-    {/* the gold bar */}
-    <div
-      ref={lineRef}
-      className={`h-0.5 mx-auto mb-8 bg-linear-to-r from-transparent via-[#fdb125] to-transparent ${shown ? "animate-gold-grow" : ""}`}
-    />
+      {/* the gold bar */}
+      <div
+        ref={lineRef}
+        className={`h-0.5 mx-auto mb-8 bg-linear-to-r from-transparent via-[#fdb125] to-transparent ${shown ? "animate-gold-grow" : ""}`}
+      />
+
       <div className="max-w-3xl mx-auto">
         <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white text-center mb-8">
           Partner With Us
         </h2>
 
+        <p className="text-sm sm:text-base text-gray-400 text-center mb-8 max-w-xl mx-auto">
+          Have a project in mind? Let's collaborate.
+        </p>
+
+        {/* TODO: make this submit to discord  */}
         <form
-          className="bg-white rounded-xl shadow border p-5 sm:p-8 space-y-4"
-          onSubmit={(e) => e.preventDefault()}
+          className="shadow-xl p-5 sm:p-8 space-y-4"
+          onSubmit={(e) => e.preventDefault()} 
         >
           <div>
             <label htmlFor="partner-name" className="block text-sm font-medium text-[#666] mb-1">
@@ -195,8 +201,8 @@ export default function Home() {
               type="text"
               required
               maxLength={150}
-              placeholder="Organization or your full name"
-              className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+              placeholder="Organization / Your Full Name"
+              className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] placeholder-gray-600"
             />
           </div>
 
@@ -210,7 +216,7 @@ export default function Home() {
               required
               maxLength={254}
               placeholder="you@organization.com"
-              className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+              className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] placeholder-gray-600"
             />
           </div>
 
@@ -224,7 +230,7 @@ export default function Home() {
               rows={5}
               maxLength={3000}
               placeholder="Describe your project, goals, and how you'd like to partner..."
-              className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] resize-y"
+              className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] resize-y placeholder-gray-600"
             />
           </div>
 
@@ -243,7 +249,7 @@ export default function Home() {
 
           <button
             type="submit"
-            className="w-full py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm sm:text-base"
+            className="flex justify-self-center px-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white font-bold rounded-lg transition-colors cursor-pointer text-sm sm:text-base"
           >
             Send Request
           </button>
