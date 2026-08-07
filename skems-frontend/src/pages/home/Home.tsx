@@ -162,7 +162,7 @@ export default function Home() {
           <div className="flex justify-center mt-10">
             <Link
               to="/our-work"
-              className="inline-block px-10 py-3 border-2 border-[#c89116] text-[#c89116] bg-transparent hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-lg transition-colors text-sm sm:text-base uppercase"
+              className="inline-block px-10 py-3 border-2 border-[#c89116] text-[#c89116] bg-transparent hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-lg transition-colors duration-200 text-sm sm:text-base uppercase"
             >
               View Full Portfolio
             </Link>
@@ -243,14 +243,14 @@ export default function Home() {
                 id="partner-letter"
                 type="file"
                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                className="w-full text-sm text-[#666] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#c89116] file:text-white file:cursor-pointer"
+                className="w-1/2 text-sm text-[#666] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#c89116] file:text-white file:cursor-pointer"
               />
               <p className="text-xs text-[#a6a6a6] mt-1">Accepted formats: PDF, Word (.doc, .docx)</p>
             </div>
 
             <button
               type="submit"
-              className="flex justify-self-center px-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white font-bold rounded-lg transition-colors cursor-pointer text-sm sm:text-base"
+              className="flex justify-self-center px-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white font-bold rounded-lg transition-colors duration-200 cursor-pointer text-sm sm:text-base"
             >
               Send Request
             </button>
