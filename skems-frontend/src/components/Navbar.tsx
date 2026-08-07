@@ -13,7 +13,7 @@ export default function Navbar() {
 
         <Link to="/" className="flex items-center gap-3.5 shrink-0 select-none">
           <img src="/sk_icon_no_bg.png" className="h-10 w-10 md:h-8 md:w-8" alt="SK logo" decoding="async" fetchPriority="high" />
-          <div className="md:hidden shrink-0 pl-5" />
+          
           <span className="text-[#f7cf1ccb] text-md uppercase">Sine Kultura</span>
         </Link>
 
