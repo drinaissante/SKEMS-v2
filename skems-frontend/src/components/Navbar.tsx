@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import GradientLine from "./GradientLine"
 
 export default function Navbar() {
   const { isLoggedIn, isAdmin, isSuperAdmin, user, logout } = useAuth()
@@ -8,7 +9,7 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
 
   return (
-    <div className="sticky top-0 z-50 shadow-2xl">
+    <div className="select-none sticky top-0 z-50 shadow-2xl">
       <nav className="flex items-center justify-between gap-3 px-10 py-4 bg-[#080808a8] text-white font-bold">
 
         <Link to="/" className="flex items-center gap-3.5 shrink-0 select-none">
@@ -234,13 +235,13 @@ export default function Navbar() {
           ) : (
             <div className="flex-1 flex flex-col gap-5 text-center">
               <Link to="/" onClick={() => setSidebarOpen(false)}> Home </Link>
-              <div className="h-px bg-linear-to-r from-transparent via-[#fdb125] to-transparent"/>
+              <GradientLine />
               <Link to="/our-work" onClick={() => setSidebarOpen(false)}> Our Work </Link>
-              <div className="h-px bg-linear-to-r from-transparent via-[#fdb125] to-transparent"/>
+              <GradientLine />
               <Link to="/about" onClick={() => setSidebarOpen(false)}> About </Link>
-              <div className="h-px bg-linear-to-r from-transparent via-[#fdb125] to-transparent"/>
+              <GradientLine />
               <Link to="/partnerships" onClick={() => setSidebarOpen(false)}> Partnerships </Link>
-              <div className="h-px bg-linear-to-r from-transparent via-[#fdb125] to-transparent"/>
+              
 
               {/* <Link
                 to="/register"
