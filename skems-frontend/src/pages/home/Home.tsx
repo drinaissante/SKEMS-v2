@@ -1,14 +1,27 @@
 import { Link } from "react-router-dom"
+import { useEffect, useRef, useState, useMemo } from "react"
+
+import { cacheHeroVideo, getCachedHeroVideo } from "../../utils/videoCache"
+
 import { useAuth } from "../../context/AuthContext"
+import { usePageTitle } from "../../hooks/usePageTitle"
+import { useTypewriter } from "../../hooks/useTypewriter"
 
 import mainMp4 from "../../assets/hero-bg.mp4"
-import { useEffect, useRef, useState } from "react"
-import { cacheHeroVideo, getCachedHeroVideo } from "../../utils/videoCache"
-import { usePageTitle } from "../../hooks/usePageTitle"
 
 export default function Home() {
   usePageTitle("Home")
   const { isLoggedIn, user } = useAuth()
+
+  const welcomeTexts = useMemo(
+    () => [
+      `Welcome back, ${user?.fullName}! What would you like to do today?`,
+      "Ready to scan some equipment?",
+      "Explore the latest masterpieces",
+    ],
+    [user?.fullName]
+  )
+  const { output, holding } = useTypewriter(welcomeTexts)
 
   const [ bgUrl, setBgUrl ] = useState('');
 
@@ -69,9 +82,10 @@ export default function Home() {
 
           {isLoggedIn ? (
             <>
-              {/* TODO: make this typing animated when logged in */}
-              <p className="text-white/80 text-sm sm:text-base mb-8 max-w-md">
-                Welcome back, {user?.fullName}! What would you like to do today?
+              {/* make this typing animated when logged in */}
+              <p className="text-sm sm:text-base mb-8 max-w-md bg-linear-to-r from-[#f7cf1ccb] to-[#050505] bg-clip-text text-transparent">
+                {output}
+                {holding && <span className="animate-pulse text-white/80">|</span>}
               </p>
 
               <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 w-full max-w-3xl">
@@ -127,7 +141,7 @@ export default function Home() {
       </div>
 
       {/* our work / portfolio */}
-      <section className="px-4 py-6">
+      <section className="bg-fixed-black px-4 py-6">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-xl sm:text-2xl lg:text-2xl font-bold text-white text-center mb-2">
             Latest Masterpieces
@@ -171,7 +185,7 @@ export default function Home() {
       </section>
 
       {/* partner with us */}
-      <section className="py-6">
+      <section className="bg-fixed-black py-6">
       
         {/* the gold bar */}
         <div
@@ -190,7 +204,7 @@ export default function Home() {
 
           {/* TODO: make this submit to discord  */}
           <form
-            className="shadow-xl p-5 sm:p-8 space-y-4"
+            className=" p-5 sm:p-8 space-y-4"
             onSubmit={(e) => e.preventDefault()} 
           >
             <div>
@@ -203,7 +217,7 @@ export default function Home() {
                 required
                 maxLength={150}
                 placeholder="Organization / Your Full Name"
-                className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-[#222] placeholder-gray-600 transition-color duration-300"
+                className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-white placeholder-gray-600 transition-color duration-300"
               />
             </div>
 
@@ -217,7 +231,7 @@ export default function Home() {
                 required
                 maxLength={254}
                 placeholder="you@organization.com"
-                className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-[#222] placeholder-gray-600 transition-color duration-300"
+                className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-white placeholder-gray-600 transition-color duration-300"
               />
             </div>
 
