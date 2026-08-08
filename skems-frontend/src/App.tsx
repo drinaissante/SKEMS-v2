@@ -26,17 +26,18 @@ import { useEquipmentsRealtime } from './hooks/useEquipmentsRealtime'
 import { useRequestsRealtime } from './hooks/useRequestsRealtime'
 import { useBorrowedRealtime } from './hooks/useBorrowedRealtime'
 import About from './pages/about/About'
+import Restricted from './pages/restricted/Restricted'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuth()
 
-  return isLoggedIn ? <>{children}</> : <Navigate to="/login" replace />
+  return isLoggedIn ? <>{children}</> : <Navigate to="/restricted" replace />
 }
 
 function UserRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuth()
 
-  return isLoggedIn ? <>{children}</> : <Navigate to="/" replace />
+  return isLoggedIn ? <>{children}</> : <Navigate to="/restricted" replace />
 }
 
 function GuestRoute({ children }: { children: React.ReactNode }) {
@@ -52,7 +53,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />
 
   if (!isAdmin) 
-    return <Navigate to="/" replace />
+    return <Navigate to="/restricted" replace />
 
   return <>{children}</>
 }
@@ -84,6 +85,7 @@ function App() {
           <Route path='/login' element={<GuestRoute><LoginPage /></GuestRoute>} />
           <Route path='/register' element={<GuestRoute><RegisterPage /></GuestRoute>} />
           <Route path='/about' element={<About />} />
+          <Route path='/restricted' element={<Restricted />} />
 
           <Route
             path='/scan'
