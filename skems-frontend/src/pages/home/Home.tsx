@@ -15,7 +15,7 @@ export default function Home() {
 
   const welcomeTexts = useMemo(
     () => [
-      `Welcome back, ${user?.fullName}! What would you like to do today?`,
+      `Welcome back, ${user?.fullName}!`,
       "Ready to scan some equipment?",
       "Explore the latest masterpieces",
     ],
@@ -81,9 +81,9 @@ export default function Home() {
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center">
 
           {isLoggedIn ? (
-            <>
+          <>
               {/* make this typing animated when logged in */}
-              <p className="text-sm sm:text-base mb-8 max-w-md bg-linear-to-r from-[#f7cf1ccb] to-[#050505] bg-clip-text text-transparent">
+              <p className="text-sm sm:text-base mb-8 max-w-md bg-linear-to-r from-[#cab453] to-[#ffd000] bg-clip-text text-transparent">
                 {output}
                 {holding && <span className="animate-pulse text-white/80">|</span>}
               </p>
@@ -91,19 +91,19 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 w-full max-w-3xl">
                 <Link
                   to="/scan"
-                  className="w-full sm:flex-1 sm:min-w-40 px-8 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-xl transition-colors shadow text-sm sm:text-base"
+                  className="w-full sm:flex-1 sm:min-w-40 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-xl transition-colors shadow text-sm sm:text-base"
                 >
                   Scan QR
                 </Link>
                 <Link
                   to="/request"
-                  className="w-full sm:flex-1 sm:min-w-40 px-8 py-3 border-2 border-[#c89116] text-[#c89116] bg-white/10 hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-xl transition-colors text-sm sm:text-base"
+                  className="w-full sm:flex-1 sm:min-w-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-xl transition-colors text-sm sm:text-base"
                 >
-                  Borrow Equipment
+                  Borrow
                 </Link>
                 <Link
                   to="/my-requests"
-                  className="w-full sm:flex-1 sm:min-w-40 px-8 py-3 bg-[#222] hover:bg-[#666] text-white font-bold rounded-xl transition-colors shadow text-sm sm:text-base"
+                  className="w-full sm:flex-1 sm:min-w-40 px-5 py-3 bg-[#222] hover:bg-[#666] text-white font-bold rounded-xl transition-colors shadow text-sm sm:text-base"
                 >
                   My Requests
                 </Link>
@@ -114,7 +114,7 @@ export default function Home() {
                   My Profile
                 </Link>
               </div>
-            </>
+          </>
           ) : (
             <>
               <p className="text-white/80 text-lg sm:text-lg mb-8 max-w-md">
