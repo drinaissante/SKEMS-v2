@@ -25,6 +25,7 @@ import { useAuth } from './context/AuthContext'
 import { useEquipmentsRealtime } from './hooks/useEquipmentsRealtime'
 import { useRequestsRealtime } from './hooks/useRequestsRealtime'
 import { useBorrowedRealtime } from './hooks/useBorrowedRealtime'
+import About from './pages/about/About'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuth()
@@ -82,6 +83,7 @@ function App() {
           <Route path='/' element={<Home />} />
           <Route path='/login' element={<GuestRoute><LoginPage /></GuestRoute>} />
           <Route path='/register' element={<GuestRoute><RegisterPage /></GuestRoute>} />
+          <Route path='/about' element={<About />} />
 
           <Route
             path='/scan'
