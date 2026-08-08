@@ -131,7 +131,7 @@ export default function Navbar() {
 
       {/* Mobile sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-[#222] text-white z-50 transform transition-transform duration-300 md:hidden ${
+        className={`fixed top-0 right-0 h-full w-72 bg-[#222] text-white z-50 transform transition-transform duration-300 md:hidden flex flex-col ${
           sidebarOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -150,7 +150,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        <div className="flex flex-col gap-2 p-5">
+        <div className="flex-1 flex flex-col gap-2 p-5 overflow-y-auto">
           {isLoggedIn ? (
             <>
               <Link
@@ -168,7 +168,7 @@ export default function Navbar() {
                 Request
               </Link>
 
-                  {isAdmin && (
+              {isAdmin && (
                 <>
                   <Link
                     to="/equipments"
@@ -219,32 +219,47 @@ export default function Navbar() {
                 {user?.fullName ?? "Profile"}
               </Link>
 
-              <hr className="border-[#a6a6a6]/30 my-2" />
+              <hr className="border-[#a6a6a6]/30 my-2 mt-auto" />
 
               <button
-                onClick={() => { logout(); setSidebarOpen(false) }}
+                onClick={() => { 
+                  logout(); 
+                  setSidebarOpen(false);
+                }}
                 className="px-4 py-3 rounded border border-[#a6a6a6] hover:bg-white/10 transition-colors cursor-pointer text-left"
               >
                 Logout
               </button>
             </>
           ) : (
-            <>
-              <Link
+            <div className="flex-1 flex flex-col gap-5 text-center">
+              <Link to="/" onClick={() => setSidebarOpen(false)}> Home </Link>
+              <div className="h-px bg-linear-to-r from-transparent via-[#fdb125] to-transparent"/>
+              <Link to="/our-work" onClick={() => setSidebarOpen(false)}> Our Work </Link>
+              <div className="h-px bg-linear-to-r from-transparent via-[#fdb125] to-transparent"/>
+              <Link to="/about" onClick={() => setSidebarOpen(false)}> About </Link>
+              <div className="h-px bg-linear-to-r from-transparent via-[#fdb125] to-transparent"/>
+              <Link to="/partnerships" onClick={() => setSidebarOpen(false)}> Partnerships </Link>
+              <div className="h-px bg-linear-to-r from-transparent via-[#fdb125] to-transparent"/>
+
+              {/* <Link
                 to="/register"
                 onClick={() => setSidebarOpen(false)}
-                className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
+                className="rounded hover:bg-white/10 transition-colors"
               >
                 Register
               </Link>
+
+              <div className="h-px bg-linear-to-r from-transparent via-[#fdb125] to-transparent"/> */}
+
               <Link
                 to="/login"
                 onClick={() => setSidebarOpen(false)}
-                className="px-4 py-3 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors text-center"
+                className="mt-auto px-4 py-3 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors text-center"
               >
                 Login
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
