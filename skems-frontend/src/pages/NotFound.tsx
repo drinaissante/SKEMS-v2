@@ -1,26 +1,31 @@
 import { useNavigate } from "react-router-dom"
 import { usePageTitle } from "../hooks/usePageTitle"
+import GradientLine from "../components/GradientLine"
 
 export default function NotFound() {
   usePageTitle("Page Not Found")
+  
   const navigate = useNavigate()
 
   return (
-    <div className="flex flex-col items-center justify-center pt-60 pb-60 p-10 sm:p-60 bg-[#f5f5f5]">
+    <div className="min-h-screen bg-fixed-black flex flex-col items-center justify-center px-4">
+      <div className="bg-[#111] rounded-xl shadow-xl border border-[#5f5c5c93] p-8 sm:p-10 w-full max-w-md text-center">
+        <h1 className="text-xl font-bold bg-linear-to-r from-[#cab453] to-[#ffd000] bg-clip-text text-transparent">
+          404
+        </h1>
 
-      <div className="bg-white rounded-xl shadow border border-[#d9d9d9] p-8 sm:p-10 w-full max-w-md text-center">
+        <p className="text-lg sm:text-xl font-bold text-white mb-4">Page not found</p>
 
-        <h1 className="text-6xl sm:text-7xl font-bold text-[#c89116] mb-2">404</h1>
+        <GradientLine className="mb-12"/>
 
-        <p className="text-lg sm:text-xl font-bold text-[#222] mb-1">Page not found</p>
-        <p className="text-sm text-[#666] mb-6">
+        <p className="text-sm text-gray-400 mb-6">
           The page you're looking for doesn't exist or has been moved.
         </p>
 
         <div className="flex gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="flex-1 py-2.5 text-sm border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+            className="flex-1 py-2.5 text-sm border-2 border-[#c89116] text-[#c89116] rounded-lg hover:bg-[#fdb125] hover:text-white transition-colors cursor-pointer"
           >
             Go Back
           </button>
@@ -32,9 +37,7 @@ export default function NotFound() {
             Home
           </button>
         </div>
-
       </div>
-
     </div>
   )
 }
