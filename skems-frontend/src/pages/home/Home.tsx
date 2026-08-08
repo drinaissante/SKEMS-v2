@@ -141,7 +141,7 @@ export default function Home() {
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <div
                 key={i}
-                className="bg-transparent rounded-xl shadow=xl border border-[#d9d9d9] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-[#fdb125]"
+                className="bg-transparent rounded-xl shadow=xl border border-[#5f5c5c93] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-[#fdb125]"
               >
                 <div className="w-full h-40 bg-[#d9d9d9a9]" />
                 <div className="p-4">
@@ -203,7 +203,7 @@ export default function Home() {
                 required
                 maxLength={150}
                 placeholder="Organization / Your Full Name"
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:border-[#fdb125] text-[#222] placeholder-gray-600 transition-color duration-300"
+                className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-[#222] placeholder-gray-600 transition-color duration-300"
               />
             </div>
 
@@ -217,7 +217,7 @@ export default function Home() {
                 required
                 maxLength={254}
                 placeholder="you@organization.com"
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:border-[#fdb125] text-[#222] placeholder-gray-600 transition-color duration-300"
+                className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-[#222] placeholder-gray-600 transition-color duration-300"
               />
             </div>
 
@@ -231,7 +231,7 @@ export default function Home() {
                 rows={5}
                 maxLength={3000}
                 placeholder="Describe your project, goals, and how you'd like to partner..."
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:border-[#fdb125] text-[#222] resize-y placeholder-gray-600 transition-color duration-300"
+                className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-white resize-y placeholder-gray-600 transition-color duration-300"
               />
             </div>
 
@@ -243,9 +243,9 @@ export default function Home() {
                 id="partner-letter"
                 type="file"
                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                className="w-1/2 text-sm text-[#666] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#c89116] file:text-white file:cursor-pointer"
+                className="text-sm text-[#666] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-[#c89116] file:text-white file:cursor-pointer"
               />
-              <p className="text-xs text-[#a6a6a6] mt-1">Accepted formats: PDF, Word (.doc, .docx)</p>
+              <p className="text-xs italic text-[#a6a6a6] mt-1">Accepted formats: PDF, Word (.doc, .docx)</p>
             </div>
 
             <button
