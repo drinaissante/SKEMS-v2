@@ -7,7 +7,7 @@ import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { useTypewriter } from "../../hooks/useTypewriter"
 
-import mainMp4 from "../../assets/hero-bg.mp4"
+import mainMp4 from "/hero-optimized-2.mp4"
 
 export default function Home() {
   usePageTitle("Home")
@@ -71,7 +71,7 @@ export default function Home() {
       {/* hero */}
       <div className="relative min-h-screen">
         {bgUrl && (
-          <video autoPlay muted loop playsInline  className="absolute inset-0 w-full h-full object-cover">
+          <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
             <source src={bgUrl} type="video/mp4" />
           </video>
         )}
