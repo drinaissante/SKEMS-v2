@@ -93,26 +93,26 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-start justify-center px-3 py-25 bg-[#f5f5f5]">
-      <div className="w-full max-w-md flex flex-col gap-5">
+    <div className="min-h-screen flex items-start justify-center px-3 py-25 bg-fixed-black">
+      <div className="w-full max-w-3xl flex flex-col md:flex-row gap-5 md:items-start">
         <form
           onSubmit={handleSave}
-          className="w-full bg-white rounded-xl shadow-lg p-5 sm:p-8 border border-[#d9d9d9]"
+          className="w-full md:flex-1 dark-card p-5 sm:p-8"
         >
-          <h2 className="text-xl sm:text-2xl font-bold text-center text-[#222] mb-5">
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">
             My Profile
           </h2>
 
           {saved && (
-            <p className="text-green-600 text-sm text-center mb-4">Profile updated successfully!</p>
+            <p className="text-green-300 text-sm text-center mb-4">Profile updated successfully!</p>
           )}
           {error && (
-            <p className="text-red-600 text-sm text-center mb-4">{error}</p>
+            <p className="text-red-400 text-sm text-center mb-4">{error}</p>
           )}
 
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">
+              <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
                 Full Name
               </label>
 
@@ -121,12 +121,12 @@ export default function ProfilePage() {
                 value={fullName}
                 maxLength={100}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                className="dark-input w-full text-base"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">
+              <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
                 Student Number
               </label>
 
@@ -135,12 +135,12 @@ export default function ProfilePage() {
                 value={studentNumber}
                 maxLength={20}
                 onChange={(e) => setStudentNumber(e.target.value)}
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                className="dark-input w-full text-base"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">
+              <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
                 Position
               </label>
 
@@ -150,13 +150,13 @@ export default function ProfilePage() {
                 maxLength={100}
                 placeholder="e.g. Videographer, Auditor"
                 onChange={(e) => setPosition(e.target.value)}
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                className="dark-input w-full text-base"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-[#666]">
+                <label className="block text-sm font-medium text-[#a6a6a6]">
                   Email
                 </label>
 
@@ -174,13 +174,13 @@ export default function ProfilePage() {
                 value={email}
                 maxLength={254}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                className="dark-input w-full text-base"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-[#666]">
+                <label className="block text-sm font-medium text-[#a6a6a6]">
                   Password
                 </label>
 
@@ -199,7 +199,7 @@ export default function ProfilePage() {
                 autoComplete="new-password"
                 maxLength={128}
                 placeholder="Enter new password..."
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                className="dark-input w-full text-base"
               />
             </div>
           </div>
@@ -207,14 +207,14 @@ export default function ProfilePage() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full mt-5 sm:mt-6 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm sm:text-base"
+            className="btn-gold w-full mt-5 sm:mt-6 py-3 text-sm sm:text-base disabled:opacity-40"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
         </form>
 
-        <div className="w-full bg-white rounded-xl shadow-lg p-5 sm:p-8 border border-[#d9d9d9]">
-          <h2 className="text-xl sm:text-2xl font-bold text-center text-[#222] mb-5">
+        <div className="w-full md:flex-1 dark-card p-5 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">
             Discord Link
           </h2>
 
@@ -227,42 +227,42 @@ export default function ProfilePage() {
                   className="w-16 h-16 rounded-full mx-auto"
                 />
               )}
-              <p className="font-semibold text-[#222]">
+              <p className="font-semibold text-white">
                 {discordLink.discord_username ?? discordLink.discord_id}
               </p>
-              <p className="text-sm text-[#666]">
+              <p className="text-sm text-[#a6a6a6]">
                 Linked since{" "}
                 {new Date(discordLink.linked_at).toLocaleDateString()}
               </p>
-              <p className="text-xs text-[#999]">
+              <p className="text-xs text-[#a6a6a6]">
                 To unlink, use <code className="text-[#c89116]">/unlink</code> in the Discord server.
               </p>
             </div>
           ) : (
             <div className="text-center space-y-3">
-              <p className="text-sm text-[#666]">
+              <p className="text-sm text-[#a6a6a6]">
                 In the Discord server, run the command:
               </p>
               <div className="flex items-center justify-center gap-2">
-                <code className="px-3 py-2 bg-[#f5f5f5] border border-[#d9d9d9] rounded-lg text-[#c89116] font-mono text-xs sm:text-sm select-all break-all max-w-[70%]">
+                <code className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-[#fdb125] font-mono text-xs sm:text-sm select-all break-all max-w-[70%]">
                   /link {user.linkCode}
                 </code>
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="shrink-0 px-3 py-2 text-xs font-semibold text-[#c89116] border border-[#d9d9d9] rounded-lg hover:bg-[#f5f5f5] cursor-pointer"
+                  className="shrink-0 px-3 py-2 text-xs font-semibold text-[#fdb125] border border-white/10 rounded-lg hover:bg-white/10 cursor-pointer"
                 >
                   {copied ? "Copied!" : "Copy"}
                 </button>
               </div>
-              <p className="text-xs text-[#999]">
+              <p className="text-xs text-[#a6a6a6]">
                 This is your personal link code, generated when you registered.
               </p>
               <button
                 type="button"
                 onClick={checkLinkStatus}
                 disabled={checking}
-                className="w-full py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm"
+                className="btn-gold w-full py-2 text-sm disabled:opacity-40"
               >
                 {checking ? "Checking..." : "Check link status"}
               </button>
