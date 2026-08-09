@@ -69,10 +69,21 @@ export default function Navbar() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
+
                 {profileOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
                     <div className="absolute right-0 top-full mt-1 z-50 bg-[#222] border border-[#a6a6a6]/30 rounded-lg shadow-xl py-1 min-w-40">
+                      <Link
+                        to="/profile"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                      >
+                        View Profile
+                      </Link>
+                      
+                      <hr className="border-[#a6a6a6]/30" />
+
                       <Link
                         to="/my-requests"
                         onClick={() => setProfileOpen(false)}
@@ -80,13 +91,20 @@ export default function Navbar() {
                       >
                         My Requests
                       </Link>
+
                       <hr className="border-[#a6a6a6]/30" />
+
                       <button
-                        onClick={() => { logout(); setProfileOpen(false); setShowLogoutModal(true) }}
+                        onClick={() => {
+                           logout(); 
+                           setProfileOpen(false); 
+                           setShowLogoutModal(true) 
+                        }}
                         className="w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors cursor-pointer"
                       >
                         Logout
                       </button>
+
                     </div>
                   </>
                 )}
