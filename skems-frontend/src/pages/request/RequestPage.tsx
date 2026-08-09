@@ -5,7 +5,7 @@ import { fetchEquipments, type Equipment } from "../../services/api"
 import { submitRequest } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import { useToast } from "../../hooks/useToast"
-import { FiPlus, FiTrash2, FiCamera } from "react-icons/fi"
+import { FiPlus, FiTrash2 } from "react-icons/fi"
 import QRScanner from "../scan/QRScanner"
 import { usePageTitle } from "../../hooks/usePageTitle"
 
@@ -38,7 +38,7 @@ export default function RequestPage() {
   const [submitting, setSubmitting] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [showSelector, setShowSelector] = useState(false)
-  const [showQrScanner, setShowQrScanner] = useState(false)
+  const [scanEpoch, setScanEpoch] = useState(0)
   const [selectorSelectedId, setSelectorSelectedId] = useState("")
   const [selectorQuantity, setSelectorQuantity] = useState(1)
   const [success, setSuccess] = useState(false)
@@ -104,7 +104,7 @@ export default function RequestPage() {
     }
 
     addToFormItems(eq)
-    setShowQrScanner(false)
+    setScanEpoch(n => n + 1)
     setSearchParams({}, { replace: true })
   }, [allEquipments, addToFormItems, showToast, setSearchParams])
 
@@ -233,313 +233,300 @@ export default function RequestPage() {
   const maxQty = getAvailableCount(selectorSelectedId)
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-3 py-8 bg-[#f5f5f5]">
-      <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-5 sm:p-8 border border-[#d9d9d9]">
-        <h2 className="text-xl sm:text-2xl font-bold text-center text-[#222] mb-5">
-          Equipment Request
-        </h2>
-
-        {success ? (
-          <div className="text-center">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-base sm:text-lg font-bold text-green-600 mb-2">Request Submitted!</p>
-            <p className="text-sm text-[#666] mb-4">Please wait for approval from the SK officer.</p>
-            <button
-              onClick={() => setSuccess(false)}
-              className="px-6 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer text-sm"
-            >
-              New Request
-            </button>
+    <div className="min-h-screen flex items-center justify-center px-3 py-8 bg-fixed-black">
+      <div className="w-full max-w-4xl flex flex-col md:flex-row gap-4">
+        <div className="md:w-2/5 flex flex-col gap-3 dark-card p-4">
+          <div className="flex-1">
+            <QRScanner key={scanEpoch} onScan={handleQrScan} />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Add Equipment <span className="text-red-500">*</span></label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleAddClick}
-                  className="flex-1 px-3 py-2 bg-[#c89116] hover:bg-[#caa453] text-white rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
-                >
-                  <FiPlus size={18} />
-                  <span>Add Equipment</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowQrScanner(true)}
-                  className="px-3 py-2 border border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
-                >
-                  <FiCamera size={18} />
-                  <span className="sm:hidden">Scan</span>
-                </button>
-              </div>
-            </div>
+          <button
+            type="button"
+            onClick={handleAddClick}
+            className="btn-gold w-full py-2.5 flex items-center justify-center gap-1"
+          >
+            <FiPlus size={18} />
+            <span>Add Equipment</span>
+          </button>
+        </div>
 
-            {formItems.length > 0 && (
-              <div className="space-y-2">
-                {formItems.map((item, idx) => {
-                  const max = getAvailableCount(item.equipmentId)
-                  return (
-                    <div key={idx} className="border border-[#d9d9d9] rounded-lg p-3 flex items-center gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#222] truncate">{item.name}</p>
-                        <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
-                        <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${
-                          item.condition === "Working" ? "bg-green-100 text-green-700" :
-                          item.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
-                          item.condition === "Broken" ? "bg-red-100 text-red-700" :
-                          "bg-gray-100 text-[#666]"
-                        }`}>{item.condition}</span>
+        <div className="md:w-3/5 dark-card p-5 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">
+            Equipment Request
+          </h2>
+
+          {success ? (
+            <div className="text-center">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-500/15 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-base sm:text-lg font-bold text-green-300 mb-2">Request Submitted!</p>
+              <p className="text-sm text-[#a6a6a6] mb-4">Please wait for approval from the SK officer.</p>
+              <button
+                onClick={() => setSuccess(false)}
+                className="btn-gold inline-block px-6 py-2 text-sm"
+              >
+                New Request
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {formItems.length > 0 && (
+                <div className="space-y-2">
+                  {formItems.map((item, idx) => {
+                    const max = getAvailableCount(item.equipmentId)
+                    return (
+                      <div key={idx} className="border border-white/10 rounded-lg p-3 flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">{item.name}</p>
+                          <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
+                          <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${
+                            item.condition === "Working" ? "bg-green-500/15 text-green-300" :
+                            item.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
+                            item.condition === "Broken" ? "bg-red-500/15 text-red-300" :
+                            "bg-white/10 text-[#a6a6a6]"
+                          }`}>{item.condition}</span>
+                        </div>
+                        <input
+                          type="number"
+                          min={1}
+                          max={max}
+                          value={item.quantity}
+                          onChange={(e) => updateQuantity(idx, Number(e.target.value))}
+                          className="dark-input w-16 px-2 py-1 text-sm text-center"
+                        />
+                        <span className="text-xs text-[#a6a6a6]">×</span>
+                        <button
+                          type="button"
+                          onClick={() => removeItem(idx)}
+                          className="p-1.5 text-red-400 hover:bg-red-500/15 rounded transition-colors cursor-pointer"
+                        >
+                          <FiTrash2 size={16} />
+                        </button>
                       </div>
-                      <input
-                        type="number"
-                        min={1}
-                        max={max}
-                        value={item.quantity}
-                        onChange={(e) => updateQuantity(idx, Number(e.target.value))}
-                        className="w-16 px-2 py-1 text-sm border border-[#d9d9d9] rounded focus:outline-none focus:ring-1 focus:ring-[#fdb125] text-[#222] text-center"
-                      />
-                      <span className="text-xs text-[#a6a6a6]">×</span>
-                      <button
-                        type="button"
-                        onClick={() => removeItem(idx)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors cursor-pointer"
-                      >
-                        <FiTrash2 size={16} />
-                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Name</label>
+                <input type="text" value={user.fullName} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Student Number</label>
+                <input type="text" value={user.studentNumber} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
+              </div>
+
+              <div>
+                <label htmlFor="reason" className="block text-sm font-medium text-[#a6a6a6] mb-1">Reason for Borrowing <span className="text-red-500">*</span></label>
+                <textarea required id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={200} placeholder="Describe why you need this equipment..." className="dark-input w-full text-base resize-none" />
+                <p className="text-xs text-right text-[#a6a6a6] mt-1">{reason.length}/200</p>
+              </div>
+
+              <div>
+                <label htmlFor="positionDepartment" className="block text-sm font-medium text-[#a6a6a6] mb-1">Position / Department <span className="text-red-500">*</span></label>
+                <select required id="positionDepartment" value={positionDepartment} onChange={(e) => setPositionDepartment(e.target.value)} className="dark-input w-full text-base">
+                  <option value="" disabled>Select position...</option>
+                  <option value="president">President</option>
+                  <option value="vice president">Vice President</option>
+                  <option value="treasurer">Treasurer</option>
+                  <option value="videographer">Videographer</option>
+                  <option value="videographer head">Videographer Head</option>
+                  <option value="photographer">Photographer</option>
+                  <option value="photographer head">Photographer Head</option>
+                  <option value="graphics">Graphics</option>
+                  <option value="graphics head">Graphics Head</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="pickupLocation" className="block text-sm font-medium text-[#a6a6a6] mb-1">Pickup Location <span className="text-red-500">*</span></label>
+                <input required id="pickupLocation" type="text" value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="dark-input w-full text-base" />
+              </div>
+
+              <div>
+                <label htmlFor="returnLocation" className="block text-sm font-medium text-[#a6a6a6] mb-1">Return Location <span className="text-red-500">*</span></label>
+                <input required id="returnLocation" type="text" value={returnLocation} onChange={(e) => setReturnLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="dark-input w-full text-base" />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-[#a6a6a6]">Date & Time to be Borrowed <span className="text-red-500">*</span></label>
+                  <button type="button" onClick={() => setDateBorrowed(todayNow())} className="btn-gold text-xs px-2 py-1">Today</button>
+                </div>
+                <input type="datetime-local" value={dateBorrowed} onChange={(e) => setDateBorrowed(e.target.value)} className="dark-input w-full text-base" />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-[#a6a6a6]">Date & Time to be Returned / Due Date <span className="text-red-500">*</span></label>
+                  <button type="button" onClick={() => setDateDue(todayNow())} className="btn-gold text-xs px-2 py-1">Today</button>
+                </div>
+                <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="dark-input w-full text-base" />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting || isLoading || formItems.length === 0}
+                className="btn-gold w-full py-2.5 text-sm sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {submitting ? "Submitting..." : "Submit Request"}
+              </button>
+            </form>
+          )}
+
+          {showModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+              <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-lg mx-3 max-h-[80vh] overflow-y-auto">
+                <p className="text-base sm:text-lg font-bold text-white mb-4 text-center">Confirm Request</p>
+
+                <div className="space-y-3 mb-4">
+                  {formItems.map((item, idx) => (
+                    <div key={idx} className="border border-white/10 rounded-lg p-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-white font-medium">{item.name}</span>
+                        <span className="text-[#a6a6a6]">×{item.quantity}</span>
+                      </div>
+                      <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
                     </div>
-                  )
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Name</label>
-              <input type="text" value={user.fullName} disabled className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg bg-[#f5f5f5] text-[#666]" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Student Number</label>
-              <input type="text" value={user.studentNumber} disabled className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg bg-[#f5f5f5] text-[#666]" />
-            </div>
-
-            <div>
-              <label htmlFor="reason" className="block text-sm font-medium text-[#666] mb-1">Reason for Borrowing <span className="text-red-500">*</span></label>
-              <textarea required id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={200} placeholder="Describe why you need this equipment..." className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] resize-none" />
-              <p className="text-xs text-right text-[#a6a6a6] mt-1">{reason.length}/200</p>
-            </div>
-
-            <div>
-              <label htmlFor="positionDepartment" className="block text-sm font-medium text-[#666] mb-1">Position / Department <span className="text-red-500">*</span></label>
-              <input required id="positionDepartment" type="text" value={positionDepartment} onChange={(e) => setPositionDepartment(e.target.value)} maxLength={100} placeholder="e.g. Videographer, Photographer" className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
-            </div>
-
-            <div>
-              <label htmlFor="pickupLocation" className="block text-sm font-medium text-[#666] mb-1">Pickup Location <span className="text-red-500">*</span></label>
-              <input required id="pickupLocation" type="text" value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
-            </div>
-
-            <div>
-              <label htmlFor="returnLocation" className="block text-sm font-medium text-[#666] mb-1">Return Location <span className="text-red-500">*</span></label>
-              <input required id="returnLocation" type="text" value={returnLocation} onChange={(e) => setReturnLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-[#666]">Date & Time to be Borrowed <span className="text-red-500">*</span></label>
-                <button type="button" onClick={() => setDateBorrowed(todayNow())} className="text-xs px-2 py-1 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded transition-colors cursor-pointer">Today</button>
-              </div>
-              <input type="datetime-local" value={dateBorrowed} onChange={(e) => setDateBorrowed(e.target.value)} className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-[#666]">Date & Time to be Returned / Due Date <span className="text-red-500">*</span></label>
-                <button type="button" onClick={() => setDateDue(todayNow())} className="text-xs px-2 py-1 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded transition-colors cursor-pointer">Today</button>
-              </div>
-              <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]" />
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting || isLoading || formItems.length === 0}
-              className="w-full py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm sm:text-base"
-            >
-              {submitting ? "Submitting..." : "Submit Request"}
-            </button>
-          </form>
-        )}
-
-        {showModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-lg mx-3 max-h-[80vh] overflow-y-auto">
-              <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">Confirm Request</p>
-
-              <div className="space-y-3 mb-4">
-                {formItems.map((item, idx) => (
-                  <div key={idx} className="border border-[#d9d9d9] rounded-lg p-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-[#222] font-medium">{item.name}</span>
-                      <span className="text-[#666]">×{item.quantity}</span>
-                    </div>
-                    <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
+                <div className="space-y-2 text-sm mb-4">
+                  <div className="flex justify-between">
+                    <span className="text-[#a6a6a6]">Borrower</span>
+                    <span className="text-white font-medium">{user?.fullName}</span>
                   </div>
-                ))}
-              </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#a6a6a6]">Student No.</span>
+                    <span className="text-white font-medium">{user?.studentNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#a6a6a6]">Reason</span>
+                    <span className="text-white font-medium text-right max-w-60 wrap-break-word">{reason}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#a6a6a6]">Position/Dept</span>
+                    <span className="text-white font-medium text-right max-w-60">{positionDepartment}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#a6a6a6]">Pickup Loc.</span>
+                    <span className="text-white font-medium text-right max-w-60">{pickupLocation}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#a6a6a6]">Return Loc.</span>
+                    <span className="text-white font-medium text-right max-w-60">{returnLocation}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#a6a6a6]">Borrow Date</span>
+                    <span className="text-white font-medium">{fmt(dateBorrowed)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#a6a6a6]">Due Date</span>
+                    <span className="text-white font-medium">{fmt(dateDue)}</span>
+                  </div>
+                </div>
 
-              <div className="space-y-2 text-sm mb-4">
-                <div className="flex justify-between">
-                  <span className="text-[#666]">Borrower</span>
-                  <span className="text-[#222] font-medium">{user?.fullName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#666]">Student No.</span>
-                  <span className="text-[#222] font-medium">{user?.studentNumber}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#666]">Reason</span>
-                  <span className="text-[#222] font-medium text-right max-w-60 wrap-break-word">{reason}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#666]">Position/Dept</span>
-                  <span className="text-[#222] font-medium text-right max-w-60">{positionDepartment}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#666]">Pickup Loc.</span>
-                  <span className="text-[#222] font-medium text-right max-w-60">{pickupLocation}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#666]">Return Loc.</span>
-                  <span className="text-[#222] font-medium text-right max-w-60">{returnLocation}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#666]">Borrow Date</span>
-                  <span className="text-[#222] font-medium">{fmt(dateBorrowed)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#666]">Due Date</span>
-                  <span className="text-[#222] font-medium">{fmt(dateDue)}</span>
+                <div className="border-t border-white/10 pt-4 text-center">
+                  <p className="text-sm text-[#a6a6a6] mb-5">
+                    Date returned MUST be followed accordingly. Failure to return on time may result in penalties.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="btn-ghost flex-1 py-2 rounded-lg text-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmSubmit}
+                      className="btn-gold flex-1 py-2 rounded-lg text-sm"
+                    >
+                      I Understand
+                    </button>
+                  </div>
                 </div>
               </div>
+            </div>
+          )}
 
-              <div className="border-t border-[#d9d9d9] pt-4 text-center">
-                <p className="text-sm text-[#666] mb-5">
-                  Date returned MUST be followed accordingly. Failure to return on time may result in penalties.
+          {showSelector && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+              <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm sm:max-w-md mx-3">
+                <p className="text-base sm:text-lg font-bold text-white mb-4 text-center">
+                  Select Equipment
                 </p>
-                <div className="flex gap-3">
+                <p className="text-sm text-[#a6a6a6] mb-4 text-center">
+                  {equipments.length} available
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Equipment</label>
+                    <select
+                      value={selectorSelectedId}
+                      onChange={(e) => { setSelectorSelectedId(e.target.value); setSelectorQuantity(1) }}
+                      className="dark-input w-full text-sm"
+                    >
+                      {equipments.map(eq => (
+                        <option key={eq.id} value={eq.id}>
+                          {eq.name} ({eq.id})
+                        </option>
+                      ))}
+                    </select>
+                    {(() => {
+                      const sel = equipments.find(eq => eq.id === selectorSelectedId)
+                      if (!sel) return null
+                      return (
+                        <div className="mt-2 p-2 bg-white/5 rounded-lg text-sm space-y-1">
+                          <p className="font-medium text-white">{sel.name}</p>
+                          <p className="text-xs text-[#a6a6a6]">{sel.id} — {sel.owner ?? "No owner"}</p>
+                          <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full ${sel.condition === "Working" ? "bg-green-500/15 text-green-300" : sel.condition === "Needs Repair" ? "bg-yellow-500/15 text-yellow-300" : sel.condition === "Broken" ? "bg-red-500/15 text-red-300" : sel.condition === "Not checked" ? "bg-white/10 text-[#a6a6a6]" : "bg-purple-500/15 text-purple-300"}`}>
+                            {sel.condition}
+                          </span>
+                        </div>
+                      )
+                    })()}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                      Quantity <span className="text-[#a6a6a6] font-normal">(max: {maxQty})</span>
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={maxQty}
+                      value={selectorQuantity}
+                      onChange={(e) => setSelectorQuantity(Math.min(maxQty, Math.max(1, Number(e.target.value))))}
+                      className="dark-input w-full text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
                   <button
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
+                    type="button"
+                    onClick={() => setShowSelector(false)}
+                    className="btn-ghost flex-1 py-2 rounded-lg text-sm"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={confirmSubmit}
-                    className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
+                    type="button"
+                    onClick={confirmAddItem}
+                    className="btn-gold flex-1 py-2 rounded-lg text-sm"
                   >
-                    I Understand
+                    <span className="hidden sm:inline">Add to Request</span><span className="sm:hidden">Add</span>
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {showSelector && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm sm:max-w-md mx-3">
-              <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">
-                Select Equipment
-              </p>
-              <p className="text-sm text-[#666] mb-4 text-center">
-                {equipments.length} available
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#666] mb-1">Equipment</label>
-                  <select
-                    value={selectorSelectedId}
-                    onChange={(e) => { setSelectorSelectedId(e.target.value); setSelectorQuantity(1) }}
-                    className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222] bg-white"
-                  >
-                    {equipments.map(eq => (
-                      <option key={eq.id} value={eq.id}>
-                        {eq.name} ({eq.id})
-                      </option>
-                    ))}
-                  </select>
-                  {(() => {
-                    const sel = equipments.find(eq => eq.id === selectorSelectedId)
-                    if (!sel) return null
-                    return (
-                      <div className="mt-2 p-2 bg-[#f5f5f5] rounded-lg text-sm space-y-1">
-                        <p className="font-medium text-[#222]">{sel.name}</p>
-                        <p className="text-xs text-[#a6a6a6]">{sel.id} — {sel.owner ?? "No owner"}</p>
-                        <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full ${sel.condition === "Working" ? "bg-green-100 text-green-700" : sel.condition === "Needs Repair" ? "bg-yellow-100 text-yellow-700" : sel.condition === "Broken" ? "bg-red-100 text-red-700" : sel.condition === "Not checked" ? "bg-gray-100 text-gray-700" : "bg-purple-100 text-purple-700"}`}>
-                          {sel.condition}
-                        </span>
-                      </div>
-                    )
-                  })()}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#666] mb-1">
-                    Quantity <span className="text-[#a6a6a6] font-normal">(max: {maxQty})</span>
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={maxQty}
-                    value={selectorQuantity}
-                    onChange={(e) => setSelectorQuantity(Math.min(maxQty, Math.max(1, Number(e.target.value))))}
-                    className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowSelector(false)}
-                  className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmAddItem}
-                  className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
-                >
-                  <span className="hidden sm:inline">Add to Request</span><span className="sm:hidden">Add</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showQrScanner && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 w-full max-w-lg mx-3">
-              <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">
-                Scan Equipment QR
-              </p>
-              <QRScanner onScan={handleQrScan} />
-              <button
-                type="button"
-                onClick={() => setShowQrScanner(false)}
-                className="w-full py-2 mt-4 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
