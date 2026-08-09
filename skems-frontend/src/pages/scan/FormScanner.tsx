@@ -135,7 +135,7 @@ export default function FormScanner({ onCapture }: FormScannerProps) {
         <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline autoPlay />
         <button
           onClick={captureFrame}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-full transition-colors cursor-pointer text-sm shadow-lg"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 btn-gold px-6 py-2.5 rounded-full text-sm shadow-lg"
         >
           Capture
         </button>
@@ -159,13 +159,13 @@ export default function FormScanner({ onCapture }: FormScannerProps) {
         <div className="flex gap-3 w-full">
           <button
             onClick={() => { setStatus("idle"); setPreviewUrl(null); setError("") }}
-            className="flex-1 py-2.5 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm font-medium"
+            className="btn-ghost flex-1 py-2.5 rounded-lg text-sm font-medium"
           >
             Retake
           </button>
           <button
             onClick={() => onCapture(previewUrl)}
-            className="flex-1 py-2.5 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
+            className="btn-gold flex-1 py-2.5 rounded-lg text-sm"
           >
             Scan Form
           </button>
@@ -182,13 +182,13 @@ export default function FormScanner({ onCapture }: FormScannerProps) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </div>
-      {error && <p className="text-sm text-red-600 text-center bg-red-50 px-3 py-2 rounded-lg w-full">{error}</p>}
-      <p className="text-sm text-[#666] text-center">
+      {error && <p className="text-sm text-red-400 text-center bg-red-500/15 px-3 py-2 rounded-lg w-full">{error}</p>}
+      <p className="text-sm text-[#a6a6a6] text-center">
         Capture a photo of the filled-out borrowing form
       </p>
       <button
         onClick={startCamera}
-        className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm sm:text-base"
+        className="btn-gold px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base"
       >
         Open Camera
       </button>
@@ -198,7 +198,7 @@ export default function FormScanner({ onCapture }: FormScannerProps) {
           type="file"
           accept="image/*"
           onChange={handleFileUpload}
-          className="w-full text-sm text-[#666] file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-[#c89116] file:text-white hover:file:bg-[#caa453] cursor-pointer"
+          className="w-full text-sm text-[#a6a6a6] file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-[#c89116] file:text-white hover:file:bg-[#caa453] cursor-pointer"
         />
       </div>
     </div>

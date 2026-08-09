@@ -77,8 +77,8 @@ export default function QRScanner({ onScan }: QRScannerProps) {
   if (status === "found") {
     return (
       <div className="text-center py-8">
-        <p className="text-green-600 font-bold mb-2">QR Code Detected!</p>
-        <p className="text-sm text-[#666]">Redirecting...</p>
+        <p className="text-green-300 font-bold mb-2">QR Code Detected!</p>
+        <p className="text-sm text-[#a6a6a6]">Redirecting...</p>
       </div>
     )
   }
@@ -91,7 +91,7 @@ export default function QRScanner({ onScan }: QRScannerProps) {
         <p className="absolute top-3 left-1/2 -translate-x-1/2 text-sm text-white/80">Camera ready</p>
         <button
           onClick={capture}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 px-8 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-full text-base transition-colors cursor-pointer shadow-lg"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 btn-gold px-8 py-3 rounded-full text-base shadow-lg"
         >
           Capture
         </button>
@@ -116,7 +116,7 @@ export default function QRScanner({ onScan }: QRScannerProps) {
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
           <button
             onClick={capture}
-            className="px-8 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-full text-base transition-colors cursor-pointer shadow-lg"
+            className="btn-gold px-8 py-3 rounded-full text-base shadow-lg"
           >
             Try Again
           </button>
@@ -144,10 +144,10 @@ export default function QRScanner({ onScan }: QRScannerProps) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
         </svg>
       </div>
-      {error && <p className="text-sm text-red-600 text-center bg-red-50 px-3 py-2 rounded-lg w-full">{error}</p>}
+      {error && <p className="text-sm text-red-400 text-center bg-red-500/15 px-3 py-2 rounded-lg w-full">{error}</p>}
       <button
         onClick={startCamera}
-        className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm sm:text-base"
+        className="btn-gold px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base"
       >
         Open Camera
       </button>

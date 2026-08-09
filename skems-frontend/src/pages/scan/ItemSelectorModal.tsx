@@ -42,29 +42,29 @@ export default function ItemSelectorModal({ open, itemIndex, itemName, onConfirm
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
-      <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm sm:max-w-md mx-3">
-        <p className="text-base sm:text-lg font-bold text-[#222] mb-4 text-center">
+      <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm sm:max-w-md mx-3">
+        <p className="text-base sm:text-lg font-bold text-white mb-4 text-center">
           Select Equipment
         </p>
-        <p className="text-sm text-[#666] mb-4 text-center">
-          For "<span className="font-medium text-[#222]">{itemName || "[unnamed]"}</span>"
+        <p className="text-sm text-[#a6a6a6] mb-4 text-center">
+          For "<span className="font-medium text-white">{itemName || "[unnamed]"}</span>"
         </p>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#666] mb-1">Search</label>
+            <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Search</label>
             <input
               type="text"
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search equipment name or category..."
-              className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+              className="dark-input w-full text-sm"
             />
           </div>
 
           {matches.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-[#666] mb-1">Pick one</label>
+              <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Pick one</label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {matches.map(eq => (
                   <label
@@ -72,7 +72,7 @@ export default function ItemSelectorModal({ open, itemIndex, itemName, onConfirm
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors ${
                       selectedId === eq.id
                         ? "bg-[#c89116]/10 border-[#c89116]"
-                        : "border-[#d9d9d9] hover:bg-[#f5f5f5]"
+                        : "border-white/10 hover:bg-white/10"
                     }`}
                   >
                     <input
@@ -83,7 +83,7 @@ export default function ItemSelectorModal({ open, itemIndex, itemName, onConfirm
                       className="accent-[#c89116]"
                     />
                     <div className="min-w-0">
-                      <p className="font-medium text-[#222] truncate">{eq.name}</p>
+                      <p className="font-medium text-white truncate">{eq.name}</p>
                       <p className="text-xs text-[#a6a6a6]">{eq.id} — {eq.owner ?? "No owner"}</p>
                     </div>
                     <span className={`ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full shrink-0 ${conditionBadgeClass(eq.condition)}`}>
@@ -96,7 +96,7 @@ export default function ItemSelectorModal({ open, itemIndex, itemName, onConfirm
           )}
 
           {matches.length === 0 && (
-            <p className="text-sm text-[#666] text-center py-4">
+            <p className="text-sm text-[#a6a6a6] text-center py-4">
               No matching equipment found. Try a different search term.
             </p>
           )}
@@ -105,7 +105,7 @@ export default function ItemSelectorModal({ open, itemIndex, itemName, onConfirm
         <div className="flex gap-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 py-2 border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer text-sm"
+            className="btn-ghost flex-1 py-2 rounded-lg text-sm"
           >
             Cancel
           </button>
@@ -117,7 +117,7 @@ export default function ItemSelectorModal({ open, itemIndex, itemName, onConfirm
               }
             }}
             disabled={!selectedId}
-            className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm"
+            className="btn-gold flex-1 py-2 rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Select
           </button>

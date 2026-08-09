@@ -268,13 +268,13 @@ export default function ScanPage() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-3 py-8 bg-[#f5f5f5]">
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-lg px-3 py-2 sm:p-6 border border-[#d9d9d9]">
-        <div className="flex gap-1 mb-5 bg-[#f5f5f5] rounded-lg p-1">
+    <div className="min-h-screen flex flex-col items-center px-3 py-8 bg-fixed-black">
+      <div className="w-full max-w-lg dark-card px-3 py-2 sm:p-6">
+        <div className="flex gap-1 mb-5 bg-white/5 rounded-lg p-1">
           <button
             onClick={() => { resetFormMode(); setMode("qr") }}
             className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors cursor-pointer ${
-              mode === "qr" ? "bg-[#c89116] text-white" : "text-[#666] hover:text-[#222]"
+              mode === "qr" ? "bg-[#c89116] text-white" : "text-[#a6a6a6] hover:text-white"
             }`}
           >
             QR Scanner
@@ -282,7 +282,7 @@ export default function ScanPage() {
           <button
             onClick={() => { resetFormMode(); setMode("form") }}
             className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors cursor-pointer ${
-              mode === "form" ? "bg-[#c89116] text-white" : "text-[#666] hover:text-[#222]"
+              mode === "form" ? "bg-[#c89116] text-white" : "text-[#a6a6a6] hover:text-white"
             }`}
           >
             Form Scanner
@@ -300,7 +300,7 @@ export default function ScanPage() {
             {isScanningForm && (
               <div className="flex flex-col items-center gap-4 py-10">
                 <div className="w-10 h-10 border-4 border-[#c89116] border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-[#666]">Scanning form with AI...</p>
+                <p className="text-sm text-[#a6a6a6]">Scanning form with AI...</p>
               </div>
             )}
 
