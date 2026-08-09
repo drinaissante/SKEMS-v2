@@ -67,7 +67,7 @@ body {
 
 .bg-fixed-black {
   background-color: #050505;
-  background-image: radial-gradient(60% 40% at 50% 0%, rgba(253, 177, 37, 0.07), transparent 70%);
+  background-image: radial-gradient(85% 55% at 50% 60%, rgba(253, 177, 37, 0.18), transparent 75%);
   background-attachment: fixed;
   background-size: 100% 100vh;
   background-repeat: no-repeat;
