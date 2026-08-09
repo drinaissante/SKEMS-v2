@@ -103,23 +103,23 @@ export default function LoginPage() {
       </video>
       <div className="absolute inset-0 bg-black/50 md:hidden" />
       
-      <div className="relative z-10 w-full md:w-120 min-h-screen flex flex-col justify-center bg-white/0 md:bg-white px-3 py-8 md:px-10 md:py-0">
-        <div className="w-full max-w-md mx-auto md:mx-0 bg-white rounded-xl shadow-lg border border-[#d9d9d9] p-5 sm:p-8 md:rounded-none md:shadow-none md:border-0 md:p-0">
-          <h2 className="text-xl sm:text-2xl font-bold text-center text-[#222] mb-5">Login</h2>
+      <div className="relative z-10 w-full md:w-120 min-h-screen flex flex-col justify-center bg-white/0 md:bg-[#111] px-3 py-8 md:px-10 md:py-0">
+        <div className="w-full max-w-md mx-auto md:mx-0 bg-[#111] rounded-xl shadow-lg border border-[#5f5c5c93] p-5 sm:p-8 md:rounded-none md:shadow-none md:border-0 md:p-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">Login</h2>
 
           {error && (
-            <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
+            <p className="text-red-400 text-sm mb-4 text-center">{error}</p>
           )}
 
           {forgotSent && (
-            <p className="text-green-600 text-sm mb-4 text-center">
+            <p className="text-green-400 text-sm mb-4 text-center">
               Password reset link sent! Check your email.
             </p>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
             <div>
-              <label htmlFor="identifier" className="block text-sm font-medium text-[#666] mb-1">
+              <label htmlFor="identifier" className="block text-sm font-medium text-[#a6a6a6] mb-1">
                 Student Number or Email
               </label>
 
@@ -131,12 +131,12 @@ export default function LoginPage() {
                 value={identifier}
                 maxLength={254}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                className="dark-input w-full text-base"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#666] mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-[#a6a6a6] mb-1">
                 Password
               </label>
 
@@ -149,12 +149,12 @@ export default function LoginPage() {
                   value={password}
                   maxLength={128}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  className="dark-input w-full pr-10 text-base"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-[#666] cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-[#fdb125] cursor-pointer"
                   tabIndex={-1}
                 >
                   {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
@@ -171,8 +171,8 @@ export default function LoginPage() {
             </button>
 
             {showForgot && (
-              <form onSubmit={handleForgotSubmit} className="space-y-2 p-3 bg-[#f5f5f5] rounded-lg border border-[#d9d9d9]">
-                <p className="text-xs text-[#666]">Enter your email to receive a password reset link.</p>
+              <form onSubmit={handleForgotSubmit} className="space-y-2 p-3 bg-white/5 rounded-lg border border-[#5f5c5c93]">
+                <p className="text-xs text-[#a6a6a6]">Enter your email to receive a password reset link.</p>
                 <input
                   type="email"
                   value={forgotEmail}
@@ -180,7 +180,7 @@ export default function LoginPage() {
                   placeholder="your@email.com"
                   maxLength={254}
                   autoComplete="email"
-                  className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  className="dark-input w-full text-sm"
                 />
                 <HCaptcha
                   ref={forgotCaptcha}
@@ -192,14 +192,14 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={forgotLoading}
-                  className="w-full py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm"
+                  className="btn-gold w-full py-2 text-sm"
                 >
                   {forgotLoading ? "Sending..." : "Send Reset Link"}
                 </button>
               </form>
             )}
 
-            <label htmlFor="checkbox" className="flex items-start gap-2 text-sm text-[#666] cursor-pointer">
+            <label htmlFor="checkbox" className="flex items-start gap-2 text-sm text-[#a6a6a6] cursor-pointer">
               <input
                 required
                 id="checkbox"
@@ -224,13 +224,13 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-5 sm:mt-6 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm sm:text-base"
+              className="btn-gold w-full mt-5 sm:mt-6 py-3 text-sm sm:text-base"
             >
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
-          <p className="text-center text-sm text-[#666] mt-4">
+          <p className="text-center text-sm text-[#a6a6a6] mt-4">
             No account yet?{" "}
 
             <Link to="/register" className="text-[#c89116] hover:text-[#fdb125] font-medium">

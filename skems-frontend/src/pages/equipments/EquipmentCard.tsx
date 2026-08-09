@@ -14,12 +14,12 @@ export default function EquipmentCard({
 }) {
   const uploading = uploadingImages[eq.id]
   return (
-    <div className="bg-white rounded-xl shadow border border-[#d9d9d9] p-4 relative">
+    <div className="dark-card p-4 relative">
       <div className="absolute top-2 right-2 z-10 flex gap-1">
         {onEdit && (
           <button
             onClick={() => onEdit(eq)}
-            className="w-9 h-9 md:w-7 md:h-7 bg-white rounded-full shadow flex items-center justify-center text-[#666] hover:text-[#c89116] hover:shadow-md transition-all cursor-pointer"
+            className="w-9 h-9 md:w-7 md:h-7 bg-[#222] border border-[#5f5c5c93] rounded-full shadow flex items-center justify-center text-[#a6a6a6] hover:text-[#fdb125] hover:shadow-md transition-all cursor-pointer"
             title="Edit equipment"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,7 +30,7 @@ export default function EquipmentCard({
         {onDelete && (
           <button
             onClick={() => onDelete(eq.id)}
-            className="w-9 h-9 md:w-7 md:h-7 bg-white rounded-full shadow flex items-center justify-center text-red-500 hover:text-red-700 hover:shadow-md transition-all cursor-pointer"
+            className="w-9 h-9 md:w-7 md:h-7 bg-[#222] border border-[#5f5c5c93] rounded-full shadow flex items-center justify-center text-red-500 hover:text-red-700 hover:shadow-md transition-all cursor-pointer"
             title="Delete equipment"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,19 +40,19 @@ export default function EquipmentCard({
         )}
       </div>
 
-      <div className="w-full h-32 bg-[#d9d9d9] rounded-lg mb-3 overflow-hidden">
+      <div className="w-full h-32 bg-white/10 rounded-lg mb-3 overflow-hidden">
         {uploading ? (
-          <div className="w-full h-full bg-[#e0e0e0] animate-pulse rounded-lg" />
+          <div className="w-full h-full bg-[#2a2a2a] animate-pulse rounded-lg" />
         ) : (
           <img src={eq.image || skIconFallback} alt={eq.name} className="w-full h-full object-cover" loading="lazy" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = skIconFallback }} />
         )}
       </div>
 
       <p className="text-xs text-[#a6a6a6] font-mono mb-0.5">{eq.id}</p>
-      <h3 className="font-bold text-[#222] text-sm sm:text-base">{eq.name}</h3>
+      <h3 className="font-bold text-white text-sm sm:text-base">{eq.name}</h3>
       <p className="text-xs text-[#a6a6a6] mb-1">{eq.category}</p>
 
-      <div className="text-xs text-[#666] space-y-0.5">
+      <div className="text-xs text-[#a6a6a6] space-y-0.5">
         <p><span className="font-medium">Owner:</span> {eq.owner}</p>
         <p><span className="font-medium">Given to SK:</span> {eq.dateGivenToSK}</p>
         {eq.comments && !eq.borrowerName && (
@@ -62,18 +62,18 @@ export default function EquipmentCard({
 
       <div className="flex items-center justify-between mt-3">
         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-          eq.condition === "Working" ? "bg-green-100 text-green-700" :
+          eq.condition === "Working" ? "bg-green-500/15 text-green-300" :
           eq.condition === "Borrowed" ? "bg-[#c89116] text-white" :
           eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
-          eq.condition === "Broken" ? "bg-red-100 text-red-700" :
-          "bg-gray-100 text-[#666]"
+          eq.condition === "Broken" ? "bg-red-500/15 text-red-300" :
+          "bg-white/10 text-[#a6a6a6]"
         }`}>
           {eq.condition}
         </span>
       </div>
 
       {eq.borrowerName && (
-        <div className="mt-2 pt-2 border-t border-[#d9d9d9] text-xs text-[#666]">
+        <div className="mt-2 pt-2 border-t border-white/10 text-xs text-[#a6a6a6]">
           <p><span className="font-medium">Borrower:</span> {eq.borrowerName}</p>
           <p><span className="font-medium">Borrowed:</span> {eq.dateBorrowed}</p>
           <p><span className="font-medium">Due:</span> {eq.dateDue}</p>

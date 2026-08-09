@@ -192,9 +192,9 @@ export default function EquipmentsPage() {
   }, [paginatedItems])
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 bg-[#f5f5f5]">
+    <div className="flex flex-col flex-1 min-h-0 bg-fixed-black">
       <div className="flex flex-col flex-1 min-h-0 max-w-6xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#222] mb-4">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4">
           Equipment Management
         </h1>
 
@@ -220,13 +220,13 @@ export default function EquipmentsPage() {
             placeholder="Search by name or owner..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:flex-1 min-w-35 px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+            className="dark-input w-full md:flex-1 min-w-35"
           />
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="flex-1 md:flex-none px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
+              className="dark-input flex-1 md:flex-none"
             >
               {categories.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -235,7 +235,7 @@ export default function EquipmentsPage() {
             <select
               value={filterCondition}
               onChange={(e) => setFilterCondition(e.target.value)}
-              className="flex-1 md:flex-none px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
+              className="dark-input flex-1 md:flex-none"
             >
               <option value="All">All Conditions</option>
               {conditions.map((c) => (
@@ -245,7 +245,7 @@ export default function EquipmentsPage() {
             <button
               onClick={handleExport}
               disabled={syncing}
-              className="flex-1 md:flex-none px-3 py-2 text-sm bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+              className="flex-1 md:flex-none px-3 py-2 text-sm bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border border-[#5f5c5c93]"
             >
               {syncing ? "Preparing..." : "Export to Sheet"}
             </button>
@@ -261,19 +261,19 @@ export default function EquipmentsPage() {
 
         <div className="flex-1 min-h-0 overflow-y-auto">
           {isLoading ? (
-            <p className="text-center text-[#666] py-10">Loading equipment...</p>
+            <p className="text-center text-[#a6a6a6] py-10">Loading equipment...</p>
           ) : equipments.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-62.5 text-center">
-              <p className="text-[#666] mb-4">There are no equipments.</p>
+              <p className="text-[#a6a6a6] mb-4">There are no equipments.</p>
               <button
                 onClick={() => setEditingEquipment(null)}
-                className="px-5 py-2.5 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer"
+                className="btn-gold px-5 py-2.5 text-sm"
               >
                 Add Equipment
               </button>
             </div>
           ) : filtered.length === 0 ? (
-            <p className="text-center text-[#666] py-10">No equipment found.</p>
+            <p className="text-center text-[#a6a6a6] py-10">No equipment found.</p>
           ) : (
             <>
               <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -313,19 +313,19 @@ export default function EquipmentsPage() {
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#d9d9d9] disabled:text-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
 
-                  <span className="text-sm text-[#666] font-medium">
+                  <span className="text-sm text-[#a6a6a6] font-medium">
                     {currentPage} / {totalPages}
                   </span>
 
                   <button
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#d9d9d9] disabled:text-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>

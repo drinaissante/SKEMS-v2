@@ -63,10 +63,73 @@ body {
 
 .bg-fixed-black {
   background-color: #050505;
-  background-image: radial-gradient(100% 50% at 50% 50%, rgba(207, 142, 22, 0.267), transparent 90%);
+  background-image: radial-gradient(60% 40% at 50% 0%, rgba(253, 177, 37, 0.07), transparent 70%);
   background-attachment: fixed;
   background-size: 100% 100vh;
   background-repeat: no-repeat;
+}
+
+.dark-input {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #5f5c5c93;
+  border-radius: 0.5rem;
+  background-color: #111;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.dark-input::placeholder {
+  color: #6b7280;
+}
+
+.dark-input:focus {
+  border-color: #fdb125;
+}
+
+.dark-card {
+  background-color: #111;
+  border: 1px solid #5f5c5c93;
+  border-radius: 0.75rem;
+}
+
+.btn-gold {
+  background-color: #c89116;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.btn-gold:hover {
+  background-color: #caa453;
+}
+
+.btn-ghost {
+  border: 1px solid #5f5c5c93;
+  color: #a6a6a6;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-outline-gold {
+  border: 2px solid #c89116;
+  color: #c89116;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s, color 0.2s;
+  cursor: pointer;
+}
+
+.btn-outline-gold:hover {
+  background-color: #fdb125;
+  color: #fff;
 }
 
 @keyframes slide-in {

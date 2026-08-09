@@ -85,29 +85,29 @@ export default function RegisterPage() {
     <div className="min-h-screen md:flex relative">
       <img src={skHeaderPng} alt="" className="absolute inset-0 w-full h-full object-cover md:hidden" loading="lazy" decoding="async" />
       <div className="absolute inset-0 bg-black/50 md:hidden" />
-      <div className="relative z-10 w-full md:w-120 min-h-screen flex flex-col justify-center bg-white/0 md:bg-white px-3 py-8 md:px-10 md:py-0">
-        <div className="w-full max-w-md mx-auto md:mx-0 bg-white rounded-xl shadow-lg border border-[#d9d9d9] p-5 sm:p-8 md:rounded-none md:shadow-none md:border-0 md:p-0">
-          <h2 className="text-xl sm:text-2xl font-bold text-center text-[#222] mb-5">
+      <div className="relative z-10 w-full md:w-120 min-h-screen flex flex-col justify-center bg-white/0 md:bg-[#111] px-3 py-8 md:px-10 md:py-0">
+        <div className="w-full max-w-md mx-auto md:mx-0 bg-[#111] rounded-xl shadow-lg border border-[#5f5c5c93] p-5 sm:p-8 md:rounded-none md:shadow-none md:border-0 md:p-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">
             Register
           </h2>
 
           {error && (
-            <p className="text-red-600 text-sm mb-4 text-center"> {error} </p>
+            <p className="text-red-400 text-sm mb-4 text-center"> {error} </p>
           )}
 
           {success ? (
             <div className="text-center py-6">
-              <p className="text-green-600 font-medium mb-2">
+              <p className="text-green-400 font-medium mb-2">
                 Registration successful!
               </p>
 
-              <p className="text-sm text-[#666] mb-4">
+              <p className="text-sm text-[#a6a6a6] mb-4">
                 Check your email for a confirmation link before logging in.
               </p>
 
               <Link
                 to="/login"
-                className="inline-block px-6 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
+                className="btn-gold inline-block px-6 py-2 text-sm"
               >
                 Go to Login
               </Link>
@@ -115,7 +115,7 @@ export default function RegisterPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               <div>
-                <label htmlFor='name' className="block text-sm font-medium text-[#666] mb-1">
+                <label htmlFor='name' className="block text-sm font-medium text-[#a6a6a6] mb-1">
                   Full Name
                 </label>
 
@@ -127,12 +127,12 @@ export default function RegisterPage() {
                     value={fullName}
                     maxLength={100}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                    className="dark-input w-full text-base"
                   />
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-[#666] mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-[#a6a6a6] mb-1">
                   Email Address
                 </label>
 
@@ -144,12 +144,12 @@ export default function RegisterPage() {
                     value={email}
                     maxLength={254}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                    className="dark-input w-full text-base"
                   />
               </div>
 
               <div>
-                <label htmlFor="student_number" className="block text-sm font-medium text-[#666] mb-1">
+                <label htmlFor="student_number" className="block text-sm font-medium text-[#a6a6a6] mb-1">
                   Student Number
                 </label>
 
@@ -161,12 +161,12 @@ export default function RegisterPage() {
                     value={studentNumber}
                     maxLength={20}
                     onChange={(e) => setStudentNumber(e.target.value)}
-                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                    className="dark-input w-full text-base"
                   />
               </div>
 
               <div>
-                <label htmlFor="position" className="block text-sm font-medium text-[#666] mb-1">
+                <label htmlFor="position" className="block text-sm font-medium text-[#a6a6a6] mb-1">
                   Position
                 </label>
 
@@ -179,13 +179,13 @@ export default function RegisterPage() {
                     maxLength={100}
                     placeholder="e.g. Videographer, Auditor"
                     onChange={(e) => setPosition(e.target.value)}
-                    className="w-full px-3 py-2 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                    className="dark-input w-full text-base"
                   />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label htmlFor="password" className="block text-sm font-medium text-[#666]">
+                  <label htmlFor="password" className="block text-sm font-medium text-[#a6a6a6]">
                     Password
                   </label>
                   <button
@@ -215,7 +215,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-[#666] cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-[#fdb125] cursor-pointer"
                     tabIndex={-1}
                   >
                     {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
@@ -224,7 +224,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label htmlFor="confirm" className="block text-sm font-medium text-[#666] mb-1">
+                <label htmlFor="confirm" className="block text-sm font-medium text-[#a6a6a6] mb-1">
                   Confirm Password
                 </label>
 
@@ -242,7 +242,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-[#666] cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-[#fdb125] cursor-pointer"
                     tabIndex={-1}
                   >
                     {showConfirm ? <FiEyeOff size={18} /> : <FiEye size={18} />}
@@ -261,7 +261,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-5 sm:mt-6 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer text-sm sm:text-base"
+                className="btn-gold w-full mt-5 sm:mt-6 py-3 text-sm sm:text-base"
               >
                 {loading ? "Registering..." : "Register"}
               </button>
@@ -269,7 +269,7 @@ export default function RegisterPage() {
           )}
 
           {!success && (
-            <p className="text-center text-sm text-[#666] mt-4">
+            <p className="text-center text-sm text-[#a6a6a6] mt-4">
               Already have an account?{" "}
               <Link to="/login" className="text-[#c89116] hover:text-[#fdb125] font-medium">
                 Login

@@ -8,7 +8,7 @@ export default function ConditionBadges(value: string) {
       {items.map((c) => (
         <span
           key={c}
-          className={`text-xs font-bold px-1.5 py-0.5 rounded ${conditionColors[c] ?? "bg-gray-100 text-[#666]"}`}
+          className={`text-xs font-bold px-1.5 py-0.5 rounded ${conditionColors[c] ?? "bg-white/10 text-[#a6a6a6]"}`}
         >
           {c}
         </span>

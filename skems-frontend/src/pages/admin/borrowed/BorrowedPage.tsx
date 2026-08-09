@@ -159,9 +159,9 @@ export default function BorrowedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] px-3 py-8">
+    <div className="min-h-screen bg-fixed-black px-3 py-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#222] mb-6">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-6">
           Borrowed Items
         </h1>
 
@@ -172,14 +172,14 @@ export default function BorrowedPage() {
             placeholder="Search by borrower, equipment, or ID..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+            className="dark-input w-full pl-9 pr-3 py-2 text-sm"
           />
         </div>
 
         {isLoading ? (
-          <p className="text-center text-[#666] py-10">Loading borrowed items...</p>
+          <p className="text-center text-[#a6a6a6] py-10">Loading borrowed items...</p>
         ) : filtered.length === 0 ? (
-          <p className="text-center text-[#666] py-10">
+          <p className="text-center text-[#a6a6a6] py-10">
             {search ? "No items match your search." : "No borrowed items found."}
           </p>
         ) : (
@@ -213,17 +213,17 @@ export default function BorrowedPage() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#d9d9d9] disabled:text-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
-                <span className="text-sm text-[#666] font-medium">
+                <span className="text-sm text-[#a6a6a6] font-medium">
                   {currentPage} / {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#d9d9d9] disabled:text-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

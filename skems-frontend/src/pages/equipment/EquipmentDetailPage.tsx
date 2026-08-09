@@ -73,7 +73,7 @@ export default function EquipmentDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-[#666]">
+      <div className="flex items-center justify-center h-full bg-fixed-black text-[#a6a6a6]">
         Loading...
       </div>
     )
@@ -81,7 +81,7 @@ export default function EquipmentDetailPage() {
 
   if (!equipment) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-[#666] px-4">
+      <div className="flex flex-col items-center justify-center h-full bg-fixed-black text-[#a6a6a6] px-4">
         <p className="text-lg font-bold mb-2">Equipment not found</p>
         <p className="text-sm">The equipment you're looking for doesn't exist.</p>
       </div>
@@ -91,10 +91,10 @@ export default function EquipmentDetailPage() {
   const isBorrowed = !!equipment.borrowerName
 
   return (
-    <div className="flex flex-col h-full bg-[#f5f5f5]">
+    <div className="flex flex-col h-full bg-fixed-black">
       <div className="flex flex-col flex-1 min-h-0 max-w-lg w-full mx-auto px-4 py-6 overflow-y-auto">
-        <div className="bg-white rounded-xl shadow border border-[#d9d9d9] overflow-hidden">
-          <div className="w-full h-56 bg-[#d9d9d9]">
+        <div className="dark-card overflow-hidden">
+          <div className="w-full h-56 bg-white/10">
             <img
               src={equipment.image || skIconFallback}
               alt={equipment.name}
@@ -110,43 +110,43 @@ export default function EquipmentDetailPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-[#a6a6a6] font-mono">{equipment.id}</p>
-                <h1 className="text-xl sm:text-2xl font-bold text-[#222]">
+                <h1 className="text-xl sm:text-2xl font-bold text-white">
                   {equipment.name}
                 </h1>
               </div>
               <span
                 className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
                   equipment.condition === "Working"
-                    ? "bg-green-100 text-green-700"
+                    ? "bg-green-500/15 text-green-300"
                     : equipment.condition === "Borrowed"
                       ? "bg-[#c89116] text-white"
                       : equipment.condition === "Needs Repair"
                         ? "bg-[#ffd870] text-[#222]"
                         : equipment.condition === "Broken"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-gray-100 text-[#666]"
+                          ? "bg-red-500/15 text-red-300"
+                          : "bg-white/10 text-[#a6a6a6]"
                 }`}
               >
                 {equipment.condition}
               </span>
             </div>
 
-            <div className="text-sm text-[#666] space-y-1.5">
+            <div className="text-sm text-[#a6a6a6] space-y-1.5">
               <p>
-                <span className="font-medium text-[#222]">Category:</span>{" "}
+                <span className="font-medium text-white">Category:</span>{" "}
                 {equipment.category}
               </p>
               <p>
-                <span className="font-medium text-[#222]">Owner:</span>{" "}
+                <span className="font-medium text-white">Owner:</span>{" "}
                 {equipment.owner}
               </p>
               <p>
-                <span className="font-medium text-[#222]">Date Given to SK:</span>{" "}
+                <span className="font-medium text-white">Date Given to SK:</span>{" "}
                 {equipment.dateGivenToSK}
               </p>
               {equipment.comments && (
                 <p>
-                  <span className="font-medium text-[#222]">Comments:</span>{" "}
+                  <span className="font-medium text-white">Comments:</span>{" "}
                   {equipment.comments}
                 </p>
               )}
@@ -155,8 +155,8 @@ export default function EquipmentDetailPage() {
             <div
               className={`text-sm font-bold px-3 py-2 rounded-lg ${
                 isBorrowed
-                  ? "bg-red-50 text-red-600"
-                  : "bg-green-50 text-green-700"
+                  ? "bg-red-500/15 text-red-300"
+                  : "bg-green-500/15 text-green-300"
               }`}
             >
               {isBorrowed
@@ -165,7 +165,7 @@ export default function EquipmentDetailPage() {
             </div>
 
             {isBorrowed && (
-              <div className="text-xs text-[#666] space-y-0.5 bg-[#f5f5f5] rounded-lg p-3">
+              <div className="text-xs text-[#a6a6a6] space-y-0.5 bg-white/5 rounded-lg p-3">
                 <p>
                   <span className="font-medium">Borrower:</span>{" "}
                   {equipment.borrowerName}
@@ -183,11 +183,11 @@ export default function EquipmentDetailPage() {
 
             {qrUrl && (
               <div className="pt-2">
-                <p className="text-xs font-medium text-[#666] mb-1">QR Code</p>
+                <p className="text-xs font-medium text-[#a6a6a6] mb-1">QR Code</p>
                 <img
                   src={qrUrl}
                   alt={`QR for ${equipment.id}`}
-                  className="w-20 h-20 object-cover rounded-lg border border-[#d9d9d9]"
+                  className="w-20 h-20 object-cover rounded-lg border border-[#5f5c5c93]"
                   decoding="async"
                 />
               </div>
@@ -199,7 +199,7 @@ export default function EquipmentDetailPage() {
           {isAdmin && (
             <button
               onClick={() => setShowEditModal(true)}
-              className="flex-1 py-2.5 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer"
+              className="btn-gold flex-1 py-2.5 text-sm"
             >
               Edit
             </button>
@@ -208,7 +208,7 @@ export default function EquipmentDetailPage() {
             onClick={() => navigate(`/request?id=${equipment.id}`)}
             className={`py-2.5 text-sm font-bold rounded-lg transition-colors cursor-pointer ${
               isAdmin ? "flex-1" : "w-full"
-            } bg-[#222] hover:bg-[#666] text-white`}
+            } bg-white/10 border border-white/10 hover:bg-white/20 text-white`}
           >
             Request
           </button>

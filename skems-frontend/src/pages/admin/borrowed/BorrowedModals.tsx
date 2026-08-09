@@ -25,31 +25,31 @@ export function EditModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6"
+        className="bg-[#111] border border-[#5f5c5c93] rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-[#222]">Edit Borrow Record</h2>
-          <button onClick={onClose} className="p-1 text-[#666] hover:text-[#222] transition-colors cursor-pointer"><FiX size={20} /></button>
+          <h2 className="text-lg font-bold text-white">Edit Borrow Record</h2>
+          <button onClick={onClose} className="p-1 text-[#a6a6a6] hover:text-white transition-colors cursor-pointer"><FiX size={20} /></button>
         </div>
 
         <div className="space-y-4">
           <div>
             <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Borrower</p>
-            <p className="text-sm font-medium text-[#222]">{editing.full_name}</p>
+            <p className="text-sm font-medium text-white">{editing.full_name}</p>
           </div>
           <div>
             <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Equipment</p>
             <p className="text-sm font-mono text-[#c89116] font-bold">{editing.equipment_id}</p>
-            <p className="text-sm text-[#222]">{editing.equipment_requested} ×{editing.quantity}</p>
+            <p className="text-sm text-white">{editing.equipment_requested} ×{editing.quantity}</p>
           </div>
           <div>
             <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Borrowed</p>
-            <p className="text-sm text-[#222]">{formatDate(editing.date_time_borrowing)}</p>
+            <p className="text-sm text-white">{formatDate(editing.date_time_borrowing)}</p>
           </div>
           <div>
             <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Due</p>
-            <p className="text-sm text-[#222]">{formatDate(editing.date_time_return)}</p>
+            <p className="text-sm text-white">{formatDate(editing.date_time_return)}</p>
           </div>
 
           <div>
@@ -61,7 +61,7 @@ export function EditModal({
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
                     editConditionBefore === c
                       ? "bg-[#c89116] text-white border-[#c89116]"
-                      : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
+                      : "border-white/10 text-[#a6a6a6] hover:bg-white/10"
                   }`}
                 >
                   <input
@@ -86,7 +86,7 @@ export function EditModal({
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
                     editConditionAfter === c
                       ? "bg-[#c89116] text-white border-[#c89116]"
-                      : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
+                      : "border-white/10 text-[#a6a6a6] hover:bg-white/10"
                   }`}
                 >
                   <input
@@ -107,7 +107,7 @@ export function EditModal({
             <textarea
               value={editNotes}
               onChange={(e) => onNotesChange(e.target.value)}
-              className="w-full border border-[#d9d9d9] rounded-lg px-3 py-2 text-sm text-[#222] resize-none"
+              className="dark-input w-full text-sm resize-none"
               rows={3}
             />
           </div>
@@ -116,14 +116,14 @@ export function EditModal({
         <div className="flex gap-2 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-[#d9d9d9] text-sm font-bold text-[#666] hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+            className="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-bold"
           >
             Cancel
           </button>
           <button
             onClick={onSave}
             disabled={updatePending}
-            className="flex-1 py-2.5 rounded-xl bg-[#c89116] hover:bg-[#caa453] text-sm font-bold text-white transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className="btn-gold flex-1 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {updatePending ? "Saving..." : "Save Changes"}
           </button>
@@ -151,16 +151,16 @@ export function DeleteModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6"
+        className="bg-[#111] border border-[#5f5c5c93] rounded-2xl shadow-2xl w-full max-w-sm p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-bold text-[#222] mb-2">Delete Record</h2>
-        <p className="text-sm text-[#666] mb-6">
-          Are you sure you want to delete the borrow record for <span className="font-bold text-[#222]">{deleteItemLabel}</span>? This action cannot be undone.
+        <h2 className="text-lg font-bold text-white mb-2">Delete Record</h2>
+        <p className="text-sm text-[#a6a6a6] mb-6">
+          Are you sure you want to delete the borrow record for <span className="font-bold text-white">{deleteItemLabel}</span>? This action cannot be undone.
         </p>
         <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[#d9d9d9] text-sm font-bold text-[#666] hover:bg-[#f5f5f5] transition-colors cursor-pointer">Cancel</button>
-          <button onClick={onDelete} disabled={deletePending} className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed">
+          <button onClick={onClose} className="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-bold">Cancel</button>
+          <button onClick={onDelete} disabled={deletePending} className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-40 text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed">
             {deletePending ? "Deleting…" : "Delete"}
           </button>
         </div>
@@ -188,12 +188,12 @@ export function ReturnModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6"
+        className="bg-[#111] border border-[#5f5c5c93] rounded-2xl shadow-2xl w-full max-w-sm p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-bold text-[#222] mb-2">Mark as Returned</h2>
-        <p className="text-sm text-[#666] mb-4">
-          Confirm return of <span className="font-bold text-[#222]">{returnItemLabel}</span> and select its condition.
+        <h2 className="text-lg font-bold text-white mb-2">Mark as Returned</h2>
+        <p className="text-sm text-[#a6a6a6] mb-4">
+          Confirm return of <span className="font-bold text-white">{returnItemLabel}</span> and select its condition.
         </p>
 
         <div className="flex flex-wrap gap-2 justify-center mb-6">
@@ -203,7 +203,7 @@ export function ReturnModal({
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm cursor-pointer select-none transition-colors ${
                 returnCondition === c
                   ? "bg-[#c89116] text-white border-[#c89116]"
-                  : "border-[#d9d9d9] text-[#666] hover:bg-[#f5f5f5]"
+                  : "border-white/10 text-[#a6a6a6] hover:bg-white/10"
               }`}
             >
               <input
@@ -219,8 +219,8 @@ export function ReturnModal({
         </div>
 
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[#d9d9d9] text-sm font-bold text-[#666] hover:bg-[#f5f5f5] transition-colors cursor-pointer">Cancel</button>
-          <button onClick={onConfirm} disabled={returnPending} className="flex-1 py-2.5 rounded-xl bg-[#222] hover:bg-[#666] disabled:bg-[#a6a6a6] text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed">
+          <button onClick={onClose} className="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-bold">Cancel</button>
+          <button onClick={onConfirm} disabled={returnPending} className="flex-1 py-2.5 rounded-xl bg-white/10 border border-white/10 hover:bg-white/20 disabled:opacity-40 text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed">
             {returnPending ? "..." : "Confirm Return"}
           </button>
         </div>

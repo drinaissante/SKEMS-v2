@@ -109,52 +109,52 @@ export default function EquipmentFormModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-xl shadow-xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+        className="dark-card shadow-xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
       >
-        <h3 className="text-lg sm:text-xl font-bold text-[#222] mb-4">
+        <h3 className="text-lg sm:text-xl font-bold text-white mb-4">
           {isEdit ? "Edit Equipment" : "Add Equipment"}
         </h3>
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-[#666] mb-1">
+            <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
               Name <span className="text-red-500">*</span>
             </label>
             <input
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222]"
+              className="dark-input w-full"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#666] mb-1">
+            <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
               Image
             </label>
             <input
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full text-sm text-[#666] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#c89116] file:text-white file:cursor-pointer"
+              className="w-full text-sm text-[#a6a6a6] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#c89116] file:text-white file:cursor-pointer"
             />
             <img
               src={previewUrl || imageUrl || skIconFallback}
               alt="Preview"
-              className="w-20 h-20 object-cover rounded-lg mt-2 border border-[#d9d9d9]"
+              className="w-20 h-20 object-cover rounded-lg mt-2 border border-[#5f5c5c93]"
               decoding="async"
               onError={(e) => { (e.target as HTMLImageElement).src = skIconFallback }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#666] mb-1">
+            <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
               Category
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
+              className="dark-input w-full"
             >
               <option>Camera Gear</option>
               <option>Lighting Equipment</option>
@@ -167,19 +167,19 @@ export default function EquipmentFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#666] mb-1">
+            <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
               Owner <span className="text-red-500">*</span>
             </label>
             <input
               required
               value={owner}
               onChange={(e) => setOwner(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222]"
+              className="dark-input w-full"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#666] mb-1">
+            <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
               Date Given to SK <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
@@ -188,7 +188,7 @@ export default function EquipmentFormModal({
                 required
                 value={dateGivenToSK}
                 onChange={(e) => setDateGivenToSK(e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222]"
+                className="dark-input flex-1"
               />
               <button
                 type="button"
@@ -196,7 +196,7 @@ export default function EquipmentFormModal({
                   const d = new Date()
                   setDateGivenToSK(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`)
                 }}
-                className="px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer shrink-0"
+                className="btn-gold px-3 py-2 text-sm shrink-0"
               >
                 Today
               </button>
@@ -204,13 +204,13 @@ export default function EquipmentFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#666] mb-1">
+            <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
               Condition
             </label>
             <select
               value={condition}
               onChange={(e) => setCondition(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
+              className="dark-input w-full"
             >
               {conditions.map((c: string) => (
                 <option key={c} value={c}>{c}</option>
@@ -219,13 +219,13 @@ export default function EquipmentFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#666] mb-1">
+            <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
               Comments
             </label>
             <textarea
               value={comments}
               onChange={(e) => setComments(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222]"
+              className="dark-input w-full"
               rows={3}
             />
           </div>
@@ -237,7 +237,7 @@ export default function EquipmentFormModal({
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="flex-1 py-2 text-sm border border-[#d9d9d9] text-[#666] rounded-lg hover:bg-[#f5f5f5] transition-colors cursor-pointer disabled:opacity-50"
+            className="btn-ghost flex-1 py-2 text-sm disabled:opacity-50"
           >
             Cancel
           </button>
@@ -245,7 +245,7 @@ export default function EquipmentFormModal({
           <button
             type="submit"
             disabled={saving}
-            className="flex-1 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+            className="btn-gold flex-1 py-2 text-sm disabled:opacity-50"
           >
             {saving ? "Saving..." : isEdit ? "Save Changes" : "Add"}
           </button>
