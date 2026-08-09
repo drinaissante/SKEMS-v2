@@ -156,9 +156,10 @@ export default function DashboardHome() {
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-fixed-black">
       <div className="flex flex-col flex-1 min-h-0 max-w-6xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4">
-          Dashboard
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
+          Welcome, {user?.fullName ?? "Admin"}!
         </h1>
+        <p className="text-sm sm:text-base text-[#a6a6a6] mb-4">What do you want to do today?</p>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
           {[

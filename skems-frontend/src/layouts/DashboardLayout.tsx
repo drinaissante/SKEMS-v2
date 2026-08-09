@@ -21,7 +21,7 @@ export default function DashboardLayout() {
     <div className="flex flex-1 min-h-0">
       <aside className="hidden md:flex flex-col w-64 shrink-0 sticky top-16 self-start h-[calc(100vh-4rem)] bg-[#0c0c0c] border-r border-white/10">
         <div className="px-5 py-4 border-b border-white/10 text-[#f7cf1ccb] text-xs uppercase font-bold">
-          Admin Panel
+          Dashboard
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
