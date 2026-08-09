@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import GradientLine from "./GradientLine"
 import LogoutModal from "../modals/LogoutModal"
 
 export default function Navbar() {
   const { isLoggedIn, isAdmin, isSuperAdmin, user, logout } = useAuth()
+  const { pathname } = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
@@ -20,7 +21,7 @@ export default function Navbar() {
           <span className="text-[#f7cf1ccb] text-md uppercase">Sine Kultura</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8 text-sm">
+        <div className="hidden md:flex items-center gap-8 text-xs">
           {isLoggedIn && (
             <>
               <Link
@@ -42,18 +43,34 @@ export default function Navbar() {
             <>
               {isAdmin && (
                 <>
-                  <Link to="/equipments" className="hover:text-[#fdb125] transition-colors">
+                  <Link
+                    to="/equipments"
+                    className={`relative hover:text-[#fdb125] transition-colors ${pathname === "/equipments" ? "text-[#fdb125]" : ""}`}
+                  >
                     Equipment
+                    {pathname === "/equipments" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
                   </Link>
-                  <Link to="/admin/requests" className="hover:text-[#fdb125] transition-colors">
+                  <Link
+                    to="/admin/requests"
+                    className={`relative hover:text-[#fdb125] transition-colors ${pathname === "/admin/requests" ? "text-[#fdb125]" : ""}`}
+                  >
                     Manage Requests
+                    {pathname === "/admin/requests" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
                   </Link>
-                  <Link to="/admin/borrowed" className="hover:text-[#fdb125] transition-colors">
+                  <Link
+                    to="/admin/borrowed"
+                    className={`relative hover:text-[#fdb125] transition-colors ${pathname === "/admin/borrowed" ? "text-[#fdb125]" : ""}`}
+                  >
                     Borrowed
+                    {pathname === "/admin/borrowed" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
                   </Link>
                   {isSuperAdmin && (
-                    <Link to="/admin/users" className="hover:text-[#fdb125] transition-colors">
+                    <Link
+                      to="/admin/users"
+                      className={`relative hover:text-[#fdb125] transition-colors ${pathname === "/admin/users" ? "text-[#fdb125]" : ""}`}
+                    >
                       Manage Users
+                      {pathname === "/admin/users" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
                     </Link>
                   )}
                 </>
@@ -112,17 +129,40 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <div className="flex uppercase text-xs font-medium gap-7 *:transition-colors *:duration-200 *:hover:text-[#c89116] *:cursor-pointer">
-                <Link to="/"> Home </Link>
-                <Link to="/our-work"> Our Work </Link>
-                <Link to="/about"> About </Link>
-                <Link to="/#partnerships"> Partnerships </Link>
+              <div className="flex uppercase text-xs font-normal gap-7">
+                <Link
+                  to="/"
+                  className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/" ? "text-[#fdb125]" : ""}`}
+                >
+                  Home
+                  {pathname === "/" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
+                </Link>
+                <Link
+                  to="/our-work"
+                  className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/our-work" ? "text-[#fdb125]" : ""}`}
+                >
+                  Our Work
+                  {pathname === "/our-work" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
+                </Link>
+                <Link
+                  to="/about"
+                  className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/about" ? "text-[#fdb125]" : ""}`}
+                >
+                  About
+                  {pathname === "/about" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
+                </Link>
+                <Link
+                  to="/#partnerships"
+                  className="relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer"
+                >
+                  Partnerships
+                </Link>
               </div>
 
 
               <Link
                 to="/login"
-                className="px-3 py-2.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
+                className="px-3 py-2.5 rounded bg-white/10 border border-white/10 hover:bg-white/20 transition-colors"
               >
                 Login
               </Link>
@@ -254,14 +294,35 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <div className="flex-1 flex flex-col gap-5 text-center">
-              <Link to="/" onClick={() => setSidebarOpen(false)}> Home </Link>
-              <GradientLine />
-              <Link to="/our-work" onClick={() => setSidebarOpen(false)}> Our Work </Link>
-              <GradientLine />
-              <Link to="/about" onClick={() => setSidebarOpen(false)}> About </Link>
-              <GradientLine />
-              <Link to="/#partnerships" onClick={() => setSidebarOpen(false)}> Partnerships </Link>
+            <div className="flex-1 flex flex-col gap-4 text-center">
+              <Link to="/" onClick={() => setSidebarOpen(false)} className="relative pb-1">
+                Home
+                {pathname === "/" ? (
+                  <GradientLine className="absolute inset-x-0 bottom-0" />
+                ) : (
+                  <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
+                )}
+              </Link>
+              <Link to="/our-work" onClick={() => setSidebarOpen(false)} className="relative pb-1">
+                Our Work
+                {pathname === "/our-work" ? (
+                  <GradientLine className="absolute inset-x-0 bottom-0" />
+                ) : (
+                  <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
+                )}
+              </Link>
+              <Link to="/about" onClick={() => setSidebarOpen(false)} className="relative pb-1">
+                About
+                {pathname === "/about" ? (
+                  <GradientLine className="absolute inset-x-0 bottom-0" />
+                ) : (
+                  <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
+                )}
+              </Link>
+              <Link to="/#partnerships" onClick={() => setSidebarOpen(false)} className="relative pb-1">
+                Partnerships
+                <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
+              </Link>
               
 
               {/* <Link
@@ -277,7 +338,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={() => setSidebarOpen(false)}
-                className="mt-auto px-4 py-3 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors text-center"
+                className="mt-auto px-4 py-3 rounded bg-white/10 border border-white/10 hover:bg-white/20 transition-colors text-center"
               >
                 Login
               </Link>
