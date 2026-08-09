@@ -53,6 +53,8 @@ export default function Navbar() {
             </NavLink>
           </div>
 
+          <div className="w-px h-4 bg-white/20" />
+
           {isLoggedIn ? (
             <>
               <div className="relative">

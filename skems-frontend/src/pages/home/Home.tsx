@@ -91,7 +91,7 @@ export default function Home() {
           {isLoggedIn ? (
           <>
               {/* make this typing animated when logged in */}
-              <p className="text-sm sm:text-base mb-8 max-w-md bg-linear-to-r from-[#cab453] to-[#ffd000] bg-clip-text text-transparent">
+              <p className="text-lg mb-8 max-w-md bg-linear-to-r from-[#cab453] to-[#ffd000] bg-clip-text text-transparent">
                 {output}
                 {holding && <span className="animate-pulse text-white/80">|</span>}
               </p>
@@ -108,18 +108,6 @@ export default function Home() {
                   className="w-full sm:flex-1 sm:min-w-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-xl transition-colors text-sm sm:text-base"
                 >
                   Borrow
-                </Link>
-                <Link
-                  to="/my-requests"
-                  className="w-full sm:flex-1 sm:min-w-40 px-5 py-3 bg-[#222] hover:bg-[#666] text-white font-bold rounded-xl transition-colors shadow text-sm sm:text-base"
-                >
-                  My Requests
-                </Link>
-                <Link
-                  to="/profile"
-                  className="w-full sm:flex-1 sm:min-w-40 px-8 py-3 bg-[#222] hover:bg-[#666] text-white font-bold rounded-xl transition-colors shadow text-sm sm:text-base"
-                >
-                  My Profile
                 </Link>
               </div>
 
@@ -171,7 +159,7 @@ export default function Home() {
 
           {/*  TODO: placeholders */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {[0, 1, 2, 3, 4, 5].map((i) => (
+            {[0, 1, 2].map((i) => (
               <div
                 key={i}
                 className="bg-transparent rounded-xl shadow=xl border border-[#5f5c5c93] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-[#fdb125]"
