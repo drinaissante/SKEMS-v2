@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { useEffect, useRef, useState, useMemo } from "react"
 
 import { cacheHeroVideo, getCachedHeroVideo } from "../../utils/videoCache"
@@ -12,6 +12,14 @@ import mainMp4 from "/hero-optimized-2.mp4"
 export default function Home() {
   usePageTitle("Home")
   const { isLoggedIn, user } = useAuth()
+
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.hash === "#partnerships") {
+      document.getElementById("partnerships")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [location])
 
   const welcomeTexts = useMemo(
     () => [
@@ -185,7 +193,7 @@ export default function Home() {
       </section>
 
       {/* partner with us */}
-      <section className="bg-fixed-black py-6">
+      <section id="partnerships" className="bg-fixed-black py-6 scroll-mt-24">
       
         {/* the gold bar */}
         <div

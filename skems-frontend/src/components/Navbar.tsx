@@ -116,7 +116,7 @@ export default function Navbar() {
                 <Link to="/"> Home </Link>
                 <Link to="/our-work"> Our Work </Link>
                 <Link to="/about"> About </Link>
-                <Link to="/partnerships"> Partnerships </Link>
+                <Link to="/#partnerships"> Partnerships </Link>
               </div>
 
 
@@ -261,7 +261,7 @@ export default function Navbar() {
               <GradientLine />
               <Link to="/about" onClick={() => setSidebarOpen(false)}> About </Link>
               <GradientLine />
-              <Link to="/partnerships" onClick={() => setSidebarOpen(false)}> Partnerships </Link>
+              <Link to="/#partnerships" onClick={() => setSidebarOpen(false)}> Partnerships </Link>
               
 
               {/* <Link
