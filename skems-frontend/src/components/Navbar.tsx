@@ -9,7 +9,7 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false)
 
   return (
-    <div className="select-none sticky top-0 z-50 shadow-2xl">
+    <div className="select-none sticky top-0 z-50 shadow-2xl border-b border-white/10">
       <nav className="flex items-center justify-between gap-3 px-10 py-4 bg-[#080808a8] text-white font-bold">
 
         <Link to="/" className="flex items-center gap-3.5 shrink-0 select-none">
