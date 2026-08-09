@@ -102,9 +102,9 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] px-3 py-8">
+    <div className="min-h-screen bg-fixed-black px-3 py-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#222] mb-6">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-6">
           User Management
         </h1>
 
@@ -115,22 +115,22 @@ export default function UsersPage() {
             placeholder="Search by name, student number, or email..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+            className="dark-input w-full pl-9 pr-3 py-2 text-sm"
           />
         </div>
 
         {isLoading || linksLoading ? (
-          <p className="text-center text-[#666] py-10">Loading users...</p>
+          <p className="text-center text-[#a6a6a6] py-10">Loading users...</p>
         ) : filtered.length === 0 ? (
-          <p className="text-center text-[#666] py-10">
+          <p className="text-center text-[#a6a6a6] py-10">
             {search ? "No users match your search." : "No users found."}
           </p>
         ) : (
           <>
-            <div className="bg-white rounded-xl shadow border border-[#d9d9d9] overflow-hidden overflow-x-auto">
+            <div className="dark-card overflow-hidden overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#222] text-white text-left">
+                  <tr className="bg-white/5 text-white text-left">
                     <th className="px-4 py-3 font-medium">Full Name</th>
                     <th className="px-4 py-3 font-medium">Student Number</th>
                     <th className="px-4 py-3 font-medium hidden sm:table-cell">Email</th>
@@ -139,32 +139,32 @@ export default function UsersPage() {
                     <th className="px-4 py-3 font-medium text-center">Toggle</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#d9d9d9]">
+                <tbody className="divide-y divide-white/10">
                   {paginatedItems.map((p) => (
-                    <tr key={p.id} className="text-[#222]">
+                    <tr key={p.id} className="text-white">
                       <td className="px-4 py-3 whitespace-nowrap">{p.full_name}</td>
                       <td className="px-4 py-3 whitespace-nowrap">{p.student_number}</td>
-                      <td className="px-4 py-3 hidden sm:table-cell text-[#666] whitespace-nowrap">
+                      <td className="px-4 py-3 hidden sm:table-cell text-[#a6a6a6] whitespace-nowrap">
                         {p.email}
                       </td>
                       <td className="px-4 py-3 text-center">
                         {p.discordLink ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-300">
                             Linked
                           </span>
                         ) : (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-[#666]">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#a6a6a6]">
                             Not linked
                           </span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
                         {p.is_admin ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-300">
                             Admin
                           </span>
                         ) : (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-[#666]">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#a6a6a6]">
                             Member
                           </span>
                         )}
@@ -173,7 +173,7 @@ export default function UsersPage() {
                         <button
                           onClick={() => handleToggle(p)}
                           disabled={toggleMutation.isPending || p.id === user?.id}
-                          className="px-4 py-2 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                          className="px-4 py-2 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
                           title={p.id === user?.id ? "Cannot modify your own role" : undefined}
                         >
                           {toggleMutation.isPending && toggleMutation.variables?.profileId === p.id
@@ -194,17 +194,17 @@ export default function UsersPage() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#d9d9d9] disabled:text-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
-                <span className="text-sm text-[#666] font-medium">
+                <span className="text-sm text-[#a6a6a6] font-medium">
                   {currentPage} / {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#d9d9d9] disabled:text-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

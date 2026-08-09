@@ -18,7 +18,7 @@ const statusColors: Record<string, string> = {
   Pending: "bg-[#caa453] text-white",
   Approved: "bg-green-600 text-white",
   Denied: "bg-red-600 text-white",
-  Returned: "bg-[#a6a6a6] text-white",
+  Returned: "bg-white/10 text-[#a6a6a6]",
 }
 
 function formatDateTime(iso: string) {
@@ -137,9 +137,9 @@ export default function RequestsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] px-3 sm:px-4 py-4 sm:py-6">
+    <div className="min-h-screen bg-fixed-black px-3 sm:px-4 py-4 sm:py-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#222] mb-4">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4">
           Borrow Requests
         </h1>
 
@@ -151,13 +151,13 @@ export default function RequestsPage() {
               placeholder="Search by name, student number, or reason..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+              className="dark-input w-full pl-9 pr-3 py-2 text-sm"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1) }}
-            className="px-3 py-2 text-sm border border-[#d9d9d9] rounded-lg text-[#222] bg-white"
+            className="dark-input"
           >
             {statuses.map((s) => (
               <option key={s} value={s}>{s}</option>
@@ -166,17 +166,17 @@ export default function RequestsPage() {
         </div>
 
         {isLoading ? (
-          <p className="text-center text-[#666] py-10">Loading requests...</p>
+          <p className="text-center text-[#a6a6a6] py-10">Loading requests...</p>
         ) : filtered.length === 0 ? (
-          <p className="text-center text-[#666] py-10">
+          <p className="text-center text-[#a6a6a6] py-10">
             {search || filterStatus !== "All" ? "No requests match your filters." : "No requests found."}
           </p>
         ) : (
           <>
-            <div className="hidden md:block overflow-x-auto bg-white rounded-xl shadow border border-[#d9d9d9]">
+            <div className="hidden md:block overflow-x-auto dark-card">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#222] text-white text-left">
+                  <tr className="bg-white/5 text-white text-left">
                     <th className="px-3 py-2 sm:px-4 sm:py-3">Equipment</th>
                     <th className="px-3 py-2 sm:px-4 sm:py-3">Qty</th>
                     <th className="px-3 py-2 sm:px-4 sm:py-3">Borrower</th>
@@ -191,28 +191,28 @@ export default function RequestsPage() {
                 </thead>
                 <tbody>
                   {paginatedItems.map((r) => (
-                    <tr key={r.id} className="border-t border-[#d9d9d9] hover:bg-[#f5f5f5]">
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 font-medium text-[#222]">
+                    <tr key={r.id} className="border-t border-white/10 hover:bg-white/5">
+                      <td className="px-3 py-2 sm:px-4 sm:py-3 font-medium text-white">
                         {r.equipment_name}
                         <span className="text-[#a6a6a6] text-xs ml-1">{r.equipment_id}</span>
                       </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666] text-center">{r.quantity}</td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666]">{r.borrower_name}</td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666]">{r.student_number}</td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666] max-w-48 truncate">{r.reason}</td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666] whitespace-nowrap text-xs">
+                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] text-center">{r.quantity}</td>
+                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6]">{r.borrower_name}</td>
+                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6]">{r.student_number}</td>
+                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] max-w-48 truncate">{r.reason}</td>
+                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] whitespace-nowrap text-xs">
                         {formatDateTime(r.date_borrowed)}
                       </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666] whitespace-nowrap text-xs">
+                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] whitespace-nowrap text-xs">
                         {formatDateTime(r.date_due)}
                       </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#666] whitespace-nowrap text-xs">
+                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] whitespace-nowrap text-xs">
                         {r.returned_on ? formatDateTime(r.returned_on) : "—"}
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3">
                         <span
                           className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
-                            statusColors[r.status] ?? "bg-[#d9d9d9] text-[#666]"
+                            statusColors[r.status] ?? "bg-white/10 text-[#a6a6a6]"
                           }`}
                         >
                           {r.status}
@@ -225,7 +225,7 @@ export default function RequestsPage() {
                               <button
                                 onClick={() => handleStatus(r.id, "Approved")}
                                 disabled={approveMutation.isPending}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
                                 title="Approve"
                               >
                                 {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={15} />}
@@ -242,7 +242,7 @@ export default function RequestsPage() {
                           {r.status === "Approved" && (
                             <button
                               onClick={() => handleStatus(r.id, "Returned")}
-                              className="px-3 py-2 text-xs bg-[#222] hover:bg-[#666] text-white rounded transition-colors cursor-pointer"
+                              className="px-3 py-2 text-xs bg-white/10 border border-white/10 hover:bg-white/20 text-white rounded transition-colors cursor-pointer"
                             >
                               Mark Returned
                             </button>
@@ -250,7 +250,7 @@ export default function RequestsPage() {
                           <button
                             onClick={() => setConfirmDeleteId(r.id)}
                             disabled={deleteMutation.isPending}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed ml-auto"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed ml-auto"
                             title="Delete"
                           >
                             {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={15} />}
@@ -265,74 +265,74 @@ export default function RequestsPage() {
 
             <div className="md:hidden space-y-2">
               {paginatedItems.map((r) => (
-                <div key={r.id} className="bg-white rounded-xl shadow border border-[#d9d9d9]">
+                <div key={r.id} className="dark-card">
                   <button
                     onClick={() => toggleRow(r.id)}
                     className="w-full flex items-center gap-3 px-3 py-3 text-left cursor-pointer"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[#222] text-sm truncate">
+                      <p className="font-bold text-white text-sm truncate">
                         {r.equipment_name} <span className="text-[#a6a6a6] font-normal">×{r.quantity}</span>
                       </p>
                       <p className="text-xs text-[#a6a6a6] truncate">{r.borrower_name}</p>
                     </div>
                     <span
                       className={`shrink-0 px-2 py-0.5 rounded text-xs font-bold ${
-                        statusColors[r.status] ?? "bg-[#d9d9d9] text-[#666]"
+                        statusColors[r.status] ?? "bg-white/10 text-[#a6a6a6]"
                       }`}
                     >
                       {r.status}
                     </span>
                     <FiChevronDown
                       size={16}
-                      className={`shrink-0 text-[#666] transition-transform ${
+                      className={`shrink-0 text-[#a6a6a6] transition-transform ${
                         expandedRow === r.id ? "rotate-180" : ""
                       }`}
                     />
                   </button>
 
                   {expandedRow === r.id && (
-                    <div className="px-3 pb-3 pt-1 border-t border-[#d9d9d9] space-y-2 text-xs text-[#666]">
+                    <div className="px-3 pb-3 pt-1 border-t border-white/10 space-y-2 text-xs text-[#a6a6a6]">
                       <div className="flex justify-between">
                         <span>Equipment ID</span>
                         <span className="font-medium text-[#c89116]">{r.equipment_id}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Student #</span>
-                        <span className="font-medium text-[#222]">{r.student_number}</span>
+                        <span className="font-medium text-white">{r.student_number}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Position/Dept</span>
-                        <span className="font-medium text-[#222] text-right max-w-48">{r.position_department || "—"}</span>
+                        <span className="font-medium text-white text-right max-w-48">{r.position_department || "—"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Reason</span>
-                        <span className="font-medium text-[#222] text-right max-w-48">{r.reason}</span>
+                        <span className="font-medium text-white text-right max-w-48">{r.reason}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Pickup Loc.</span>
-                        <span className="font-medium text-[#222] text-right max-w-48">{r.pickup_location || "—"}</span>
+                        <span className="font-medium text-white text-right max-w-48">{r.pickup_location || "—"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Return Loc.</span>
-                        <span className="font-medium text-[#222] text-right max-w-48">{r.return_location || "—"}</span>
+                        <span className="font-medium text-white text-right max-w-48">{r.return_location || "—"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Owner</span>
-                        <span className="font-medium text-[#222] text-right max-w-48">{r.owner || "—"}</span>
+                        <span className="font-medium text-white text-right max-w-48">{r.owner || "—"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Borrowed</span>
-                        <span className="font-medium text-[#222]">{formatDateTime(r.date_borrowed)}</span>
+                        <span className="font-medium text-white">{formatDateTime(r.date_borrowed)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Due</span>
-                        <span className="font-medium text-[#222]">{formatDateTime(r.date_due)}</span>
+                        <span className="font-medium text-white">{formatDateTime(r.date_due)}</span>
                       </div>
                       {r.returned_on && (
                         <div className="flex justify-between">
                           <span>Returned</span>
-                          <span className="font-medium text-[#222]">{formatDateTime(r.returned_on)}</span>
+                          <span className="font-medium text-white">{formatDateTime(r.returned_on)}</span>
                         </div>
                       )}
                       <div className="flex gap-2 pt-2">
@@ -341,7 +341,7 @@ export default function RequestsPage() {
                               <button
                                 onClick={() => handleStatus(r.id, "Approved")}
                                 disabled={approveMutation.isPending}
-                                className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-600 hover:bg-green-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
                                 title="Approve"
                               >
                                 {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={16} />}
@@ -358,7 +358,7 @@ export default function RequestsPage() {
                         {r.status === "Approved" && (
                           <button
                             onClick={() => handleStatus(r.id, "Returned")}
-                            className="flex-1 py-2.5 text-xs font-bold bg-[#222] hover:bg-[#666] text-white rounded-lg transition-colors cursor-pointer"
+                            className="flex-1 py-2.5 text-xs font-bold bg-white/10 border border-white/10 hover:bg-white/20 text-white rounded-lg transition-colors cursor-pointer"
                           >
                             Mark Returned
                           </button>
@@ -366,7 +366,7 @@ export default function RequestsPage() {
                         <button
                           onClick={() => setConfirmDeleteId(r.id)}
                           disabled={deleteMutation.isPending}
-                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-white transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0"
+                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0"
                           title="Delete"
                         >
                           {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={16} />}
@@ -383,17 +383,17 @@ export default function RequestsPage() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#d9d9d9] disabled:text-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
-                <span className="text-sm text-[#666] font-medium">
+                <span className="text-sm text-[#a6a6a6] font-medium">
                   {currentPage} / {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] disabled:bg-[#d9d9d9] disabled:text-[#a6a6a6] text-white font-bold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
@@ -404,15 +404,15 @@ export default function RequestsPage() {
 
         {confirmApproveId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
-              <h2 className="text-lg font-bold text-[#222] mb-3">Confirm Approval</h2>
-              <p className="text-sm text-[#666] mb-6">
+            <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
+              <h2 className="text-lg font-bold text-white mb-3">Confirm Approval</h2>
+              <p className="text-sm text-[#a6a6a6] mb-6">
                 This request will be moved to the borrowed items page.
               </p>
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={() => setConfirmApproveId(null)}
-                  className="px-5 py-2 text-sm font-bold bg-[#d9d9d9] hover:bg-[#a6a6a6] text-[#222] rounded-lg transition-colors cursor-pointer"
+                  className="btn-ghost px-5 py-2 text-sm font-bold"
                 >
                   Cancel
                 </button>
@@ -430,24 +430,24 @@ export default function RequestsPage() {
         {confirmDeleteId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setConfirmDeleteId(null)}>
             <div
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6"
+              className="bg-[#111] border border-[#5f5c5c93] rounded-2xl shadow-2xl w-full max-w-sm p-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-lg font-bold text-[#222] mb-2">Delete Request</h2>
-              <p className="text-sm text-[#666] mb-6">
+              <h2 className="text-lg font-bold text-white mb-2">Delete Request</h2>
+              <p className="text-sm text-[#a6a6a6] mb-6">
                 Are you sure you want to delete this request? This action cannot be undone.
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setConfirmDeleteId(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-[#d9d9d9] text-sm font-bold text-[#666] hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+                  className="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
                   disabled={deleteMutation.isPending}
-                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-[#a6a6a6] text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-40 text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
                 >
                   {deleteMutation.isPending ? "Deleting…" : "Delete"}
                 </button>
