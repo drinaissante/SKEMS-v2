@@ -2,14 +2,13 @@ import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import GradientLine from "./GradientLine"
-import LogoutModal from "../modals/LogoutModal"
+import { requestLogout } from "../utils/logoutEvent"
 
 export default function Navbar() {
-  const { isLoggedIn, isAdmin, isSuperAdmin, user, logout } = useAuth()
+  const { isLoggedIn, isAdmin, isSuperAdmin, user } = useAuth()
   const { pathname } = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   return (
     <div className="select-none sticky top-0 z-50 shadow-2xl border-b border-white/10">
@@ -22,7 +21,37 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-xs">
-          {isLoggedIn && (
+          <div className="flex uppercase text-xs font-normal gap-7">
+            <Link
+              to="/"
+              className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/" ? "text-[#fdb125]" : ""}`}
+            >
+              Home
+              {pathname === "/" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
+            </Link>
+            <Link
+              to="/our-work"
+              className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/our-work" ? "text-[#fdb125]" : ""}`}
+            >
+              Our Work
+              {pathname === "/our-work" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
+            </Link>
+            <Link
+              to="/about"
+              className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/about" ? "text-[#fdb125]" : ""}`}
+            >
+              About
+              {pathname === "/about" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
+            </Link>
+            <Link
+              to="/#partnerships"
+              className="relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer"
+            >
+              Partnerships
+            </Link>
+          </div>
+
+          {isLoggedIn ? (
             <>
               <Link
                 to="/scan"
@@ -36,44 +65,14 @@ export default function Navbar() {
               >
                 Request
               </Link>
-            </>
-          )}
-
-          {isLoggedIn ? (
-            <>
               {isAdmin && (
-                <>
-                  <Link
-                    to="/equipments"
-                    className={`relative hover:text-[#fdb125] transition-colors ${pathname === "/equipments" ? "text-[#fdb125]" : ""}`}
-                  >
-                    Equipment
-                    {pathname === "/equipments" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
-                  </Link>
-                  <Link
-                    to="/admin/requests"
-                    className={`relative hover:text-[#fdb125] transition-colors ${pathname === "/admin/requests" ? "text-[#fdb125]" : ""}`}
-                  >
-                    Manage Requests
-                    {pathname === "/admin/requests" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
-                  </Link>
-                  <Link
-                    to="/admin/borrowed"
-                    className={`relative hover:text-[#fdb125] transition-colors ${pathname === "/admin/borrowed" ? "text-[#fdb125]" : ""}`}
-                  >
-                    Borrowed
-                    {pathname === "/admin/borrowed" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
-                  </Link>
-                  {isSuperAdmin && (
-                    <Link
-                      to="/admin/users"
-                      className={`relative hover:text-[#fdb125] transition-colors ${pathname === "/admin/users" ? "text-[#fdb125]" : ""}`}
-                    >
-                      Manage Users
-                      {pathname === "/admin/users" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
-                    </Link>
-                  )}
-                </>
+                <Link
+                  to="/dashboard"
+                  className={`relative hover:text-[#fdb125] transition-colors ${pathname.startsWith("/dashboard") ? "text-[#fdb125]" : ""}`}
+                >
+                  Dashboard
+                  {pathname.startsWith("/dashboard") && <GradientLine className="absolute inset-x-0 -bottom-2" />}
+                </Link>
               )}
 
               <div className="relative">
@@ -113,9 +112,8 @@ export default function Navbar() {
 
                       <button
                         onClick={() => {
-                           logout(); 
-                           setProfileOpen(false); 
-                           setShowLogoutModal(true) 
+                           requestLogout(); 
+                           setProfileOpen(false) 
                         }}
                         className="w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors cursor-pointer"
                       >
@@ -128,45 +126,12 @@ export default function Navbar() {
               </div>
             </>
           ) : (
-            <>
-              <div className="flex uppercase text-xs font-normal gap-7">
-                <Link
-                  to="/"
-                  className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/" ? "text-[#fdb125]" : ""}`}
-                >
-                  Home
-                  {pathname === "/" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
-                </Link>
-                <Link
-                  to="/our-work"
-                  className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/our-work" ? "text-[#fdb125]" : ""}`}
-                >
-                  Our Work
-                  {pathname === "/our-work" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
-                </Link>
-                <Link
-                  to="/about"
-                  className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/about" ? "text-[#fdb125]" : ""}`}
-                >
-                  About
-                  {pathname === "/about" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
-                </Link>
-                <Link
-                  to="/#partnerships"
-                  className="relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer"
-                >
-                  Partnerships
-                </Link>
-              </div>
-
-
-              <Link
-                to="/login"
-                className="px-3 py-2.5 rounded border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] transition-colors duration-300"
-              >
-                Login
-              </Link>
-            </>
+            <Link
+              to="/login"
+              className="px-3 py-2.5 rounded border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] transition-colors duration-300"
+            >
+              Login
+            </Link>
           )}
         </div>
 
@@ -232,21 +197,28 @@ export default function Navbar() {
               {isAdmin && (
                 <>
                   <Link
-                    to="/equipments"
+                    to="/dashboard"
+                    onClick={() => setSidebarOpen(false)}
+                    className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/dashboard/equipments"
                     onClick={() => setSidebarOpen(false)}
                     className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
                   >
                     Equipment
                   </Link>
                   <Link
-                    to="/admin/requests"
+                    to="/dashboard/requests"
                     onClick={() => setSidebarOpen(false)}
                     className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
                   >
                     Manage Requests
                   </Link>
                   <Link
-                    to="/admin/borrowed"
+                    to="/dashboard/borrowed"
                     onClick={() => setSidebarOpen(false)}
                     className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
                   >
@@ -254,7 +226,7 @@ export default function Navbar() {
                   </Link>
                   {isSuperAdmin && (
                     <Link
-                      to="/admin/users"
+                      to="/dashboard/users"
                       onClick={() => setSidebarOpen(false)}
                       className="px-4 py-3 rounded hover:bg-white/10 transition-colors"
                     >
@@ -284,9 +256,8 @@ export default function Navbar() {
 
               <button
                 onClick={() => { 
-                  logout(); 
+                  requestLogout(); 
                   setSidebarOpen(false);
-                  setShowLogoutModal(true);
                 }}
                 className="px-4 py-3 rounded border border-[#a6a6a6] hover:bg-white/10 transition-colors cursor-pointer text-left"
               >
@@ -346,10 +317,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-
-      {showLogoutModal && (
-        <LogoutModal onClose={() => setShowLogoutModal(false)} />
-      )}
     </div>
   )
 }

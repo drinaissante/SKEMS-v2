@@ -16,6 +16,8 @@ import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
 import NotFound from './pages/NotFound'
 
 import MainLayout from './layouts/MainLayout'
+import DashboardLayout from './layouts/DashboardLayout'
+import DashboardHome from './pages/dashboard/DashboardHome'
 import { ToastProvider } from './components/Toast'
 
 import { Analytics } from '@vercel/analytics/react'
@@ -133,40 +135,27 @@ function App() {
           />
 
           <Route
-            path='/equipments'
+            path='/dashboard'
             element={
               <AdminRoute>
-                <EquipmentsPage />
+                <DashboardLayout />
               </AdminRoute>
             }
-          />
+          >
+            <Route index element={<DashboardHome />} />
+            <Route path='equipments' element={<EquipmentsPage />} />
+            <Route path='requests' element={<RequestsPage />} />
+            <Route path='borrowed' element={<BorrowedPage />} />
+            <Route path='users' element={<SuperAdminRoute><UsersPage /></SuperAdminRoute>} />
+          </Route>
 
-          <Route
-            path='/admin/users'
-            element={
-              <SuperAdminRoute>
-                <UsersPage />
-              </SuperAdminRoute>
-            }
-          />
+          <Route path='/equipments' element={<Navigate to="/dashboard/equipments" replace />} />
 
-          <Route
-            path='/admin/requests'
-            element={
-              <AdminRoute>
-                <RequestsPage />
-              </AdminRoute>
-            }
-          />
+          <Route path='/admin/requests' element={<Navigate to="/dashboard/requests" replace />} />
 
-          <Route
-            path='/admin/borrowed'
-            element={
-              <AdminRoute>
-                <BorrowedPage />
-              </AdminRoute>
-            }
-          />
+          <Route path='/admin/borrowed' element={<Navigate to="/dashboard/borrowed" replace />} />
+
+          <Route path='/admin/users' element={<Navigate to="/dashboard/users" replace />} />
 
           <Route path='*' element={<NotFound />} />
           
