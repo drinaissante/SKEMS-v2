@@ -2,7 +2,7 @@ import { QueryClient, useMutation } from "@tanstack/react-query"
 import { deleteEquipment } from "../services/api"
 import { useToast } from "../hooks/useToast"
 
-interface ShowDeleteModal {
+interface ShowDeleteModalProps {
     setShowDeleteConfirm: React.Dispatch<React.SetStateAction<boolean>>,
     deletingId: string,
     setDeletingId: React.Dispatch<React.SetStateAction<string>>,
@@ -16,7 +16,7 @@ export default function ShowDeleteModal({
     setDeletingId,
     queryClient,
     handleSync,
-}: ShowDeleteModal) {
+}: ShowDeleteModalProps) {
   const { showToast } = useToast()
         
     const deleteMutation = useMutation({

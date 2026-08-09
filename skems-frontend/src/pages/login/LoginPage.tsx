@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext"
 import { resetPassword } from "../../services/supabase"
 import { FiEye, FiEyeOff } from "react-icons/fi"
 import loginMp4 from "../../assets/login.mp4"
+import LoginModal from "../../modals/LoginModal"
 
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { usePageTitle } from "../../hooks/usePageTitle";
@@ -15,7 +16,7 @@ export default function LoginPage() {
   const captcha = useRef<HCaptcha | null>(null);
 
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, user } = useAuth()
 
   const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showLoginSuccess, setShowLoginSuccess] = useState(false)
 
   const [showForgot, setShowForgot] = useState(false)
   const [forgotEmail, setForgotEmail] = useState("")
@@ -64,7 +66,7 @@ export default function LoginPage() {
       return
     }
 
-    navigate("/")
+    setShowLoginSuccess(true)
   }
 
   const handleForgotSubmit = async (e: React.FormEvent) => {
@@ -246,6 +248,13 @@ export default function LoginPage() {
         </video>
         <div className="absolute inset-0 bg-black/50" />
       </div>
+
+      {showLoginSuccess && (
+        <LoginModal
+          userName={user?.fullName}
+          onClose={() => { setShowLoginSuccess(false); navigate("/") }}
+        />
+      )}
     </div>
   )
 }
