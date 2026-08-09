@@ -2,11 +2,13 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import GradientLine from "./GradientLine"
+import LogoutModal from "../modals/LogoutModal"
 
 export default function Navbar() {
   const { isLoggedIn, isAdmin, isSuperAdmin, user, logout } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   return (
     <div className="select-none sticky top-0 z-50 shadow-2xl border-b border-white/10">
@@ -80,7 +82,7 @@ export default function Navbar() {
                       </Link>
                       <hr className="border-[#a6a6a6]/30" />
                       <button
-                        onClick={() => { logout(); setProfileOpen(false) }}
+                        onClick={() => { logout(); setProfileOpen(false); setShowLogoutModal(true) }}
                         className="w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors cursor-pointer"
                       >
                         Logout
@@ -226,6 +228,7 @@ export default function Navbar() {
                 onClick={() => { 
                   logout(); 
                   setSidebarOpen(false);
+                  setShowLogoutModal(true);
                 }}
                 className="px-4 py-3 rounded border border-[#a6a6a6] hover:bg-white/10 transition-colors cursor-pointer text-left"
               >
@@ -264,6 +267,10 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      {showLogoutModal && (
+        <LogoutModal onClose={() => setShowLogoutModal(false)} />
+      )}
     </div>
   )
 }
