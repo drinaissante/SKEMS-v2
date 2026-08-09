@@ -42,7 +42,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col select-none [&_span]:transition-colors [&_span]:duration-200 [&_span]:hover:text-[#c89116] [&_span]:text-xs gap-3 sm:gap-0">
+        <div className="flex flex-col select-none [&_span]:transition-colors [&_span]:duration-200 [&_span]:hover:text-[#c89116] [&_span]:text-xs [&_span]:font-medium gap-3 sm:gap-0">
           <div className="text-xs font-bold text-white uppercase">
             Explore
           </div>
@@ -56,7 +56,7 @@ export default function Footer() {
             <span> Meet The Team </span>
           </Link>
 
-          <Link to="/contact">
+          <Link to="/#partnerships">
             <span> Work With Us </span>
           </Link>
 
