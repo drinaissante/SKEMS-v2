@@ -1,5 +1,5 @@
 import type { Equipment } from "../../services/api"
-import skIconFallback from "../../assets/sk_icon.jpg"
+import skIconFallback from "/sk_icon.jpg"
 
 export default function EquipmentCard({
   eq,

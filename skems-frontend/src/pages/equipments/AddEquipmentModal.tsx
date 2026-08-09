@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import skIconFallback from "../../assets/sk_icon.jpg"
+import skIconFallback from "/sk_icon.jpg"
 
 interface EquipmentFormModalProps {
   equipment?: { id: string; name: string; category: string; image: string; owner: string; dateGivenToSK: string; condition: string; comments: string; borrowerName: string; dateBorrowed: string; dateDue: string }

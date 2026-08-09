@@ -6,7 +6,7 @@ import { uploadImage } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import { useToast } from "../../hooks/useToast"
 import EquipmentFormModal from "../equipments/AddEquipmentModal"
-import skIconFallback from "../../assets/sk_icon.jpg"
+import skIconFallback from "/sk_icon.jpg"
 import { usePageTitle } from "../../hooks/usePageTitle"
 
 const conditions = ["Working", "Borrowed", "Needs Repair", "Broken", "Not checked", "Unavailable"]

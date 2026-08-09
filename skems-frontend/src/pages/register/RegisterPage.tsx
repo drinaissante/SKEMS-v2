@@ -2,8 +2,8 @@ import { useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { FiEye, FiEyeOff } from "react-icons/fi"
 import { useAuth } from "../../context/AuthContext"
-import skHeaderPng from "../../assets/sk_header.png"
-import sinekulturaMp4 from "../../assets/sinekultura.mp4"
+import skHeaderPng from "/sk_header.png"
+import sinekulturaMp4 from "/sinekultura.mp4"
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { usePageTitle } from "../../hooks/usePageTitle";
 

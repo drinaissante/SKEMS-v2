@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 import { resetPassword } from "../../services/supabase"
 import { FiEye, FiEyeOff } from "react-icons/fi"
-import loginMp4 from "../../assets/login.mp4"
+import loginMp4 from "/login.mp4"
 import LoginModal from "../../modals/LoginModal"
 
 import HCaptcha from "@hcaptcha/react-hcaptcha";
