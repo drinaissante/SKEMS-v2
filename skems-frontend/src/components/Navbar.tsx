@@ -162,7 +162,7 @@ export default function Navbar() {
 
               <Link
                 to="/login"
-                className="px-3 py-2.5 rounded bg-white/10 border border-white/10 hover:bg-white/20 transition-colors"
+                className="px-3 py-2.5 rounded border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] transition-colors duration-300"
               >
                 Login
               </Link>
@@ -338,7 +338,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={() => setSidebarOpen(false)}
-                className="mt-auto px-4 py-3 rounded bg-white/10 border border-white/10 hover:bg-white/20 transition-colors text-center"
+                className="mt-auto px-4 py-3 rounded border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125]  transition-colors text-center"
               >
                 Login
               </Link>
