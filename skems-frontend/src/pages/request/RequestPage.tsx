@@ -236,6 +236,10 @@ export default function RequestPage() {
     <div className="min-h-screen flex items-center justify-center px-3 py-8 bg-fixed-black">
       <div className="w-full max-w-4xl flex flex-col md:flex-row gap-4">
         <div className="md:w-2/5 flex flex-col gap-3 dark-card p-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">
+            Equipment Request
+          </h2>
+
           <div className="flex-1">
             <QRScanner key={scanEpoch} onScan={handleQrScan} />
           </div>
@@ -250,10 +254,6 @@ export default function RequestPage() {
         </div>
 
         <div className="md:w-3/5 dark-card p-5 sm:p-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">
-            Equipment Request
-          </h2>
-
           {success ? (
             <div className="text-center">
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-500/15 rounded-full flex items-center justify-center mx-auto mb-4">
