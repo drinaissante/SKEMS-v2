@@ -53,28 +53,6 @@ export default function Navbar() {
 
           {isLoggedIn ? (
             <>
-              <Link
-                to="/scan"
-                className="px-3 py-2.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
-              >
-                Scan
-              </Link>
-              <Link
-                to="/request"
-                className="px-3 py-2.5 rounded bg-[#c89116] hover:bg-[#caa453] transition-colors"
-              >
-                Request
-              </Link>
-              {isAdmin && (
-                <Link
-                  to="/dashboard"
-                  className={`relative hover:text-[#fdb125] transition-colors ${pathname.startsWith("/dashboard") ? "text-[#fdb125]" : ""}`}
-                >
-                  Dashboard
-                  {pathname.startsWith("/dashboard") && <GradientLine className="absolute inset-x-0 -bottom-2" />}
-                </Link>
-              )}
-
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
@@ -99,6 +77,32 @@ export default function Navbar() {
                       </Link>
                       
                       <hr className="border-[#a6a6a6]/30" />
+
+                      {isAdmin && (
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setProfileOpen(false)}
+                          className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                        >
+                          Dashboard
+                        </Link>
+                      )}
+
+                      <Link
+                        to="/scan"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                      >
+                        Scan
+                      </Link>
+
+                      <Link
+                        to="/request"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                      >
+                        Request
+                      </Link>
 
                       <Link
                         to="/my-requests"

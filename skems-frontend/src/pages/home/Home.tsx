@@ -11,7 +11,7 @@ import mainMp4 from "/hero-optimized-2.mp4"
 
 export default function Home() {
   usePageTitle("Home")
-  const { isLoggedIn, user } = useAuth()
+  const { isLoggedIn, isAdmin, user } = useAuth()
 
   const location = useLocation()
 
@@ -99,7 +99,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 w-full max-w-3xl">
                 <Link
                   to="/scan"
-                  className="w-full sm:flex-1 sm:min-w-40 py-3 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-xl transition-colors shadow text-sm sm:text-base"
+                  className="w-full sm:flex-1 sm:min-w-40 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-xl transition-colors text-sm sm:text-base"
                 >
                   Scan QR
                 </Link>
@@ -122,6 +122,17 @@ export default function Home() {
                   My Profile
                 </Link>
               </div>
+
+              {isAdmin && (
+                <div className="flex justify-center w-full max-w-3xl mt-3">
+                  <Link
+                    to="/dashboard"
+                    className="w-full sm:w-1/3 px-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-xl transition-colors text-sm sm:text-base"
+                  >
+                    Dashboard
+                  </Link>
+                </div>
+              )}
           </>
           ) : (
             <>
