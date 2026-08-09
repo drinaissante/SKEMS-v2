@@ -32,7 +32,7 @@ export default function Footer() {
 
       <div className="max-w-7xl mx-auto flex flex-col items-start pl-5 pr-5 justify-between gap-8 sm:flex-row sm:gap-12">
         
-        <div className="flex flex-col gap-2 select-none">
+        <div className="flex flex-col gap-1 select-none">
           <div className="text-xs font-bold text-[#fdb125] uppercase">
             Sine Kultura
           </div>
@@ -62,8 +62,8 @@ export default function Footer() {
 
         </div>
 
-        <div className="flex flex-col gap-3 [&_span]:text-sm">
-          <div className="text-sm font-bold text-white uppercase">
+        <div className="flex flex-col gap-1 [&_span]:text-sm">
+          <div className="text-xs font-bold text-white uppercase">
             Contact Us
           </div>
 
@@ -73,8 +73,8 @@ export default function Footer() {
         </div>
         
       
-        <div className="flex flex-col gap-3">
-            <div className="text-sm font-bold text-white uppercase">
+        <div className="flex flex-col gap-2">
+            <div className="text-xs font-bold text-white uppercase">
               Follow Us
             </div>
             
@@ -96,7 +96,7 @@ export default function Footer() {
           
       </div>
       <p className="text-center align-middle pt-5 text-[#a6a6a6]/50 text-xs">
-        &copy; {new Date().getFullYear()} Sine Kultura All rights reserved.
+        &copy; {new Date().getFullYear()} Sine Kultura. All rights reserved.
       </p>
 
     </footer>
