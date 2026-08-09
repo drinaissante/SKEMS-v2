@@ -11,6 +11,7 @@ import { usePageTitle } from "../../hooks/usePageTitle";
 
 export default function LoginPage() {
   usePageTitle("Login")
+
   const [ captchaToken, setCaptchaToken ] = useState<string>();
 
   const captcha = useRef<HCaptcha | null>(null);
@@ -34,7 +35,7 @@ export default function LoginPage() {
   const forgotCaptcha = useRef<HCaptcha | null>(null);
   const [forgotCaptchaToken, setForgotCaptchaToken] = useState<string>();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault()
     setError("")
 
@@ -69,7 +70,7 @@ export default function LoginPage() {
     setShowLoginSuccess(true)
   }
 
-  const handleForgotSubmit = async (e: React.FormEvent) => {
+  const handleForgotSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault()
     setError("")
     setForgotSent(false)
@@ -99,12 +100,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen md:flex relative">
+    <div className="relative min-h-screen md:flex">
       <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover md:hidden">
         <source src={loginMp4} type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-black/50 md:hidden" />
-      
+
       <div className="relative z-10 w-full md:w-120 min-h-screen flex flex-col justify-center bg-white/0 md:bg-[#111] px-3 py-8 md:px-10 md:py-0">
         <div className="w-full max-w-md mx-auto md:mx-0 bg-[#111] rounded-xl shadow-lg border border-[#5f5c5c93] p-5 sm:p-8 md:rounded-none md:shadow-none md:border-0 md:p-0">
           <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">Login</h2>
@@ -242,8 +243,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="hidden md:block flex-1 relative">
-        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover">
+      <div className="hidden md:block flex-1 relative md:min-h-screen">
+        <video autoPlay muted loop playsInline preload="auto" className="absolute inset-0 w-full h-full object-cover">
           <source src={loginMp4} type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/50" />
