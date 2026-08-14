@@ -301,9 +301,10 @@ export default function RequestPage() {
                         <button
                           type="button"
                           onClick={() => removeItem(idx)}
-                          className="p-1.5 text-red-400 hover:bg-red-500/15 rounded transition-colors cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500/15 rounded transition-colors cursor-pointer"
                         >
-                          <FiTrash2 size={16} />
+                          <FiTrash2 size={14} />
+                          Remove
                         </button>
                       </div>
                     )
