@@ -5,23 +5,78 @@ interface QRScannerProps {
   onScan: (code: string) => void
 }
 
+const SCAN_INTERVAL_MS = 1000
+const TARGET_WIDTH = 480
+
 export default function QRScanner({ onScan }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const intervalRef = useRef<number | null>(null)
+  const firedRef = useRef(false)
 
   const [status, setStatus] = useState<"idle" | "scanning" | "found" | "no-qr">("idle")
   const [error, setError] = useState("")
+  const [missed, setMissed] = useState(false)
 
   const stopCamera = useCallback(() => {
+    if (intervalRef.current) {
+      window.clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop())
+      streamRef.current.getTracks().forEach((t) => t.stop())
       streamRef.current = null
     }
   }, [])
 
+  const handleFound = useCallback(
+    (code: string) => {
+      firedRef.current = true
+      setStatus("found")
+      stopCamera()
+      onScan(code)
+    },
+    [onScan, stopCamera],
+  )
+
+  const scanFrame = useCallback(
+    (manual: boolean) => {
+      const video = videoRef.current
+      const canvas = canvasRef.current
+      if (!video || !canvas || firedRef.current) return
+      if (!video.videoWidth || !video.videoHeight) return
+
+      const scale = TARGET_WIDTH / video.videoWidth
+      canvas.width = TARGET_WIDTH
+      canvas.height = Math.round(video.videoHeight * scale)
+      const ctx = canvas.getContext("2d")
+      if (!ctx) return
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const code = jsQR(imageData.data, imageData.width, imageData.height)
+
+      if (code) {
+        handleFound(code.data)
+      } else if (manual) {
+        setStatus("no-qr")
+      } else {
+        setMissed(true)
+      }
+    },
+    [handleFound],
+  )
+
+  const scanFrameRef = useRef(scanFrame)
+  useEffect(() => {
+    scanFrameRef.current = scanFrame
+  }, [scanFrame])
+
   const startCamera = useCallback(async () => {
     setError("")
+    setMissed(false)
+    firedRef.current = false
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -33,41 +88,33 @@ export default function QRScanner({ onScan }: QRScannerProps) {
     }
   }, [])
 
-  const capture = useCallback(() => {
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    if (!video || !canvas) return
-
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-    const code = jsQR(imageData.data, imageData.width, imageData.height)
-
-    if (code) {
-      setStatus("found")
-      stopCamera()
-      onScan(code.data)
-    } else {
-      setStatus("no-qr")
-    }
-  }, [onScan, stopCamera])
-
   const retry = useCallback(() => {
+    setMissed(false)
     setStatus("scanning")
   }, [])
 
   useEffect(() => {
-    if (status !== "scanning" || !streamRef.current) return
+    if (status !== "scanning") {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      return
+    }
 
     const video = videoRef.current
-    if (!video) return
+    if (video && streamRef.current) {
+      video.srcObject = streamRef.current
+      video.play().catch((err) => console.error("Video play failed:", err))
+    }
 
-    video.srcObject = streamRef.current
-    video.play().catch(err => console.error("Video play failed:", err))
+    intervalRef.current = window.setInterval(() => scanFrameRef.current(false), SCAN_INTERVAL_MS)
+    return () => {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
   }, [status])
 
   useEffect(() => {
@@ -88,9 +135,11 @@ export default function QRScanner({ onScan }: QRScannerProps) {
       <div className="relative w-full h-[60vh] bg-black rounded-lg overflow-hidden">
         <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
         <canvas ref={canvasRef} className="hidden" />
-        <p className="absolute top-3 left-1/2 -translate-x-1/2 text-sm text-white/80">Camera ready</p>
+        <p className={`absolute top-3 left-1/2 -translate-x-1/2 text-sm bg-black/60 px-3 py-1 rounded transition-colors ${missed ? "text-amber-300" : "text-white/80"}`}>
+          {missed ? "No QR in view — reposition the code" : "Scanning automatically..."}
+        </p>
         <button
-          onClick={capture}
+          onClick={() => scanFrame(true)}
           className="absolute bottom-6 left-1/2 -translate-x-1/2 btn-gold px-8 py-3 rounded-full text-base shadow-lg"
         >
           Capture
@@ -115,7 +164,7 @@ export default function QRScanner({ onScan }: QRScannerProps) {
         </p>
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
           <button
-            onClick={capture}
+            onClick={() => scanFrame(true)}
             className="btn-gold px-8 py-3 rounded-full text-base shadow-lg"
           >
             Try Again
