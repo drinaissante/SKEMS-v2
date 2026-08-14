@@ -19,6 +19,8 @@ import { formatWallClock } from "../../utils/datetime"
 
 const conditions = ["Working", "Borrowed", "Needs Repair", "Broken", "Not checked", "Unavailable"]
 
+const sheetsUrl = import.meta.env.VITE_SHEETS_URL as string | undefined
+
 function formatShortDate(iso: string) {
   return formatWallClock(iso, {
     month: "short",
@@ -168,6 +170,23 @@ export default function DashboardHome() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
+          {sheetsUrl ? (
+            <a
+              href={sheetsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg transition-colors cursor-pointer border border-[#5f5c5c93] inline-flex items-center"
+            >
+              Open Sheets
+            </a>
+          ) : (
+            <button
+              disabled
+              className="px-3 py-2 text-sm bg-white/10 text-white font-bold rounded-lg border border-[#5f5c5c93] opacity-40 cursor-not-allowed"
+            >
+              Open Sheets
+            </button>
+          )}
           <button
             onClick={handleExport}
             disabled={syncing}
