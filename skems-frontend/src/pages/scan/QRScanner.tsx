@@ -164,7 +164,7 @@ export default function QRScanner({ onScan }: QRScannerProps) {
         </p>
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
           <button
-            onClick={() => scanFrame(true)}
+            onClick={retry}
             className="btn-gold px-8 py-3 rounded-full text-base shadow-lg"
           >
             Try Again
