@@ -41,7 +41,7 @@ export function EditModal({
           <div>
             <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Equipment</p>
             <p className="text-sm font-mono text-[#c89116] font-bold">{editing.equipment_id}</p>
-            <p className="text-sm text-white">{editing.equipment_requested} ×{editing.quantity}</p>
+            <p className="text-sm text-white">×{editing.quantity} {editing.equipment_requested}</p>
           </div>
           <div>
             <p className="text-xs text-[#a6a6a6] uppercase font-bold mb-1">Borrowed</p>

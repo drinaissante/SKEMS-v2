@@ -7,6 +7,7 @@ import {
   updateBorrowedItem,
   deleteBorrowedItem,
   returnBorrowedItem,
+  fetchAllProfiles,
 } from "../../../services/supabase"
 import type { BorrowRecord } from "../../../constants/borrow"
 import { FiSearch } from "react-icons/fi"
@@ -48,6 +49,20 @@ export default function BorrowedPage() {
     queryKey: ["equipments"],
     queryFn: fetchEquipments,
   })
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: fetchAllProfiles,
+  })
+
+  const ownerPositionMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const p of profiles) {
+      const key = p.full_name.trim().toLowerCase()
+      if (p.position && !map.has(key)) map.set(key, p.position)
+    }
+    return map
+  }, [profiles])
 
   const handleSync = useCallback(async () => {
     showToast("Updating...", "info")
@@ -184,6 +199,7 @@ export default function BorrowedPage() {
           <>
             <BorrowedCards
               items={paginatedItems}
+              getOwnerPosition={(name) => ownerPositionMap.get(name.trim().toLowerCase()) ?? ""}
               onReturn={(id) => { setReturnConfirmId(id); setReturnCondition("") }}
               onEdit={handleEdit}
               onDelete={(id) => setShowDeleteConfirm(id)}

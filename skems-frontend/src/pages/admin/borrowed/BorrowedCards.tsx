@@ -4,8 +4,13 @@ import { formatDate, formatReturnedOn } from "../../../constants/borrowedConstan
 import ConditionBadges from "./BorrowedUtils"
 import { FiCheckCircle, FiEdit2, FiTrash2 } from "react-icons/fi"
 
+function toTitleCase(value: string) {
+  return value.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+}
+
 interface Props {
   items: BorrowRecord[]
+  getOwnerPosition: (ownerName: string) => string
   onReturn: (id: string) => void
   onEdit: (r: BorrowRecord) => void
   onDelete: (id: string) => void
@@ -25,7 +30,7 @@ function InfoBlock({ label, children }: { label: string; children: ReactNode }) 
 }
 
 export default function BorrowedCards({
-  items, onReturn, onEdit, onDelete,
+  items, getOwnerPosition, onReturn, onEdit, onDelete,
   returnPending, returnVariables,
   deletePending, deleteVariables,
 }: Props) {
@@ -33,12 +38,18 @@ export default function BorrowedCards({
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {items.map((r) => {
         const isReturned = Boolean(r.returned_on)
+        const ownerPosition = getOwnerPosition(r.owner)
         return (
           <div key={r.equipment_id} className="dark-card rounded-xl border border-white/10 p-5 flex flex-col gap-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</p>
-                <h3 className="text-base font-bold text-white leading-snug">{r.equipment_requested}</h3>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="shrink-0 inline-flex items-center justify-center h-8 min-w-8 px-2 rounded-lg bg-[#c89116]/15 border border-[#c89116]/40 text-[#fdb125] font-bold">
+                  ×{r.quantity}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</p>
+                  <h3 className="text-base font-bold text-white leading-snug">{r.equipment_requested}</h3>
+                </div>
               </div>
               <span
                 className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${
@@ -49,19 +60,16 @@ export default function BorrowedCards({
               </span>
             </div>
 
-            <div className="flex items-center gap-3 text-sm">
-              <span className="inline-flex items-center justify-center h-8 px-3 rounded-lg bg-[#c89116]/15 border border-[#c89116]/40 text-[#fdb125] font-bold">
-                ×{r.quantity}
-              </span>
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <InfoBlock label="Borrower">
                 <div className="font-medium text-white">{r.full_name}</div>
-                <div className="text-xs text-[#a6a6a6]">{r.position_department}</div>
+                <div className="text-xs text-[#a6a6a6]">{toTitleCase(r.position_department)}</div>
               </InfoBlock>
               <InfoBlock label="Owner">
-                <span className="text-[#a6a6a6]">{r.owner || "—"}</span>
+                <div className="font-medium text-white">{r.owner || "—"}</div>
+                {ownerPosition ? (
+                  <div className="text-xs text-[#a6a6a6]">{toTitleCase(ownerPosition)}</div>
+                ) : null}
               </InfoBlock>
             </div>
 
@@ -86,10 +94,10 @@ export default function BorrowedCards({
 
             {r.pickup_location || r.return_location ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <InfoBlock label="Pickup">
+                <InfoBlock label="Pickup Location">
                   <span className="text-xs text-white">{r.pickup_location || "—"}</span>
                 </InfoBlock>
-                <InfoBlock label="Return">
+                <InfoBlock label="Return Location">
                   <span className="text-xs text-white">{r.return_location || "—"}</span>
                 </InfoBlock>
               </div>
