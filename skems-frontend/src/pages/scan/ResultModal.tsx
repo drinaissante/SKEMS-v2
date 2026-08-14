@@ -36,6 +36,9 @@ export default function ResultModal({
   onSubmit,
   onCancel,
 }: Props) {
+  const isDateTimeField = (k: string) =>
+    k === "date_time_borrowing" || k === "date_time_return"
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
       <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl py-8 px-5 sm:py-8 sm:px-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -55,7 +58,7 @@ export default function ResultModal({
                   {fieldLabels[k]} <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="text"
+                  type={isDateTimeField(k) ? "datetime-local" : "text"}
                   value={v ?? ""}
                   onChange={(e) => onChangeField(k as string, e.target.value)}
                   className="dark-input w-full text-sm"

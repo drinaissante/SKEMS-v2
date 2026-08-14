@@ -69,6 +69,7 @@ Rules:
 - Ignore the form header/title text (e.g. "Borrowing Form", "SK", "Sine Kultura Office", logos, etc.) — only extract the filled-in data
 - Use proper spacing between words (e.g. "JamesGabrielDeLuna" → "James Gabriel De Luna")
 - For dates use format like "March 30, 2026"
+- date_time_borrowing and date_time_return must be a SINGLE date and time like "April 01, 2026 7:00 AM". Do NOT include extra words such as "Onwards", "Until", "Onward", time ranges, or a second time. If the form shows a range or qualifier, extract only the start time.
 - If a field is not visible or empty, set it to null — do not guess
 - If the image does not contain a borrowing form or any readable form data, return ALL fields as null and equipment_list as an empty array — do not hallucinate or guess values
 - Extract exactly what is written on the form
