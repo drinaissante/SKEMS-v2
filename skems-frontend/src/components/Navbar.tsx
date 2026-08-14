@@ -57,6 +57,21 @@ export default function Navbar() {
 
           {isLoggedIn ? (
             <>
+              <div className="flex items-center gap-3">
+                <NavLink
+                  to="/scan"
+                  className="px-3 py-2.5 rounded border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] transition-colors duration-300"
+                >
+                  Scan
+                </NavLink>
+                <NavLink
+                  to="/request"
+                  className="px-3 py-2.5 rounded border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] transition-colors duration-300"
+                >
+                  Request
+                </NavLink>
+              </div>
+
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
@@ -91,22 +106,6 @@ export default function Navbar() {
                           Dashboard
                         </NavLink>
                       )}
-
-                      <NavLink
-                        to="/scan"
-                        onClick={() => setProfileOpen(false)}
-                        className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
-                      >
-                        Scan
-                      </NavLink>
-
-                      <NavLink
-                        to="/request"
-                        onClick={() => setProfileOpen(false)}
-                        className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
-                      >
-                        Request
-                      </NavLink>
 
                       <NavLink
                         to="/my-requests"
@@ -231,22 +230,20 @@ export default function Navbar() {
               <NavLink
                 to="/scan"
                 onClick={() => setSidebarOpen(false)}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  pathname === "/scan" ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+                className={`flex items-center justify-center px-3 py-2.5 rounded-lg text-sm transition-colors border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] ${
+                  pathname === "/scan" ? "bg-[#c89116] text-white" : ""
                 }`}
               >
                 Scan
-                {pathname === "/scan" && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
               </NavLink>
               <NavLink
                 to="/request"
                 onClick={() => setSidebarOpen(false)}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  pathname === "/request" ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+                className={`flex items-center justify-center px-3 py-2.5 rounded-lg text-sm transition-colors border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] ${
+                  pathname === "/request" ? "bg-[#c89116] text-white" : ""
                 }`}
               >
                 Request
-                {pathname === "/request" && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
               </NavLink>
 
               {isAdmin && (
