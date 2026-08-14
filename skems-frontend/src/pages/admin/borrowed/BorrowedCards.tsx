@@ -43,9 +43,7 @@ export default function BorrowedCards({
           <div key={r.equipment_id} className="dark-card rounded-xl border border-white/10 p-5 flex flex-col gap-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="shrink-0 inline-flex items-center justify-center h-8 min-w-8 px-2 rounded-lg bg-[#c89116]/15 border border-[#c89116]/40 text-[#fdb125] font-bold">
-                  ×{r.quantity}
-                </span>
+                <span className="shrink-0 text-[#a6a6a6] font-normal text-sm">×{r.quantity}</span>
                 <div className="min-w-0">
                   <p className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</p>
                   <h3 className="text-base font-bold text-white leading-snug">{r.equipment_requested}</h3>

@@ -33,6 +33,10 @@ function formatDateTimeManila(iso: string) {
   return formatManila(iso, dtOpts)
 }
 
+function toTitleCase(value: string) {
+  return value.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+}
+
 function InfoRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 text-xs">
@@ -125,7 +129,7 @@ export default function MyRequestsPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 pt-3 border-t border-white/10">
                     <InfoRow label="Borrower">{r.borrower_name}</InfoRow>
                     <InfoRow label="Student No.">{r.student_number || "—"}</InfoRow>
-                    <InfoRow label="Position">{r.position_department || "—"}</InfoRow>
+                    <InfoRow label="Position">{toTitleCase(r.position_department || "") || "—"}</InfoRow>
                     <InfoRow label="Owner">{r.owner || "—"}</InfoRow>
                     <InfoRow label="Pickup Location">{r.pickup_location || "—"}</InfoRow>
                     <InfoRow label="Return Location">{r.return_location || "—"}</InfoRow>
