@@ -115,10 +115,6 @@ export default function DashboardHome() {
   const statusSummary = {
     total: equipments.length,
     borrowed: equipments.filter((e) => e.borrowerName).length,
-    needsRepair: equipments.filter((e) => e.condition === "Needs Repair").length,
-    broken: equipments.filter((e) => e.condition === "Broken").length,
-    notChecked: equipments.filter((e) => e.condition === "Not checked").length,
-    working: equipments.filter((e) => e.condition === "Working").length,
     unavailable: equipments.filter((e) => e.condition === "Unavailable").length,
   }
 
@@ -158,15 +154,11 @@ export default function DashboardHome() {
         </h1>
         <p className="text-sm sm:text-base text-[#a6a6a6] mb-4">What do you want to do today?</p>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           {[
             { label: "Total Items", value: statusSummary.total, color: "bg-[#222]" },
-            { label: "Borrowed", value: statusSummary.borrowed, color: "bg-purple-600" },
-            { label: "Working", value: statusSummary.working, color: "bg-green-600" },
-            { label: "Needs Repair", value: statusSummary.needsRepair, color: "bg-[#caa453]" },
-            { label: "Broken", value: statusSummary.broken ?? 0, color: "bg-red-600" },
-            { label: "Not Checked", value: statusSummary.notChecked, color: "bg-[#a6a6a6]" },
-            { label: "Unavailable", value: statusSummary.unavailable, color: "bg-gray-600" },
+            { label: "Borrowed Items", value: statusSummary.borrowed, color: "bg-purple-600" },
+            { label: "Unavailable Items", value: statusSummary.unavailable, color: "bg-gray-600" },
           ].map((s) => (
             <div key={s.label} className={`${s.color} text-white rounded-xl p-3 sm:p-4 shadow`}>
               <p className="text-xl sm:text-2xl font-bold">{s.value}</p>
