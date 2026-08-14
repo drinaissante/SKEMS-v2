@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { fetchMyRequests } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
+import { formatWallClock, formatManila } from "../../utils/datetime"
 
 const statusColors: Record<string, string> = {
   Pending: "bg-[#caa453] text-white",
@@ -11,14 +12,21 @@ const statusColors: Record<string, string> = {
   Returned: "bg-white/10 text-[#a6a6a6]",
 }
 
+const dtOpts: Intl.DateTimeFormatOptions = {
+  month: "2-digit",
+  day: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+}
+
 function formatDateTime(iso: string) {
-  if (!iso) return ""
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  const pad = (n: number) => String(n).padStart(2, "0")
-  const h = d.getHours()
-  const ampm = h >= 12 ? "PM" : "AM"
-  return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}, ${h % 12 || 12}:${pad(d.getMinutes())} ${ampm}`
+  return formatWallClock(iso, dtOpts)
+}
+
+function formatDateTimeManila(iso: string) {
+  return formatManila(iso, dtOpts)
 }
 
 export default function MyRequestsPage() {
@@ -92,7 +100,7 @@ export default function MyRequestsPage() {
                       <span className="font-bold px-1.5 py-0.5 rounded bg-white/10 text-[#a6a6a6] shrink-0">
                         Returned
                       </span>
-                      <span className="text-[#a6a6a6]">{formatDateTime(r.returned_on)}</span>
+                      <span className="text-[#a6a6a6]">{formatDateTimeManila(r.returned_on)}</span>
                     </div>
                   )}
                 </div>

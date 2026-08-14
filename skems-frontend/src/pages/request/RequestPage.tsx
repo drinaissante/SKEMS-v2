@@ -8,6 +8,7 @@ import { useToast } from "../../hooks/useToast"
 import { FiPlus, FiTrash2 } from "react-icons/fi"
 import QRScanner from "../scan/QRScanner"
 import { usePageTitle } from "../../hooks/usePageTitle"
+import { formatWallClock } from "../../utils/datetime"
 
 function todayNow(): string {
   const d = new Date()
@@ -221,14 +222,14 @@ export default function RequestPage() {
 
   if (!user) return null
 
-  const fmt = (v: string) => {
-    if (!v) return ""
-    const d = new Date(v)
-    return d.toLocaleString("en-PH", {
-      month: "short", day: "numeric", year: "numeric",
-      hour: "2-digit", minute: "2-digit",
+  const fmt = (v: string) =>
+    formatWallClock(v, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     })
-  }
 
   const maxQty = getAvailableCount(selectorSelectedId)
 

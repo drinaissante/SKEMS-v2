@@ -1,5 +1,6 @@
 import type { Equipment } from "../../services/api"
 import skIconFallback from "/sk_icon.jpg"
+import { formatWallClock } from "../../utils/datetime"
 
 export default function EquipmentCard({
   eq,
@@ -75,8 +76,8 @@ export default function EquipmentCard({
       {eq.borrowerName && (
         <div className="mt-2 pt-2 border-t border-white/10 text-xs text-[#a6a6a6]">
           <p><span className="font-medium">Borrower:</span> {eq.borrowerName}</p>
-          <p><span className="font-medium">Borrowed:</span> {eq.dateBorrowed}</p>
-          <p><span className="font-medium">Due:</span> {eq.dateDue}</p>
+          <p><span className="font-medium">Borrowed:</span> {formatWallClock(eq.dateBorrowed, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+          <p><span className="font-medium">Due:</span> {formatWallClock(eq.dateDue, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
           {eq.comments && <p><span className="font-medium">Reason:</span> {eq.comments}</p>}
         </div>
       )}

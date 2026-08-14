@@ -1,5 +1,5 @@
 import type { BorrowRecord } from "../../../constants/borrow"
-import { formatDate } from "../../../constants/borrowedConstants"
+import { formatDate, formatReturnedOn } from "../../../constants/borrowedConstants"
 import ConditionBadges from "./BorrowedUtils"
 import { FiChevronDown, FiCheckCircle, FiEdit2, FiTrash2 } from "react-icons/fi"
 
@@ -64,7 +64,7 @@ export default function BorrowedMobileCards({
               <div className="flex justify-between items-center text-xs">
                 <span className="flex items-center gap-1.5">
                   <span className="font-bold px-1.5 py-0.5 rounded bg-white/10 text-[#a6a6a6] shrink-0">Returned</span>
-                  <span className="text-[#a6a6a6]">{formatDate(r.returned_on)}</span>
+                  <span className="text-[#a6a6a6]">{formatReturnedOn(r.returned_on)}</span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="font-bold px-1.5 py-0.5 rounded bg-green-500/15 text-green-300 shrink-0">After</span>

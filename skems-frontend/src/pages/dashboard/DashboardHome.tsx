@@ -15,21 +15,18 @@ import EquipmentFormModal from "../equipments/AddEquipmentModal"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
+import { formatWallClock } from "../../utils/datetime"
 
 const conditions = ["Working", "Borrowed", "Needs Repair", "Broken", "Not checked", "Unavailable"]
 
 function formatShortDate(iso: string) {
-  if (!iso) return ""
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  return d.toLocaleString("en-PH", {
+  return formatWallClock(iso, {
     month: "short",
     day: "numeric",
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-    timeZone: "Asia/Manila",
   })
 }
 

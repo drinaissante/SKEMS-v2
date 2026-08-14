@@ -8,6 +8,7 @@ import { useToast } from "../../hooks/useToast"
 import EquipmentFormModal from "../equipments/AddEquipmentModal"
 import skIconFallback from "/sk_icon.jpg"
 import { usePageTitle } from "../../hooks/usePageTitle"
+import { formatWallClock } from "../../utils/datetime"
 
 const conditions = ["Working", "Borrowed", "Needs Repair", "Broken", "Not checked", "Unavailable"]
 
@@ -172,11 +173,11 @@ export default function EquipmentDetailPage() {
                 </p>
                 <p>
                   <span className="font-medium">Borrowed:</span>{" "}
-                  {equipment.dateBorrowed}
+                  {formatWallClock(equipment.dateBorrowed, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </p>
                 <p>
                   <span className="font-medium">Due:</span>{" "}
-                  {equipment.dateDue}
+                  {formatWallClock(equipment.dateDue, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
             )}

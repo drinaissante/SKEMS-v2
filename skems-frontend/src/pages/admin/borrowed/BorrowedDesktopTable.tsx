@@ -1,5 +1,5 @@
 import type { BorrowRecord } from "../../../constants/borrow"
-import { formatDate } from "../../../constants/borrowedConstants"
+import { formatDate, formatReturnedOn } from "../../../constants/borrowedConstants"
 import ConditionBadges from "./BorrowedUtils"
 import { FiCheckCircle, FiEdit2, FiTrash2 } from "react-icons/fi"
 
@@ -51,7 +51,7 @@ export default function BorrowedDesktopTable({
               <td className="px-4 py-3 whitespace-nowrap text-xs">{formatDate(r.date_time_borrowing)}</td>
               <td className="px-4 py-3 text-center">{ConditionBadges(r.condition_before)}</td>
               <td className="px-4 py-3 whitespace-nowrap text-xs">{formatDate(r.date_time_return)}</td>
-              <td className="px-4 py-3 whitespace-nowrap text-xs">{r.returned_on ? formatDate(r.returned_on) : "—"}</td>
+              <td className="px-4 py-3 whitespace-nowrap text-xs">{r.returned_on ? formatReturnedOn(r.returned_on) : "—"}</td>
               <td className="px-4 py-3 text-center">{ConditionBadges(r.condition_after)}</td>
               <td className="px-4 py-3 text-center text-xs text-[#a6a6a6] min-w-24">{r.notes || "—"}</td>
               <td className="px-4 py-3 text-center">

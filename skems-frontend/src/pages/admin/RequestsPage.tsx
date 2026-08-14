@@ -10,6 +10,7 @@ import { useToast } from "../../hooks/useToast"
 import { useAuth } from "../../context/AuthContext"
 import { FiSearch, FiChevronDown, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi"
 import { usePageTitle } from "../../hooks/usePageTitle"
+import { formatWallClock, formatManila } from "../../utils/datetime"
 
 const MOBILE_ITEMS = 5
 const DESKTOP_ITEMS = 10
@@ -21,14 +22,21 @@ const statusColors: Record<string, string> = {
   Returned: "bg-white/10 text-[#a6a6a6]",
 }
 
+const dtOpts: Intl.DateTimeFormatOptions = {
+  month: "2-digit",
+  day: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+}
+
 function formatDateTime(iso: string) {
-  if (!iso) return ""
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  const pad = (n: number) => String(n).padStart(2, "0")
-  const h = d.getHours()
-  const ampm = h >= 12 ? "PM" : "AM"
-  return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()}, ${h % 12 || 12}:${pad(d.getMinutes())} ${ampm}`
+  return formatWallClock(iso, dtOpts)
+}
+
+function formatDateTimeManila(iso: string) {
+  return formatManila(iso, dtOpts)
 }
 
 export default function RequestsPage() {
@@ -207,7 +215,7 @@ export default function RequestsPage() {
                         {formatDateTime(r.date_due)}
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] whitespace-nowrap text-xs">
-                        {r.returned_on ? formatDateTime(r.returned_on) : "—"}
+                        {r.returned_on ? formatDateTimeManila(r.returned_on) : "—"}
                       </td>
                       <td className="px-3 py-2 sm:px-4 sm:py-3">
                         <span
