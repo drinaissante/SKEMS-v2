@@ -189,6 +189,32 @@ export async function fetchAllDiscordLinks() {
   }[];
 }
 
+export interface DiscordMember {
+  discord_id: string;
+  username: string;
+  global_name: string | null;
+  avatar: string | null;
+}
+
+export async function lookupDiscordMembers(
+  query: string,
+  signal?: AbortSignal,
+): Promise<DiscordMember[]> {
+  let qb = supabase
+    .from("discord_members")
+    .select("discord_id, username, global_name, avatar")
+    .ilike("username", `${query}%`)
+    .order("username", { ascending: true })
+    .limit(5);
+
+  if (signal) qb = qb.abortSignal(signal);
+
+  const { data, error } = await qb;
+
+  if (error) throw error;
+  return (data ?? []) as DiscordMember[];
+}
+
 export async function toggleAdmin(
   targetUserId: string,
   isAdmin: boolean,

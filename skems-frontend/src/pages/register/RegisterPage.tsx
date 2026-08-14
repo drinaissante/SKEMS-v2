@@ -1,7 +1,8 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { FiEye, FiEyeOff } from "react-icons/fi"
 import { useAuth } from "../../context/AuthContext"
+import { lookupDiscordMembers, type DiscordMember } from "../../services/supabase"
 import skHeaderPng from "/sk_header.png"
 import sinekulturaMp4 from "/sinekultura.mp4"
 import HCaptcha from "@hcaptcha/react-hcaptcha";
@@ -31,10 +32,65 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [studentNumber, setStudentNumber] = useState("")
+  const [discordUsername, setDiscordUsername] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+
+  const [discordLoading, setDiscordLoading] = useState(false)
+  const [discordSearched, setDiscordSearched] = useState(false)
+  const [discordError, setDiscordError] = useState(false)
+  const [discordResults, setDiscordResults] = useState<DiscordMember[]>([])
+  const discordCacheRef = useRef(new Map<string, DiscordMember[]>())
+
+  useEffect(() => {
+    const q = discordUsername.trim()
+    const controller = new AbortController()
+    const cache = discordCacheRef.current
+
+    const timer = setTimeout(async () => {
+      if (q.length < 3) {
+        setDiscordResults([])
+        setDiscordSearched(false)
+        setDiscordError(false)
+        setDiscordLoading(false)
+        return
+      }
+
+      const cacheKey = q.toLowerCase()
+      const cached = cache.get(cacheKey)
+      if (cached) {
+        setDiscordResults(cached)
+        setDiscordSearched(true)
+        setDiscordError(false)
+        setDiscordLoading(false)
+        return
+      }
+
+      setDiscordLoading(true)
+      setDiscordError(false)
+      try {
+        const res = await lookupDiscordMembers(q, controller.signal)
+        if (controller.signal.aborted) return
+        if (discordUsername.trim() !== q) return
+        if (cache.size >= 50) cache.clear()
+        cache.set(cacheKey, res)
+        setDiscordResults(res)
+        setDiscordSearched(true)
+      } catch {
+        if (controller.signal.aborted) return
+        setDiscordError(true)
+      } finally {
+        if (!controller.signal.aborted) setDiscordLoading(false)
+      }
+    }, q.length < 3 ? 0 : 500)
+
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [discordUsername])
 
   const [error, setError] = useState("")
 
@@ -162,6 +218,63 @@ export default function RegisterPage() {
                     onChange={(e) => setStudentNumber(e.target.value)}
                     className="dark-input w-full text-base"
                   />
+              </div>
+
+              <div>
+                <label htmlFor="discord_username" className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                  Discord Username <span className="text-xs text-[#a6a6a6] font-normal">(optional)</span>
+                </label>
+
+                <input
+                  autoComplete="off"
+                  id="discord_username"
+                  type="text"
+                  value={discordUsername}
+                  maxLength={64}
+                  onChange={(e) => setDiscordUsername(e.target.value)}
+                  placeholder="e.g. skstudent"
+                  className="dark-input w-full text-base"
+                />
+
+                {discordUsername.trim().length >= 3 && (
+                  <div className="mt-2">
+                    {discordLoading ? (
+                      <div className="flex items-center gap-2 text-xs text-[#a6a6a6]">
+                        <span className="inline-block w-3.5 h-3.5 border-2 border-[#fdb125] border-t-transparent rounded-full animate-spin" />
+                        Searching Discord...
+                      </div>
+                    ) : discordError ? (
+                      <p className="text-xs text-red-400">Unable to search Discord members.</p>
+                    ) : discordSearched ? (
+                      discordResults.length > 0 ? (
+                        <ul className="space-y-1.5">
+                          {discordResults.map((m) => (
+                            <li
+                              key={m.discord_id}
+                              className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5"
+                            >
+                              {m.avatar && (
+                                <img
+                                  src={m.avatar}
+                                  alt=""
+                                  className="w-7 h-7 rounded-full object-cover"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-white truncate">{m.global_name || m.username}</p>
+                                <p className="text-xs text-[#a6a6a6] truncate">@{m.username}</p>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-[#a6a6a6]">No Discord member found.</p>
+                      )
+                    ) : null}
+                  </div>
+                )}
               </div>
 
               <div>
