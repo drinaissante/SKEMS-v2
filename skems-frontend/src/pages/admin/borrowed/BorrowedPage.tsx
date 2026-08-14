@@ -11,8 +11,7 @@ import {
 import type { BorrowRecord } from "../../../constants/borrow"
 import { FiSearch } from "react-icons/fi"
 import { MOBILE_ITEMS, DESKTOP_ITEMS } from "../../../constants/borrowedConstants"
-import BorrowedDesktopTable from "./BorrowedDesktopTable"
-import BorrowedMobileCards from "./BorrowedMobileCards"
+import BorrowedCards from "./BorrowedCards"
 import { EditModal, DeleteModal, ReturnModal } from "./BorrowedModals"
 import { usePageTitle } from "../../../hooks/usePageTitle"
 
@@ -30,7 +29,6 @@ export default function BorrowedPage() {
   
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-  const [expandedRow, setExpandedRow] = useState<string | null>(null)
   const [returnConfirmId, setReturnConfirmId] = useState<string | null>(null)
   const [returnCondition, setReturnCondition] = useState<string>("")
 
@@ -184,21 +182,8 @@ export default function BorrowedPage() {
           </p>
         ) : (
           <>
-            <BorrowedDesktopTable
+            <BorrowedCards
               items={paginatedItems}
-              onReturn={(id) => { setReturnConfirmId(id); setReturnCondition("") }}
-              onEdit={handleEdit}
-              onDelete={(id) => setShowDeleteConfirm(id)}
-              returnPending={returnMutation.isPending}
-              returnVariables={returnMutation.variables}
-              deletePending={deleteMutation.isPending}
-              deleteVariables={deleteMutation.variables}
-            />
-
-            <BorrowedMobileCards
-              items={paginatedItems}
-              expandedRow={expandedRow}
-              onToggleRow={(id) => setExpandedRow(expandedRow === id ? null : id)}
               onReturn={(id) => { setReturnConfirmId(id); setReturnCondition("") }}
               onEdit={handleEdit}
               onDelete={(id) => setShowDeleteConfirm(id)}
