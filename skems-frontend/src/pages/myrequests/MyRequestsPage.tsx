@@ -35,9 +35,9 @@ function formatDateTimeManila(iso: string) {
 
 function InfoRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-start gap-2 text-xs">
-      <span className="shrink-0 w-16 font-bold text-[#a6a6a6]">{label}</span>
-      <span className="text-white">{children}</span>
+    <div className="flex items-start justify-between gap-3 text-xs">
+      <span className="shrink-0 w-28 sm:w-32 font-bold text-[#a6a6a6]">{label}</span>
+      <span className="text-white text-right min-w-0 break-words flex-1">{children}</span>
     </div>
   )
 }
@@ -125,10 +125,10 @@ export default function MyRequestsPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 pt-3 border-t border-white/10">
                     <InfoRow label="Borrower">{r.borrower_name}</InfoRow>
                     <InfoRow label="Student No.">{r.student_number || "—"}</InfoRow>
-                    <InfoRow label="Position/Dept">{r.position_department || "—"}</InfoRow>
+                    <InfoRow label="Position">{r.position_department || "—"}</InfoRow>
                     <InfoRow label="Owner">{r.owner || "—"}</InfoRow>
-                    <InfoRow label="Pickup">{r.pickup_location || "—"}</InfoRow>
-                    <InfoRow label="Return">{r.return_location || "—"}</InfoRow>
+                    <InfoRow label="Pickup Location">{r.pickup_location || "—"}</InfoRow>
+                    <InfoRow label="Return Location">{r.return_location || "—"}</InfoRow>
                     <InfoRow label="Borrowed">{formatDateTime(r.date_borrowed)}</InfoRow>
                     <InfoRow label="Due">{formatDateTime(r.date_due)}</InfoRow>
                     {r.status === "Returned" && r.returned_on && (
