@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Home from './pages/home/Home'
 import LoginPage from './pages/login/LoginPage'
 import RegisterPage from './pages/register/RegisterPage'
+import ForgotPasswordPage from './pages/forgotpassword/ForgotPasswordPage'
 import ChangePasswordPage from './pages/auth/ChangePasswordPage'
 import ScanPage from './pages/scan/ScanPage'
 import EquipmentDetailPage from './pages/equipment/EquipmentDetailPage'
@@ -86,6 +87,7 @@ function App() {
           <Route path='/' element={<Home />} />
           <Route path='/login' element={<GuestRoute><LoginPage /></GuestRoute>} />
           <Route path='/register' element={<GuestRoute><RegisterPage /></GuestRoute>} />
+          <Route path='/reset-password' element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
           <Route path='/about' element={<About />} />
           <Route path='/restricted' element={<Restricted />} />
 

@@ -1,7 +1,6 @@
 import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
-import { resetPassword } from "../../services/supabase"
 import { FiEye, FiEyeOff } from "react-icons/fi"
 import loginMp4 from "/login.mp4"
 import LoginModal from "../../modals/LoginModal"
@@ -26,14 +25,6 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [showLoginSuccess, setShowLoginSuccess] = useState(false)
-
-  const [showForgot, setShowForgot] = useState(false)
-  const [forgotEmail, setForgotEmail] = useState("")
-  const [forgotLoading, setForgotLoading] = useState(false)
-  const [forgotSent, setForgotSent] = useState(false)
-
-  const forgotCaptcha = useRef<HCaptcha | null>(null);
-  const [forgotCaptchaToken, setForgotCaptchaToken] = useState<string>();
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault()
@@ -70,35 +61,6 @@ export default function LoginPage() {
     setShowLoginSuccess(true)
   }
 
-  const handleForgotSubmit = async (e: React.SubmitEvent) => {
-    e.preventDefault()
-    setError("")
-    setForgotSent(false)
-
-    if (!forgotEmail) {
-      setError("Please enter your email address.")
-      return
-    }
-
-    if (!forgotCaptchaToken) {
-      setError("Please finish the CAPTCHA first.")
-      return
-    }
-
-    setForgotLoading(true)
-    try {
-      await resetPassword(forgotEmail, `${window.location.origin}/change-password`, forgotCaptchaToken)
-      setForgotSent(true)
-      setShowForgot(false)
-      if (forgotCaptcha.current)
-        forgotCaptcha.current.resetCaptcha()
-    } catch {
-      setError("Failed to send reset email. Please try again.")
-    } finally {
-      setForgotLoading(false)
-    }
-  }
-
   return (
     <div className="relative min-h-screen md:flex">
       <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover md:hidden">
@@ -112,12 +74,6 @@ export default function LoginPage() {
 
           {error && (
             <p className="text-red-400 text-sm mb-4 text-center">{error}</p>
-          )}
-
-          {forgotSent && (
-            <p className="text-green-400 text-sm mb-4 text-center">
-              Password reset link sent! Check your email.
-            </p>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
@@ -165,42 +121,12 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowForgot(!showForgot)}
+            <Link
+              to="/reset-password"
               className="text-sm text-[#c89116] hover:text-[#fdb125] hover:underline cursor-pointer"
             >
-              {showForgot ? "Cancel" : "Forgot Password?"}
-            </button>
-
-            {showForgot && (
-              <form onSubmit={handleForgotSubmit} className="space-y-2 p-3 bg-white/5 rounded-lg border border-[#5f5c5c93]">
-                <p className="text-xs text-[#a6a6a6]">Enter your email to receive a password reset link.</p>
-                <input
-                  type="email"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  maxLength={254}
-                  autoComplete="email"
-                  className="dark-input w-full text-sm"
-                />
-                <HCaptcha
-                  ref={forgotCaptcha}
-                  sitekey={import.meta.env.VITE_HCAPTCHA_SITEKEY}
-                  onVerify={(token: string) => {
-                    setForgotCaptchaToken(token)
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={forgotLoading}
-                  className="btn-gold w-full py-2 text-sm"
-                >
-                  {forgotLoading ? "Sending..." : "Send Reset Link"}
-                </button>
-              </form>
-            )}
+              Forgot Password?
+            </Link>
 
             <label htmlFor="checkbox" className="flex items-start gap-2 text-sm text-[#a6a6a6] cursor-pointer">
               <input

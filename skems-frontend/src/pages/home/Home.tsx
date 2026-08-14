@@ -53,7 +53,7 @@ export default function Home() {
         URL.revokeObjectURL(bgUrl);
       }
     };
-  }, []);
+  }, [bgUrl]);
 
 
     const lineRef = useRef<HTMLDivElement>(null)
