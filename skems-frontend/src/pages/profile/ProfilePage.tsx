@@ -17,7 +17,6 @@ export default function ProfilePage() {
 
   const [fullName, setFullName] = useState(user?.fullName ?? "")
   const [studentNumber, setStudentNumber] = useState(user?.studentNumber ?? "")
-  const [position, setPosition] = useState(user?.position ?? "")
   const [email, setEmail] = useState(user?.email ?? "")
   const [password, setPassword] = useState("")
   const [showEmail, setShowEmail] = useState(false)
@@ -56,7 +55,7 @@ export default function ProfilePage() {
         setSaving(false)
         return
       }
-      await updateUser({ fullName, studentNumber, position, email })
+      await updateUser({ fullName, studentNumber, email })
       if (password) {
         await updatePassword(password)
         setPassword("")
@@ -144,14 +143,12 @@ export default function ProfilePage() {
                 Position
               </label>
 
-              <input
-                type="text"
-                value={position}
-                maxLength={100}
-                placeholder="e.g. Videographer, Auditor"
-                onChange={(e) => setPosition(e.target.value)}
-                className="dark-input w-full text-base"
-              />
+              <div className="w-full px-3 py-2 text-base border border-white/10 rounded-lg bg-white/5 text-[#a6a6a6]">
+                {user.position || "—"}
+              </div>
+              <p className="text-xs text-[#a6a6a6] mt-1">
+                Position is assigned by the administrator and cannot be edited here.
+              </p>
             </div>
 
             <div>

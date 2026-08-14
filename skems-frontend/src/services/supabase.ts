@@ -16,7 +16,6 @@ export async function signUp(
   password: string,
   fullName: string,
   studentNumber: string,
-  position: string,
   captchaToken: string,
 ) {
   if (!email || !password || !fullName || !studentNumber) {
@@ -33,7 +32,6 @@ export async function signUp(
       data: {
         full_name: fullName,
         student_number: studentNumber,
-        position,
       },
     },
   });
@@ -465,7 +463,7 @@ export async function addBorrowedItem(data: NewBorrowRecord) {
       borrower_name: data.full_name,
       date_borrowed: data.date_time_borrowing || null,
       date_due: data.date_time_return || null,
-      condition: "Borrowed",
+      condition: "Unavailable",
     })
     .eq("equipment_id", data.equipment_id);
 

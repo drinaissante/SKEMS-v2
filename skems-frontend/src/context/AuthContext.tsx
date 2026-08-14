@@ -34,7 +34,6 @@ export interface RegisterData {
   email: string
   studentNumber: string
   password: string
-  position: string
   captchaToken: string | undefined
 }
 
@@ -105,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData): Promise<boolean> => {
     try {
-      await signUp(data.email, data.password, data.fullName, data.studentNumber, data.position, data.captchaToken ?? '')
+      await signUp(data.email, data.password, data.fullName, data.studentNumber, data.captchaToken ?? '')
       return true
     } catch {
       return false
@@ -123,13 +122,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return
     if (
       data.fullName !== undefined ||
-      data.studentNumber !== undefined ||
-      data.position !== undefined
+      data.studentNumber !== undefined
     ) {
       await updateProfile(user.id, {
         full_name: data.fullName,
         student_number: data.studentNumber,
-        position: data.position ?? undefined,
       })
     }
     if (data.email !== undefined) {
