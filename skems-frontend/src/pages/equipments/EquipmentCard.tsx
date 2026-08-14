@@ -6,11 +6,13 @@ export default function EquipmentCard({
   eq,
   onEdit,
   onDelete,
+  onImageClick,
   uploadingImages = {},
 }: {
   eq: Equipment
   onEdit?: (eq: Equipment) => void
   onDelete?: (id: string) => void
+  onImageClick?: (eq: Equipment) => void
   uploadingImages?: Record<string, boolean>
 }) {
   const uploading = uploadingImages[eq.id]
@@ -41,7 +43,10 @@ export default function EquipmentCard({
         )}
       </div>
 
-      <div className="w-full h-32 bg-white/10 rounded-lg mb-3 overflow-hidden">
+      <div
+        className={`w-full h-32 bg-white/10 rounded-lg mb-3 overflow-hidden ${onImageClick && !uploading ? "cursor-zoom-in" : ""}`}
+        onClick={onImageClick && !uploading ? () => onImageClick(eq) : undefined}
+      >
         {uploading ? (
           <div className="w-full h-full bg-[#2a2a2a] animate-pulse rounded-lg" />
         ) : (

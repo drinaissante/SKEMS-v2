@@ -13,6 +13,8 @@ import { generateQRDoc } from "../../utils/qrExport"
 import EquipmentFormModal from "./AddEquipmentModal"
 import EquipmentCard from "./EquipmentCard"
 import EquipmentCardPlaceholder from "./EquipmentCardPlaceholder"
+import ImageLightbox from "../../components/ImageLightbox"
+import skIconFallback from "/sk_icon.jpg"
 
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
@@ -50,6 +52,7 @@ export default function EquipmentsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   
   const [deletingId, setDeletingId] = useState("")
+  const [expandedImage, setExpandedImage] = useState<Equipment | null>(null)
 
   const { data: equipments = [], isLoading } = useQuery({
     queryKey: ["equipments"],
@@ -283,6 +286,7 @@ export default function EquipmentsPage() {
                       key={eq.id}
                       eq={eq}
                       uploadingImages={uploadingImages}
+                      onImageClick={setExpandedImage}
                       onEdit={isAdmin ? (e) => setEditingEquipment(e) : undefined}
                       onDelete={isAdmin ? handleDelete : undefined}
                     />
@@ -299,6 +303,7 @@ export default function EquipmentsPage() {
                       key={eq.id}
                       eq={eq}
                       uploadingImages={uploadingImages}
+                      onImageClick={setExpandedImage}
                       onEdit={isAdmin ? (e) => setEditingEquipment(e) : undefined}
                       onDelete={isAdmin ? handleDelete : undefined}
                     />
@@ -365,6 +370,14 @@ export default function EquipmentsPage() {
         queryClient={queryClient}
         handleSync={handleSync}
       />}
+
+      {expandedImage && (
+        <ImageLightbox
+          src={expandedImage.image || skIconFallback}
+          alt={expandedImage.name}
+          onClose={() => setExpandedImage(null)}
+        />
+      )}
     </div>
   )
 }

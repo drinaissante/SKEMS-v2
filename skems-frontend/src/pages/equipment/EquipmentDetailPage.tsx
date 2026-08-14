@@ -6,6 +6,7 @@ import { uploadImage } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import { useToast } from "../../hooks/useToast"
 import EquipmentFormModal from "../equipments/AddEquipmentModal"
+import ImageLightbox from "../../components/ImageLightbox"
 import skIconFallback from "/sk_icon.jpg"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { formatWallClock } from "../../utils/datetime"
@@ -20,6 +21,7 @@ export default function EquipmentDetailPage() {
   const { showToast } = useToast()
   const equipmentId = searchParams.get("id")
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showQrLightbox, setShowQrLightbox] = useState(false)
 
   const { data: equipments = [], isLoading } = useQuery({
     queryKey: ["equipments"],
@@ -183,14 +185,20 @@ export default function EquipmentDetailPage() {
             )}
 
             {qrUrl && (
-              <div className="pt-2">
-                <p className="text-xs font-medium text-[#a6a6a6] mb-1">QR Code</p>
-                <img
-                  src={qrUrl}
-                  alt={`QR for ${equipment.id}`}
-                  className="w-20 h-20 object-cover rounded-lg border border-[#5f5c5c93]"
-                  decoding="async"
-                />
+              <div className="pt-2 flex flex-col items-center">
+                <p className="text-xs font-medium text-[#a6a6a6] mb-2">QR Code</p>
+                <button
+                  onClick={() => setShowQrLightbox(true)}
+                  className="cursor-zoom-in"
+                  aria-label="Expand QR code"
+                >
+                  <img
+                    src={qrUrl}
+                    alt={`QR for ${equipment.id}`}
+                    className="w-40 h-40 sm:w-52 sm:h-52 object-cover rounded-lg border border-[#5f5c5c93]"
+                    decoding="async"
+                  />
+                </button>
               </div>
             )}
           </div>
@@ -223,6 +231,14 @@ export default function EquipmentDetailPage() {
           onClose={() => setShowEditModal(false)}
           conditions={conditions}
           defaultOwner={user?.fullName ?? ""}
+        />
+      )}
+
+      {showQrLightbox && qrUrl && (
+        <ImageLightbox
+          src={qrUrl}
+          alt={`QR for ${equipment.id}`}
+          onClose={() => setShowQrLightbox(false)}
         />
       )}
     </div>
