@@ -1,9 +1,13 @@
+import { useMemo } from "react"
+import type { ReactNode } from "react"
 import { Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { fetchMyRequests } from "../../services/supabase"
+import { fetchEquipments } from "../../services/api"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { formatWallClock, formatManila } from "../../utils/datetime"
+import skIconFallback from "/sk_icon.jpg"
 
 const statusColors: Record<string, string> = {
   Pending: "bg-[#caa453] text-white",
@@ -29,6 +33,15 @@ function formatDateTimeManila(iso: string) {
   return formatManila(iso, dtOpts)
 }
 
+function InfoRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex items-start gap-2 text-xs">
+      <span className="shrink-0 w-16 font-bold text-[#a6a6a6]">{label}</span>
+      <span className="text-white">{children}</span>
+    </div>
+  )
+}
+
 export default function MyRequestsPage() {
   usePageTitle("My Requests")
   const { user } = useAuth()
@@ -38,6 +51,17 @@ export default function MyRequestsPage() {
     queryFn: () => fetchMyRequests(user!.id),
     enabled: !!user,
   })
+
+  const { data: equipments = [] } = useQuery({
+    queryKey: ["equipments"],
+    queryFn: fetchEquipments,
+  })
+
+  const equipmentMap = useMemo(() => {
+    const map = new Map<string, { image: string }>()
+    for (const eq of equipments) map.set(eq.id, { image: eq.image })
+    return map
+  }, [equipments])
 
   if (!user) return null
 
@@ -61,51 +85,59 @@ export default function MyRequestsPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-2">
-            {requests.map((r) => (
-              <div
-                key={r.id}
-                className="dark-card p-3 sm:p-4"
-              >
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="min-w-0">
-                    <p className="font-bold text-white text-sm sm:text-base truncate">
-                      {r.equipment_name} <span className="text-[#a6a6a6] font-normal">×{r.quantity}</span>
-                    </p>
-                    <p className="text-xs text-[#a6a6a6] truncate">{r.reason}</p>
-                  </div>
-                  <span
-                    className={`shrink-0 px-2 py-0.5 rounded text-xs font-bold ${
-                      statusColors[r.status] ?? "bg-white/10 text-[#a6a6a6]"
-                    }`}
-                  >
-                    {r.status}
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="font-bold px-1.5 py-0.5 rounded bg-[#caa453]/20 text-[#caa453] shrink-0">
-                      Borrowed
+          <div className="space-y-3">
+            {requests.map((r) => {
+              const image = equipmentMap.get(r.equipment_id)?.image || skIconFallback
+              return (
+                <div key={r.id} className="dark-card p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <span className="text-[10px] uppercase tracking-wide text-[#a6a6a6] font-bold">
+                      Requested on {formatDateTimeManila(r.created_at)}
                     </span>
-                    <span className="text-[#a6a6a6]">{formatDateTime(r.date_borrowed)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="font-bold px-1.5 py-0.5 rounded bg-red-500/15 text-red-300 shrink-0">
-                      Due
+                    <span
+                      className={`shrink-0 px-2.5 py-1 rounded text-xs font-bold ${
+                        statusColors[r.status] ?? "bg-white/10 text-[#a6a6a6]"
+                      }`}
+                    >
+                      {r.status}
                     </span>
-                    <span className="text-[#a6a6a6]">{formatDateTime(r.date_due)}</span>
                   </div>
-                  {r.status === "Returned" && r.returned_on && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="font-bold px-1.5 py-0.5 rounded bg-white/10 text-[#a6a6a6] shrink-0">
-                        Returned
-                      </span>
-                      <span className="text-[#a6a6a6]">{formatDateTimeManila(r.returned_on)}</span>
+
+                  <div className="flex items-start gap-3 sm:gap-4 mb-3">
+                    <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-white/10 border border-white/10">
+                      <img
+                        src={image}
+                        alt={r.equipment_name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => { (e.target as HTMLImageElement).src = skIconFallback }}
+                      />
                     </div>
-                  )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-white text-base sm:text-lg leading-snug">
+                        {r.equipment_name} <span className="text-[#a6a6a6] font-normal text-sm">×{r.quantity}</span>
+                      </p>
+                      <p className="text-xs text-[#a6a6a6] mt-0.5">{r.reason}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 pt-3 border-t border-white/10">
+                    <InfoRow label="Borrower">{r.borrower_name}</InfoRow>
+                    <InfoRow label="Student No.">{r.student_number || "—"}</InfoRow>
+                    <InfoRow label="Position/Dept">{r.position_department || "—"}</InfoRow>
+                    <InfoRow label="Owner">{r.owner || "—"}</InfoRow>
+                    <InfoRow label="Pickup">{r.pickup_location || "—"}</InfoRow>
+                    <InfoRow label="Return">{r.return_location || "—"}</InfoRow>
+                    <InfoRow label="Borrowed">{formatDateTime(r.date_borrowed)}</InfoRow>
+                    <InfoRow label="Due">{formatDateTime(r.date_due)}</InfoRow>
+                    {r.status === "Returned" && r.returned_on && (
+                      <InfoRow label="Returned On">{formatDateTimeManila(r.returned_on)}</InfoRow>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
