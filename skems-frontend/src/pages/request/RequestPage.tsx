@@ -16,6 +16,10 @@ function todayNow(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+function toTitleCase(value: string) {
+  return value.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+}
+
 interface FormItem {
   name: string
   equipmentId: string
@@ -31,7 +35,6 @@ export default function RequestPage() {
 
   const [formItems, setFormItems] = useState<FormItem[]>([])
   const [reason, setReason] = useState("")
-  const [positionDepartment, setPositionDepartment] = useState("")
   const [pickupLocation, setPickupLocation] = useState("")
   const [returnLocation, setReturnLocation] = useState("")
   const [dateBorrowed, setDateBorrowed] = useState("")
@@ -208,7 +211,6 @@ export default function RequestPage() {
       setSuccess(true)
       setFormItems([])
       setReason("")
-      setPositionDepartment("")
       setPickupLocation("")
       setReturnLocation("")
       setDateBorrowed("")
@@ -221,6 +223,8 @@ export default function RequestPage() {
   }
 
   if (!user) return null
+
+  const positionDepartment = toTitleCase(user.position ?? "")
 
   const fmt = (v: string) =>
     formatWallClock(v, {
@@ -323,25 +327,14 @@ export default function RequestPage() {
               </div>
 
               <div>
-                <label htmlFor="reason" className="block text-sm font-medium text-[#a6a6a6] mb-1">Reason for Borrowing <span className="text-red-500">*</span></label>
-                <textarea required id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={200} placeholder="Describe why you need this equipment..." className="dark-input w-full text-base resize-none" />
-                <p className="text-xs text-right text-[#a6a6a6] mt-1">{reason.length}/200</p>
+                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Position / Department <span className="text-red-500">*</span></label>
+                <input type="text" value={positionDepartment} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
               </div>
 
               <div>
-                <label htmlFor="positionDepartment" className="block text-sm font-medium text-[#a6a6a6] mb-1">Position / Department <span className="text-red-500">*</span></label>
-                <select required id="positionDepartment" value={positionDepartment} onChange={(e) => setPositionDepartment(e.target.value)} className="dark-input w-full text-base">
-                  <option value="" disabled>Select position...</option>
-                  <option value="president">President</option>
-                  <option value="vice president">Vice President</option>
-                  <option value="treasurer">Treasurer</option>
-                  <option value="videographer">Videographer</option>
-                  <option value="videographer head">Videographer Head</option>
-                  <option value="photographer">Photographer</option>
-                  <option value="photographer head">Photographer Head</option>
-                  <option value="graphics">Graphics</option>
-                  <option value="graphics head">Graphics Head</option>
-                </select>
+                <label htmlFor="reason" className="block text-sm font-medium text-[#a6a6a6] mb-1">Reason for Borrowing <span className="text-red-500">*</span></label>
+                <textarea required id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={200} placeholder="Describe why you need this equipment..." className="dark-input w-full text-base resize-none" />
+                <p className="text-xs text-right text-[#a6a6a6] mt-1">{reason.length}/200</p>
               </div>
 
               <div>
