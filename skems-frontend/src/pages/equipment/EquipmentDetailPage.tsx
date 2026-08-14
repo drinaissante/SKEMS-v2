@@ -84,9 +84,27 @@ export default function EquipmentDetailPage() {
 
   if (!equipment) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-fixed-black text-[#a6a6a6] px-4">
-        <p className="text-lg font-bold mb-2">Equipment not found</p>
-        <p className="text-sm">The equipment you're looking for doesn't exist.</p>
+      <div className="flex flex-col items-center justify-center h-full bg-fixed-black px-4">
+        <div className="dark-card p-6 sm:p-8 max-w-sm w-full text-center">
+          <p className="text-lg font-bold text-white mb-2">Equipment not found</p>
+          <p className="text-sm text-[#a6a6a6] mb-6">
+            The equipment you're looking for doesn't exist.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/")}
+              className="btn-gold flex-1 py-2.5 text-sm"
+            >
+              Home
+            </button>
+            <button
+              onClick={() => navigate("/scan")}
+              className="flex-1 py-2.5 text-sm bg-white/10 border border-white/10 hover:bg-white/20 text-white font-bold rounded-lg transition-colors cursor-pointer"
+            >
+              Scan Again
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
