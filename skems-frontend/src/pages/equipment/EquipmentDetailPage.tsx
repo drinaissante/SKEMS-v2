@@ -22,6 +22,7 @@ export default function EquipmentDetailPage() {
   const equipmentId = searchParams.get("id")
   const [showEditModal, setShowEditModal] = useState(false)
   const [showQrLightbox, setShowQrLightbox] = useState(false)
+  const [showImageLightbox, setShowImageLightbox] = useState(false)
 
   const { data: equipments = [], isLoading } = useQuery({
     queryKey: ["equipments"],
@@ -115,7 +116,11 @@ export default function EquipmentDetailPage() {
     <div className="flex flex-col h-full bg-fixed-black">
       <div className="flex flex-col flex-1 min-h-0 max-w-lg w-full mx-auto px-4 py-6 overflow-y-auto">
         <div className="dark-card overflow-hidden">
-          <div className="w-full h-56 bg-white/10">
+          <button
+            onClick={() => setShowImageLightbox(true)}
+            className="w-full h-56 bg-white/10 cursor-zoom-in"
+            aria-label="Expand equipment image"
+          >
             <img
               src={equipment.image || skIconFallback}
               alt={equipment.name}
@@ -125,7 +130,7 @@ export default function EquipmentDetailPage() {
                 (e.target as HTMLImageElement).src = skIconFallback
               }}
             />
-          </div>
+          </button>
 
           <div className="p-4 sm:p-5 space-y-3">
             <div className="flex items-start justify-between">
@@ -257,6 +262,14 @@ export default function EquipmentDetailPage() {
           src={qrUrl}
           alt={`QR for ${equipment.id}`}
           onClose={() => setShowQrLightbox(false)}
+        />
+      )}
+
+      {showImageLightbox && (
+        <ImageLightbox
+          src={equipment.image || skIconFallback}
+          alt={equipment.name}
+          onClose={() => setShowImageLightbox(false)}
         />
       )}
     </div>
