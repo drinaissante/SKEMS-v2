@@ -338,6 +338,7 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
     pickup_location: request.pickup_location ?? "",
     return_location: request.return_location ?? "",
     scanned_by: adminUserId,
+    user_id: request.user_id ?? null,
   });
 
   const { error: delErr } = await supabase
@@ -402,6 +403,7 @@ export interface NewBorrowRecord {
   pickup_location: string
   return_location: string
   scanned_by: string
+  user_id: string | null
 }
 
 export async function fetchBorrowedItems() {
@@ -429,6 +431,7 @@ export async function fetchBorrowedItems() {
     returned_on: string | null
     notes: string
     scanned_by: string
+    user_id: string | null
     created_at: string
     updated_at: string
   }[];
@@ -451,6 +454,7 @@ export async function addBorrowedItem(data: NewBorrowRecord) {
       pickup_location: data.pickup_location,
       return_location: data.return_location,
       scanned_by: data.scanned_by,
+      user_id: data.user_id,
     });
 
   if (error) throw error;
