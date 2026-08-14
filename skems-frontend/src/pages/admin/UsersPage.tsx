@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { fetchAllProfiles, fetchAllDiscordLinks, toggleAdmin } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
-import { FiSearch } from "react-icons/fi"
+import { FiSearch, FiCheck, FiX } from "react-icons/fi"
 
 const MOBILE_ITEMS = 8
 const DESKTOP_ITEMS = 15
@@ -149,12 +149,18 @@ export default function UsersPage() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         {p.discordLink ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-300">
-                            Linked
+                          <span
+                            className="inline-flex items-center justify-center text-green-400"
+                            title={p.discordLink.discord_username ?? p.discordLink.discord_id}
+                          >
+                            <FiCheck size={18} />
                           </span>
                         ) : (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#a6a6a6]">
-                            Not linked
+                          <span
+                            className="inline-flex items-center justify-center text-red-500"
+                            title="Not linked"
+                          >
+                            <FiX size={18} />
                           </span>
                         )}
                       </td>
