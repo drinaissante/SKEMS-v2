@@ -514,11 +514,30 @@ export async function updateBorrowedItem(
 }
 
 export async function deleteBorrowedItem(equipmentId: string) {
+  const { data: records } = await supabase
+    .from("borrow_records")
+    .select("condition_before")
+    .eq("equipment_id", equipmentId);
+
+  const conditionBefore = records?.[0]?.condition_before ?? "";
+
   const { error } = await supabase
     .from("borrow_records")
     .delete()
     .eq("equipment_id", equipmentId);
   if (error) throw error;
+
+  const { error: equipErr } = await supabase
+    .from("equipments")
+    .update({
+      condition: conditionBefore || "Working",
+      borrower_name: null,
+      date_borrowed: null,
+      date_due: null,
+    })
+    .eq("equipment_id", equipmentId);
+
+  if (equipErr) console.error("Failed to sync equipment:", equipErr);
 }
 
 export async function uploadQRCode(equipmentId: string): Promise<string> {

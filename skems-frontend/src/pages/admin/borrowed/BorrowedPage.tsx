@@ -112,6 +112,7 @@ export default function BorrowedPage() {
     mutationFn: (equipmentId: string) => deleteBorrowedItem(equipmentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+      queryClient.invalidateQueries({ queryKey: ["equipments"] })
       showToast("Record deleted!", "info", { label: "Sync now?", onClick: handleSync })
     },
   })
