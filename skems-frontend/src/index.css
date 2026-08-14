@@ -73,23 +73,25 @@ body {
   background-repeat: no-repeat;
 }
 
-.dark-input {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  border: 1px solid #5f5c5c93;
-  border-radius: 0.5rem;
-  background-color: #111;
-  color: #fff;
-  outline: none;
-  transition: border-color 0.3s;
-}
+@layer components {
+  .dark-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid #5f5c5c93;
+    border-radius: 0.5rem;
+    background-color: #111;
+    color: #fff;
+    outline: none;
+    transition: border-color 0.3s;
+  }
 
-.dark-input::placeholder {
-  color: #6b7280;
-}
+  .dark-input::placeholder {
+    color: #6b7280;
+  }
 
-.dark-input:focus {
-  border-color: #fdb125;
+  .dark-input:focus {
+    border-color: #fdb125;
+  }
 }
 
 .dark-card {
