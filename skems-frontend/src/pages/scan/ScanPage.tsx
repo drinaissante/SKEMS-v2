@@ -102,6 +102,7 @@ export default function ScanPage() {
 
       const fields: ScannedFormFields = {
         full_name: data.fields.full_name ?? "",
+        student_number: data.fields.student_number ?? "",
         date: data.fields.date ?? "",
         position_department: data.fields.position_department ?? "",
         owner: data.fields.owner ?? "",
@@ -190,9 +191,10 @@ export default function ScanPage() {
   const submitFormScan = useCallback(async () => {
     if (!editableFields || !user) return
 
-    const fieldKeys = ["full_name", "date", "position_department", "owner", "purpose_of_use", "date_time_borrowing", "date_time_return", "pickup_location", "return_location"] as const
+    const fieldKeys = ["full_name", "student_number", "date", "position_department", "owner", "purpose_of_use", "date_time_borrowing", "date_time_return", "pickup_location", "return_location"] as const
     const labels: Record<string, string> = {
       full_name: "Full Name",
+      student_number: "Student Number",
       date: "Date",
       position_department: "Position/Department",
       owner: "Owner",
@@ -230,7 +232,7 @@ export default function ScanPage() {
           equipmentId: sel.id,
           equipmentName: sel.name,
           borrowerName: editableFields.full_name,
-          studentNumber: user.studentNumber,
+          studentNumber: editableFields.student_number,
           reason: editableFields.purpose_of_use,
           dateBorrowed: editableFields.date_time_borrowing,
           dateDue: editableFields.date_time_return,
@@ -245,8 +247,8 @@ export default function ScanPage() {
 
       setShowResultModal(false)
       setFormSuccess(true)
-    } catch {
-      showToast("Failed to submit. Please try again.", "error")
+    } catch (err) {
+      showToast(err instanceof Error ? `Failed to submit: ${err.message}` : "Failed to submit. Please try again.", "error")
     } finally {
       setIsScanningForm(false)
     }
@@ -340,8 +342,12 @@ export default function ScanPage() {
             const list = editableFields.equipment_list.filter((_, i) => i !== idx)
             setEditableFields({ ...editableFields, equipment_list: list })
             setSelectedEquipments(prev => {
-              const next = { ...prev }
-              delete next[idx]
+              const next: typeof prev = {}
+              Object.entries(prev).forEach(([i, sel]) => {
+                const parsed = parseInt(i, 10)
+                if (parsed === idx) return
+                next[parsed > idx ? parsed - 1 : parsed] = sel
+              })
               return next
             })
           }}

@@ -5,6 +5,7 @@ export interface EquipmentItem {
 
 export interface ScannedFormFields {
   full_name: string
+  student_number: string
   date: string
   position_department: string
   owner: string

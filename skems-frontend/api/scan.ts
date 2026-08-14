@@ -53,6 +53,7 @@ CRITICAL: Respond with ONLY a raw JSON object. No markdown, no code fences, no b
 Use exactly these keys:
 {
   "full_name": "",
+  "student_number": "",
   "date": "",
   "position_department": "",
   "owner": "",
