@@ -2,6 +2,14 @@ export const DISCORD_API = "https://discord.com/api/v10";
 
 export const GOLD = 0xc89116;
 
+export const STATUS_COLORS: Record<string, number> = {
+  Pending: GOLD,
+  Approved: 0x57f287,
+  Rejected: 0xed4245,
+  Deleted: 0x000000,
+  Returned: 0x95a5a6,
+};
+
 const MONTHS = [
   "January",
   "February",
@@ -83,7 +91,7 @@ export function buildRequestEmbed(
 ): Record<string, unknown> {
   const embed: Record<string, unknown> = {
     title: `New Borrow Request - ${data.equipmentName} - ${status}`,
-    color: GOLD,
+    color: STATUS_COLORS[status] ?? GOLD,
     fields: [
       { name: "Equipment", value: data.equipmentName, inline: true },
       { name: "Quantity", value: String(data.quantity ?? 1), inline: true },
