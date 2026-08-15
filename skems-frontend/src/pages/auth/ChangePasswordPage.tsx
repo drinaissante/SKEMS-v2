@@ -107,7 +107,7 @@ export default function ChangePasswordPage() {
       <div className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-lg p-5 sm:p-8 border border-[#d9d9d9]">
         <div className="flex items-center justify-center gap-2 mb-5 select-none">
           <img src="/sk_icon_no_bg.png" className="h-7 w-7" alt="" />
-          <span className="text-[#fdb125] font-bold text-xl">SKEMS</span>
+          <span className="text-[#fdb125] font-bold text-xl">Sine Kultura</span>
         </div>
 
         {success ? (

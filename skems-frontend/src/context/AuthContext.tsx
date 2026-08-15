@@ -3,8 +3,10 @@ import {
   useContext,
   useState,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { supabase, signUp, signIn, signOut, fetchProfile, updateProfile, updateEmail } from "../services/supabase"
 
 export interface User {
@@ -41,33 +43,84 @@ export interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
+const PROFILE_CACHE_KEY = "skems-profiles"
+
+function readProfileCache(): Record<string, User> {
+  try {
+    const raw = localStorage.getItem(PROFILE_CACHE_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+function cacheProfile(user: User) {
+  try {
+    const cache = readProfileCache()
+    cache[user.id] = user
+    localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(cache))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function getCachedProfile(authId: string): User | null {
+  const cache = readProfileCache()
+  return cache[authId] ?? null
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
+  const prevUserIdRef = useRef<string | null>(null)
 
-  const buildUser = async (authId: string) => {
-    const profile = await fetchProfile(authId)
-    setUser({
-      id: authId,
-      fullName: profile.full_name,
-      email: profile.email,
-      studentNumber: profile.student_number,
-      isAdmin: profile.is_admin,
-      isSuperAdmin: profile.is_superadmin,
-      linkCode: profile.link_code,
-      position: profile.position ?? null,
-    })
+  const applyUser = (next: User | null) => {
+    const nextId = next?.id ?? null
+    if (nextId === null) {
+      queryClient.clear()
+    } else if (
+      prevUserIdRef.current !== null &&
+      prevUserIdRef.current !== nextId
+    ) {
+      queryClient.clear()
+    }
+    prevUserIdRef.current = nextId
+    setUser(next)
+  }
+
+  const resolveUser = async (authId: string) => {
+    try {
+      const profile = await fetchProfile(authId)
+      const next: User = {
+        id: authId,
+        fullName: profile.full_name,
+        email: profile.email,
+        studentNumber: profile.student_number,
+        isAdmin: profile.is_admin,
+        isSuperAdmin: profile.is_superadmin,
+        linkCode: profile.link_code,
+        position: profile.position ?? null,
+      }
+      cacheProfile(next)
+      applyUser(next)
+    } catch (err) {
+      console.error("buildUser failed:", err)
+      if (!navigator.onLine) {
+        const cached = getCachedProfile(authId)
+        if (cached) {
+          applyUser(cached)
+          return
+        }
+      }
+      applyUser(null)
+    }
   }
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        try {
-          await buildUser(session.user.id)
-        } catch (err) {
-          console.error("buildUser failed:", err)
-          setUser(null)
-        }
+        await resolveUser(session.user.id)
       }
       setLoading(false)
     })
@@ -76,24 +129,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (event, session) => {
         if (event === "INITIAL_SESSION") return
         if (session?.user) {
-          buildUser(session.user.id).catch((err) => {
+          resolveUser(session.user.id).catch((err) => {
             console.error("buildUser failed:", err)
-            setUser(null)
+            applyUser(null)
           })
         } else {
-          setUser(null)
+          applyUser(null)
         }
       },
     )
 
     return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const login = async (identifier: string, password: string, captchaToken: string): Promise<boolean> => {
     try {
       const data = await signIn(identifier, password, captchaToken)
       if (data?.user) {
-        await buildUser(data.user.id)
+        await resolveUser(data.user.id)
         return true
       }
       return false
@@ -112,8 +166,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = async () => {
-    await signOut()
-    setUser(null)
+    try {
+      await signOut()
+    } catch {
+      // sign out may fail offline; still clear local state
+    }
+    applyUser(null)
   }
 
   const updateUser = async (
@@ -132,7 +190,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.email !== undefined) {
       await updateEmail(data.email)
     }
-    setUser((prev) => (prev ? { ...prev, ...data } : null))
+    setUser((prev) => {
+      const next = prev ? { ...prev, ...data } : null
+      if (next) cacheProfile(next)
+      return next
+    })
   }
 
   return (

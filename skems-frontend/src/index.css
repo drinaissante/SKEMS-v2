@@ -202,3 +202,27 @@ body {
   transform-origin: center;
   animation: gold-grow 1s ease-out;
 }
+
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background-color: #c89116;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+body.offline button,
+body.offline input[type="submit"],
+body.offline input[type="button"],
+body.offline [role="button"] {
+  pointer-events: none;
+  opacity: 0.55;
+  cursor: not-allowed;
+}

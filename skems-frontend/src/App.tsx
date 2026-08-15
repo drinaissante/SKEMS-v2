@@ -28,6 +28,8 @@ import { useAuth } from './context/AuthContext'
 import { useEquipmentsRealtime } from './hooks/useEquipmentsRealtime'
 import { useRequestsRealtime } from './hooks/useRequestsRealtime'
 import { useBorrowedRealtime } from './hooks/useBorrowedRealtime'
+import { useOnlineStatus } from './hooks/useOnlineStatus'
+import OfflineBanner from './components/OfflineBanner'
 import About from './pages/about/About'
 import Restricted from './pages/restricted/Restricted'
 
@@ -77,8 +79,10 @@ function App() {
   useEquipmentsRealtime()
   useRequestsRealtime()
   useBorrowedRealtime()
+  const online = useOnlineStatus()
   return (
     <>
+      {!online && <OfflineBanner />}
       <ToastProvider>
       <Routes>
         <Route path='/change-password' element={<ChangePasswordPage />} />
