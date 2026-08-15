@@ -100,6 +100,10 @@ body {
   border-radius: 0.75rem;
 }
 
+.request-row-highlight {
+  background-color: rgba(200, 145, 22, 0.1);
+}
+
 .btn-gold {
   background-color: #c89116;
   color: #fff;

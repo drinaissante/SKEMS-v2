@@ -252,23 +252,79 @@ export async function submitRequest(data: {
   returnLocation: string;
   owner: string;
 }) {
-  const { error } = await supabase.from("requests").insert({
-    equipment_id: data.equipmentId,
-    equipment_name: data.equipmentName,
-    borrower_name: data.borrowerName,
-    student_number: data.studentNumber,
-    reason: data.reason,
-    date_borrowed: data.dateBorrowed,
-    date_due: data.dateDue,
-    user_id: data.userId,
-    status: "Pending",
-    quantity: data.quantity,
-    position_department: data.positionDepartment,
-    pickup_location: data.pickupLocation,
-    return_location: data.returnLocation,
-    owner: data.owner,
-  });
+  const { data: inserted, error } = await supabase
+    .from("requests")
+    .insert({
+      equipment_id: data.equipmentId,
+      equipment_name: data.equipmentName,
+      borrower_name: data.borrowerName,
+      student_number: data.studentNumber,
+      reason: data.reason,
+      date_borrowed: data.dateBorrowed,
+      date_due: data.dateDue,
+      user_id: data.userId,
+      status: "Pending",
+      quantity: data.quantity,
+      position_department: data.positionDepartment,
+      pickup_location: data.pickupLocation,
+      return_location: data.returnLocation,
+      owner: data.owner,
+    })
+    .select("id")
+    .single();
   if (error) throw error;
+
+  if (inserted?.id) {
+    void notifyDiscordRequest(data, inserted.id);
+  }
+}
+
+async function notifyDiscordRequest(
+  data: {
+    equipmentName: string;
+    borrowerName: string;
+    studentNumber: string;
+    reason: string;
+    dateBorrowed: string;
+    dateDue: string;
+    quantity: number;
+    positionDepartment: string;
+    pickupLocation: string;
+    returnLocation: string;
+    owner: string;
+  },
+  requestId: string,
+) {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+
+    await fetch("/api/notify-request", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        equipmentName: data.equipmentName,
+        quantity: data.quantity,
+        borrowerName: data.borrowerName,
+        studentNumber: data.studentNumber,
+        positionDepartment: data.positionDepartment,
+        reason: data.reason,
+        dateBorrowed: data.dateBorrowed,
+        dateDue: data.dateDue,
+        pickupLocation: data.pickupLocation,
+        returnLocation: data.returnLocation,
+        owner: data.owner,
+        requestId,
+      }),
+    });
+  } catch {
+    // fire-and-forget; never block the request flow
+  }
 }
 
 export async function fetchMyRequests(userId: string) {

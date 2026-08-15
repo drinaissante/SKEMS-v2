@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useSearchParams } from "react-router-dom"
 import {
   fetchAllRequests,
   updateRequestStatus,
@@ -51,6 +52,11 @@ export default function RequestsPage() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
   const [confirmApproveId, setConfirmApproveId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [highlightId, setHighlightId] = useState<string | null>(null)
+  const [searchParams] = useSearchParams()
+  const focusId = searchParams.get("id")
+  const focusPageSet = useRef(false)
+  const highlighted = useRef(false)
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -119,6 +125,28 @@ export default function RequestsPage() {
     const start = (currentPage - 1) * itemsPerPage
     return filtered.slice(start, start + itemsPerPage)
   }, [filtered, currentPage, itemsPerPage])
+
+  useEffect(() => {
+    if (!focusId || focusPageSet.current) return
+    const idx = requests.findIndex((r) => r.id === focusId)
+    if (idx < 0) return
+    focusPageSet.current = true
+    setTimeout(() => setCurrentPage(Math.floor(idx / itemsPerPage) + 1), 0)
+  }, [focusId, requests, itemsPerPage])
+
+  useEffect(() => {
+    if (!focusId || highlighted.current) return
+    const el = document.getElementById(`request-${focusId}`)
+    if (!el) return
+    highlighted.current = true
+    el.scrollIntoView({ block: "center", behavior: "smooth" })
+    const show = setTimeout(() => setHighlightId(focusId), 0)
+    const hide = setTimeout(() => setHighlightId(null), 2600)
+    return () => {
+      clearTimeout(show)
+      clearTimeout(hide)
+    }
+  }, [focusId, currentPage, requests])
 
   const handleStatus = (id: string, status: string) => {
     if (status === "Approved") {
@@ -199,7 +227,13 @@ export default function RequestsPage() {
                 </thead>
                 <tbody>
                   {paginatedItems.map((r) => (
-                    <tr key={r.id} className="border-t border-white/10 hover:bg-white/5">
+                    <tr
+                      key={r.id}
+                      id={`request-${r.id}`}
+                      className={`border-t border-white/10 hover:bg-white/5 ${
+                        highlightId === r.id ? "request-row-highlight" : ""
+                      }`}
+                    >
                       <td className="px-3 py-2 sm:px-4 sm:py-3 font-medium text-white">
                         {r.equipment_name}
                         <span className="text-[#a6a6a6] text-xs ml-1">{r.equipment_id}</span>
@@ -273,7 +307,11 @@ export default function RequestsPage() {
 
             <div className="md:hidden space-y-2">
               {paginatedItems.map((r) => (
-                <div key={r.id} className="dark-card">
+                <div
+                  key={r.id}
+                  id={`request-${r.id}`}
+                  className={`dark-card ${highlightId === r.id ? "request-row-highlight" : ""}`}
+                >
                   <button
                     onClick={() => toggleRow(r.id)}
                     className="w-full flex items-center gap-3 px-3 py-3 text-left cursor-pointer"
