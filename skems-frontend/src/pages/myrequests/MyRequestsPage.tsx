@@ -41,7 +41,7 @@ function InfoRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 text-xs">
       <span className="shrink-0 w-28 sm:w-32 font-bold text-[#a6a6a6]">{label}</span>
-      <span className="text-white text-right min-w-0 break-words flex-1">{children}</span>
+      <span className="text-white text-right min-w-0 wrap-break-word flex-1">{children}</span>
     </div>
   )
 }
