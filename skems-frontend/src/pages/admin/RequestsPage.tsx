@@ -281,22 +281,16 @@ export default function RequestsPage() {
                               </button>
                             </>
                           )}
-                          {r.status === "Approved" && (
+                          {r.status !== "Approved" && (
                             <button
-                              onClick={() => handleStatus(r.id, "Returned")}
-                              className="px-3 py-2 text-xs bg-white/10 border border-white/10 hover:bg-white/20 text-white rounded transition-colors cursor-pointer"
+                              onClick={() => setConfirmDeleteId(r.id)}
+                              disabled={deleteMutation.isPending}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed ml-auto"
+                              title="Delete"
                             >
-                              Mark Returned
+                              {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={15} />}
                             </button>
                           )}
-                          <button
-                            onClick={() => setConfirmDeleteId(r.id)}
-                            disabled={deleteMutation.isPending}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed ml-auto"
-                            title="Delete"
-                          >
-                            {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={15} />}
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -381,9 +375,10 @@ export default function RequestsPage() {
                           <span className="font-medium text-white">{formatDateTime(r.returned_on)}</span>
                         </div>
                       )}
-                      <div className="flex gap-2 pt-2">
-                        {r.status === "Pending" && (
-                          <>
+                      {r.status !== "Approved" && (
+                        <div className="flex gap-2 pt-2">
+                          {r.status === "Pending" && (
+                            <>
                               <button
                                 onClick={() => handleStatus(r.id, "Approved")}
                                 disabled={approveMutation.isPending}
@@ -399,25 +394,18 @@ export default function RequestsPage() {
                               >
                                 <FiXCircle size={16} />
                               </button>
-                          </>
-                        )}
-                        {r.status === "Approved" && (
+                            </>
+                          )}
                           <button
-                            onClick={() => handleStatus(r.id, "Returned")}
-                            className="flex-1 py-2.5 text-xs font-bold bg-white/10 border border-white/10 hover:bg-white/20 text-white rounded-lg transition-colors cursor-pointer"
+                            onClick={() => setConfirmDeleteId(r.id)}
+                            disabled={deleteMutation.isPending}
+                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0"
+                            title="Delete"
                           >
-                            Mark Returned
+                            {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={16} />}
                           </button>
-                        )}
-                        <button
-                          onClick={() => setConfirmDeleteId(r.id)}
-                          disabled={deleteMutation.isPending}
-                          className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0"
-                          title="Delete"
-                        >
-                          {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={16} />}
-                        </button>
-                      </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

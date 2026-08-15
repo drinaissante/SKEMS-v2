@@ -481,12 +481,12 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
     discord_message_id: request.discord_message_id ?? null,
   });
 
-  const { error: delErr } = await supabase
+  const { error: statusErr } = await supabase
     .from("requests")
-    .delete()
+    .update({ status: "Approved" })
     .eq("id", requestId);
 
-  if (delErr) throw delErr;
+  if (statusErr) throw statusErr;
 
   void syncDiscordStatus(request, "Approved", request.id);
 }
@@ -534,15 +534,25 @@ export async function returnBorrowedItem(equipmentId: string, conditionAfter: st
     .eq("equipment_id", equipmentId)
     .maybeSingle();
 
+  const returnedOn = new Date().toISOString();
+
   const { error: recordErr } = await supabase
     .from("borrow_records")
     .update({
-      returned_on: new Date().toISOString(),
+      returned_on: returnedOn,
       condition_after: conditionAfter,
     })
     .eq("equipment_id", equipmentId);
 
   if (recordErr) throw recordErr;
+
+  const { error: requestErr } = await supabase
+    .from("requests")
+    .update({ status: "Returned", returned_on: returnedOn })
+    .eq("equipment_id", equipmentId)
+    .eq("status", "Approved");
+
+  if (requestErr) console.error("Failed to sync request status:", requestErr);
 
   const { error: equipErr } = await supabase
     .from("equipments")
@@ -630,6 +640,9 @@ export async function addBorrowedItem(data: NewBorrowRecord) {
       scanned_by: data.scanned_by,
       user_id: data.user_id,
       discord_message_id: data.discord_message_id ?? null,
+      returned_on: null,
+      condition_after: null,
+      notes: null,
     });
 
   if (error) throw error;
