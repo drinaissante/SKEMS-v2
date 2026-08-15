@@ -227,25 +227,6 @@ export default function Navbar() {
             <>
               <div className="h-px bg-white/10 my-2" />
 
-              <NavLink
-                to="/scan"
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center justify-center px-3 py-2.5 rounded-lg text-sm transition-colors border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] ${
-                  pathname === "/scan" ? "bg-[#c89116] text-white" : ""
-                }`}
-              >
-                Scan
-              </NavLink>
-              <NavLink
-                to="/request"
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center justify-center px-3 py-2.5 rounded-lg text-sm transition-colors border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] ${
-                  pathname === "/request" ? "bg-[#c89116] text-white" : ""
-                }`}
-              >
-                Request
-              </NavLink>
-
               {isAdmin && (
                 <>
                   <NavLink
@@ -327,6 +308,29 @@ export default function Navbar() {
             </>
           )}
         </nav>
+
+        {isLoggedIn && (
+          <div className="p-3 border-t border-white/10 space-y-2">
+            <NavLink
+              to="/scan"
+              onClick={() => setSidebarOpen(false)}
+              className={`w-full flex items-center justify-center px-3 py-2.5 rounded-lg text-sm transition-colors border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] ${
+                pathname === "/scan" ? "bg-[#c89116] text-white" : ""
+              }`}
+            >
+              Scan
+            </NavLink>
+            <NavLink
+              to="/request"
+              onClick={() => setSidebarOpen(false)}
+              className={`w-full flex items-center justify-center px-3 py-2.5 rounded-lg text-sm transition-colors border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] ${
+                pathname === "/request" ? "bg-[#c89116] text-white" : ""
+              }`}
+            >
+              Request
+            </NavLink>
+          </div>
+        )}
 
         {isLoggedIn ? (
           <div className="p-3 border-t border-white/10">
