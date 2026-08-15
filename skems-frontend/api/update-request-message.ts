@@ -6,6 +6,7 @@ import {
   buildViewRequestComponents,
   getBotUser,
 } from "./discord";
+import type { RequestEmbedData } from "./discord";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -13,24 +14,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed." });
   }
 
-  const {
-    equipmentName,
-    quantity,
-    borrowerName,
-    studentNumber,
-    positionDepartment,
-    reason,
-    dateBorrowed,
-    dateDue,
-    pickupLocation,
-    returnLocation,
-    owner,
-    requestId,
-  } = req.body || {};
+  const { messageId, status, requestId, ...embedData } = req.body || {};
 
-  if (!equipmentName || !borrowerName) {
-    console.error("Missing request details");
-    return res.status(400).json({ error: "Missing request details." });
+  if (!messageId || !status) {
+    console.error("Missing messageId or status");
+    return res.status(400).json({ error: "Missing messageId or status." });
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -69,20 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const bot = await getBotUser(botToken);
   const embed = buildRequestEmbed(
-    {
-      equipmentName,
-      quantity,
-      borrowerName,
-      studentNumber,
-      positionDepartment,
-      reason,
-      dateBorrowed,
-      dateDue,
-      pickupLocation,
-      returnLocation,
-      owner,
-    },
-    "Pending",
+    embedData as unknown as RequestEmbedData,
+    status,
     bot,
   );
 
@@ -93,14 +69,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     embeds: [embed],
   };
 
-  const components = buildViewRequestComponents(requestId);
-  if (components) body.components = components;
+  if (status === "Pending" || status === "Rejected") {
+    const components = buildViewRequestComponents(requestId);
+    if (components) body.components = components;
+  }
 
   try {
     const discordRes = await fetch(
-      `${DISCORD_API}/channels/${channelId}/messages`,
+      `${DISCORD_API}/channels/${channelId}/messages/${messageId}`,
       {
-        method: "POST",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bot ${botToken}`,
@@ -111,16 +89,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!discordRes.ok) {
       const errText = await discordRes.text();
-      console.error("Discord send failed:", discordRes.status, errText);
-      return res.status(502).json({ ok: false, error: "Discord send failed." });
+      console.error("Discord update failed:", discordRes.status, errText);
+      return res.status(502).json({ ok: false, error: "Discord update failed." });
     }
 
-    const discordJson = await discordRes.json();
-    const messageId = typeof discordJson?.id === "string" ? discordJson.id : null;
-
-    return res.status(200).json({ ok: true, messageId });
+    return res.status(200).json({ ok: true });
   } catch (error) {
-    console.error("Discord send error:", error);
-    return res.status(502).json({ ok: false, error: "Discord send failed." });
+    console.error("Discord update error:", error);
+    return res.status(502).json({ ok: false, error: "Discord update failed." });
   }
 }

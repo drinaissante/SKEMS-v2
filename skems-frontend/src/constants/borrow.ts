@@ -37,6 +37,7 @@ export interface BorrowRecord {
   scanned_by: string
   created_at: string
   updated_at: string
+  discord_message_id: string | null
 }
 
 export interface BorrowUpdate {

@@ -301,7 +301,7 @@ async function notifyDiscordRequest(
     } = await supabase.auth.getSession();
     if (!session?.access_token) return;
 
-    await fetch("/api/notify-request", {
+    const res = await fetch("/api/notify-request", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -320,6 +320,63 @@ async function notifyDiscordRequest(
         returnLocation: data.returnLocation,
         owner: data.owner,
         requestId,
+      }),
+    });
+
+    if (res.ok) {
+      const json = await res.json().catch(() => null);
+      const messageId = json?.messageId;
+      if (messageId) {
+        await supabase
+          .from("requests")
+          .update({ discord_message_id: messageId })
+          .eq("id", requestId);
+      }
+    }
+  } catch {
+    // fire-and-forget; never block the request flow
+  }
+}
+
+function toRequestEmbedData(row: Record<string, unknown>) {
+  return {
+    equipmentName: String(row.equipment_name ?? row.equipment_requested ?? ""),
+    quantity: Number(row.quantity ?? 1),
+    borrowerName: String(row.borrower_name ?? row.full_name ?? ""),
+    studentNumber: String(row.student_number ?? ""),
+    positionDepartment: String(row.position_department ?? ""),
+    reason: String(row.reason ?? row.purpose_of_use ?? ""),
+    dateBorrowed: String(row.date_borrowed ?? row.date_time_borrowing ?? ""),
+    dateDue: String(row.date_due ?? row.date_time_return ?? ""),
+    pickupLocation: String(row.pickup_location ?? ""),
+    returnLocation: String(row.return_location ?? ""),
+    owner: String(row.owner ?? ""),
+  };
+}
+
+async function syncDiscordStatus(
+  row: { discord_message_id?: string | null } & Record<string, unknown>,
+  status: string,
+  requestId?: string | null,
+) {
+  if (!row.discord_message_id) return;
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+
+    await fetch("/api/update-request-message", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        messageId: row.discord_message_id,
+        requestId,
+        status,
+        ...toRequestEmbedData(row),
       }),
     });
   } catch {
@@ -353,6 +410,7 @@ export async function fetchMyRequests(userId: string) {
     pickup_location: string;
     return_location: string;
     owner: string;
+    discord_message_id: string | null;
   }[];
 }
 
@@ -381,6 +439,7 @@ export async function fetchAllRequests() {
     pickup_location: string;
     return_location: string;
     owner: string;
+    discord_message_id: string | null;
   }[];
 }
 
@@ -419,6 +478,7 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
     return_location: request.return_location ?? "",
     scanned_by: adminUserId,
     user_id: request.user_id ?? null,
+    discord_message_id: request.discord_message_id ?? null,
   });
 
   const { error: delErr } = await supabase
@@ -427,25 +487,53 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
     .eq("id", requestId);
 
   if (delErr) throw delErr;
+
+  void syncDiscordStatus(request, "Approved", request.id);
 }
 
 export async function updateRequestStatus(requestId: string, status: string) {
+  const { data: row } = await supabase
+    .from("requests")
+    .select("*")
+    .eq("id", requestId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("requests")
     .update({ status })
     .eq("id", requestId);
   if (error) throw error;
+
+  if (row) {
+    void syncDiscordStatus(row, status === "Denied" ? "Rejected" : status, row.id);
+  }
 }
 
 export async function deleteRequest(requestId: string) {
+  const { data: row } = await supabase
+    .from("requests")
+    .select("*")
+    .eq("id", requestId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("requests")
     .delete()
     .eq("id", requestId);
   if (error) throw error;
+
+  if (row) {
+    void syncDiscordStatus(row, "Deleted", row.id);
+  }
 }
 
 export async function returnBorrowedItem(equipmentId: string, conditionAfter: string) {
+  const { data: record } = await supabase
+    .from("borrow_records")
+    .select("*")
+    .eq("equipment_id", equipmentId)
+    .maybeSingle();
+
   const { error: recordErr } = await supabase
     .from("borrow_records")
     .update({
@@ -467,6 +555,10 @@ export async function returnBorrowedItem(equipmentId: string, conditionAfter: st
     .eq("equipment_id", equipmentId);
 
   if (equipErr) console.error("Failed to reset equipment:", equipErr);
+
+  if (record) {
+    void syncDiscordStatus(record, "Returned", null);
+  }
 }
 
 export interface NewBorrowRecord {
@@ -484,6 +576,7 @@ export interface NewBorrowRecord {
   return_location: string
   scanned_by: string
   user_id: string | null
+  discord_message_id?: string | null
 }
 
 export async function fetchBorrowedItems() {
@@ -514,6 +607,7 @@ export async function fetchBorrowedItems() {
     user_id: string | null
     created_at: string
     updated_at: string
+    discord_message_id: string | null
   }[];
 }
 
@@ -535,6 +629,7 @@ export async function addBorrowedItem(data: NewBorrowRecord) {
       return_location: data.return_location,
       scanned_by: data.scanned_by,
       user_id: data.user_id,
+      discord_message_id: data.discord_message_id ?? null,
     });
 
   if (error) throw error;
@@ -572,10 +667,11 @@ export async function updateBorrowedItem(
 export async function deleteBorrowedItem(equipmentId: string) {
   const { data: records } = await supabase
     .from("borrow_records")
-    .select("condition_before")
+    .select("*")
     .eq("equipment_id", equipmentId);
 
-  const conditionBefore = records?.[0]?.condition_before ?? "";
+  const record = records?.[0] ?? null;
+  const conditionBefore = record?.condition_before ?? "";
 
   const { error } = await supabase
     .from("borrow_records")
@@ -594,6 +690,10 @@ export async function deleteBorrowedItem(equipmentId: string) {
     .eq("equipment_id", equipmentId);
 
   if (equipErr) console.error("Failed to sync equipment:", equipErr);
+
+  if (record) {
+    void syncDiscordStatus(record, "Deleted", null);
+  }
 }
 
 export async function uploadQRCode(equipmentId: string): Promise<string> {
