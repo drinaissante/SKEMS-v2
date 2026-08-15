@@ -327,7 +327,7 @@ export default function RequestPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Position / Department <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Position / Department</label>
                 <input type="text" value={positionDepartment} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
               </div>
 

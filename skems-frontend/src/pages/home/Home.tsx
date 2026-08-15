@@ -101,7 +101,7 @@ export default function Home() {
                   to="/scan"
                   className="w-full sm:flex-1 sm:min-w-40 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-xl transition-colors text-sm sm:text-base"
                 >
-                  Scan QR
+                  Scan
                 </Link>
                 <Link
                   to="/request"
