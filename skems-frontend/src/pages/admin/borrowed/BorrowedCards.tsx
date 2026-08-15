@@ -1,8 +1,9 @@
+import { useState } from "react"
 import type { ReactNode } from "react"
 import type { BorrowRecord } from "../../../constants/borrow"
 import { formatDate, formatReturnedOn } from "../../../constants/borrowedConstants"
 import ConditionBadges from "./BorrowedUtils"
-import { FiCheckCircle, FiEdit2, FiTrash2 } from "react-icons/fi"
+import { FiCheckCircle, FiEdit2, FiTrash2, FiChevronDown } from "react-icons/fi"
 
 function toTitleCase(value: string) {
   return value.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
@@ -34,21 +35,25 @@ export default function BorrowedCards({
   returnPending, returnVariables,
   deletePending, deleteVariables,
 }: Props) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const toggleCard = (id: string) => setExpandedId((prev) => (prev === id ? null : id))
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {items.map((r) => {
         const isReturned = Boolean(r.returned_on)
         const ownerPosition = getOwnerPosition(r.owner)
         return (
-          <div key={r.equipment_id} className="dark-card rounded-xl border border-white/10 p-5 flex flex-col gap-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="shrink-0 text-[#a6a6a6] font-normal text-sm">×{r.quantity}</span>
-                <div className="min-w-0">
-                  <p className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</p>
-                  <h3 className="text-base font-bold text-white leading-snug">{r.equipment_requested}</h3>
-                </div>
+          <div key={r.equipment_id} className="dark-card rounded-xl border border-white/10 overflow-hidden">
+            <button
+              onClick={() => toggleCard(r.equipment_id)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</p>
+                <h3 className="text-base font-bold text-white leading-snug">{r.equipment_requested}</h3>
               </div>
+              <span className="shrink-0 text-[#a6a6a6] font-normal text-sm">×{r.quantity}</span>
               <span
                 className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${
                   isReturned ? "bg-green-500/15 text-green-300" : "bg-purple-500/15 text-purple-300"
@@ -56,7 +61,16 @@ export default function BorrowedCards({
               >
                 {isReturned ? "Returned" : "Active"}
               </span>
-            </div>
+              <FiChevronDown
+                size={16}
+                className={`shrink-0 text-[#a6a6a6] transition-transform ${
+                  expandedId === r.equipment_id ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {expandedId === r.equipment_id && (
+            <div className="px-4 pb-4 pt-1 border-t border-white/10 flex flex-col gap-4">
 
             <div className="grid grid-cols-2 gap-3">
               <InfoBlock label="Borrower">
@@ -140,6 +154,8 @@ export default function BorrowedCards({
                 Delete
               </button>
             </div>
+            </div>
+            )}
           </div>
         )
       })}
