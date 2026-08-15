@@ -187,6 +187,13 @@ export default function DashboardHome() {
               Open Sheets
             </button>
           )}
+          
+          <button
+            onClick={() => setEditingEquipment(null)}
+            className="w-full sm:w-auto px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer"
+          >
+            Add Equipment
+          </button>
           <button
             onClick={handleExport}
             disabled={syncing}
@@ -200,12 +207,6 @@ export default function DashboardHome() {
             className="w-full sm:w-auto px-3 py-2 text-sm bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border border-[#5f5c5c93]"
           >
             {exportingQR ? "Generating..." : "Export QR Codes"}
-          </button>
-          <button
-            onClick={() => setEditingEquipment(null)}
-            className="w-full sm:w-auto px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer"
-          >
-            Add Equipment
           </button>
         </div>
 

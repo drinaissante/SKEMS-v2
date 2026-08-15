@@ -5,8 +5,8 @@ import {
   buildRequestEmbed,
   buildViewRequestComponents,
   getBotUser,
-} from "./discord";
-import type { RequestEmbedData } from "./discord";
+} from "../lib/discord.js";
+import type { RequestEmbedData } from "../lib/discord.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
