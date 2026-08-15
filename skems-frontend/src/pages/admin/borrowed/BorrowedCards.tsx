@@ -58,7 +58,7 @@ export default function BorrowedCards({
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <InfoBlock label="Borrower">
                 <div className="font-medium text-white">{r.full_name}</div>
                 <div className="text-xs text-[#a6a6a6]">{toTitleCase(r.position_department)}</div>
@@ -71,7 +71,7 @@ export default function BorrowedCards({
               </InfoBlock>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <InfoBlock label="Borrowed">
                 <span className="whitespace-nowrap text-xs text-white">{formatDate(r.date_time_borrowing)}</span>
               </InfoBlock>

@@ -175,7 +175,7 @@ export default function DashboardHome() {
               href={sheetsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto px-3 py-2 text-sm bg-green-500/15 hover:bg-green-500/25 text-green-300 font-bold rounded-lg transition-colors cursor-pointer border border-green-500/30 inline-flex items-center"
+              className="w-full sm:w-auto px-3 py-2 text-sm bg-green-500/15 hover:bg-green-500/25 text-green-300 font-bold rounded-lg transition-colors cursor-pointer border border-green-500/30 inline-flex items-center justify-center"
             >
               Open Sheets
             </a>

@@ -21,7 +21,7 @@ export function formatDate(val: string) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
-  })
+  }).replace(/\s*at\s+/i, " ")
 }
 
 export function formatReturnedOn(val: string) {
@@ -32,5 +32,5 @@ export function formatReturnedOn(val: string) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
-  })
+  }).replace(/\s*at\s+/i, " ")
 }
