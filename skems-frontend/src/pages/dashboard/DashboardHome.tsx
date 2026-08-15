@@ -169,20 +169,20 @@ export default function DashboardHome() {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-6">
           {sheetsUrl ? (
             <a
               href={sheetsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg transition-colors cursor-pointer border border-[#5f5c5c93] inline-flex items-center"
+              className="w-full sm:w-auto px-3 py-2 text-sm bg-green-500/15 hover:bg-green-500/25 text-green-300 font-bold rounded-lg transition-colors cursor-pointer border border-green-500/30 inline-flex items-center"
             >
               Open Sheets
             </a>
           ) : (
             <button
               disabled
-              className="px-3 py-2 text-sm bg-white/10 text-white font-bold rounded-lg border border-[#5f5c5c93] opacity-40 cursor-not-allowed"
+              className="w-full sm:w-auto px-3 py-2 text-sm bg-green-500/15 text-green-300 font-bold rounded-lg border border-green-500/30 opacity-40 cursor-not-allowed"
             >
               Open Sheets
             </button>
@@ -190,20 +190,20 @@ export default function DashboardHome() {
           <button
             onClick={handleExport}
             disabled={syncing}
-            className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border border-[#5f5c5c93]"
+            className="w-full sm:w-auto px-3 py-2 text-sm bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border border-[#5f5c5c93]"
           >
             {syncing ? "Preparing..." : "Export to Sheet"}
           </button>
           <button
             onClick={handleExportQR}
             disabled={exportingQR}
-            className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border border-[#5f5c5c93]"
+            className="w-full sm:w-auto px-3 py-2 text-sm bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors cursor-pointer border border-[#5f5c5c93]"
           >
             {exportingQR ? "Generating..." : "Export QR Codes"}
           </button>
           <button
             onClick={() => setEditingEquipment(null)}
-            className="px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-3 py-2 text-sm bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer"
           >
             Add Equipment
           </button>
