@@ -709,6 +709,62 @@ export async function deleteBorrowedItem(equipmentId: string) {
   }
 }
 
+export interface Grading {
+  id: string;
+  date: string;
+  event_name: string;
+  member_name: string;
+  shots_posted: number;
+  notes: string;
+  tech_execution: number;
+  creative_impact: number;
+  brand_alignment: number;
+  revision_factor: number;
+  created_at: string;
+  created_by: string;
+}
+
+export function computeOutputQuality(tech: number, creative: number, brand: number, revision: number): number {
+  return ((tech + creative + brand + revision) / 16) * 0.3;
+}
+
+export async function fetchGradings(): Promise<Grading[]> {
+  const { data, error } = await supabase
+    .from("gradings")
+    .select("*")
+    .order("date", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as Grading[];
+}
+
+export async function addGrading(
+  row: Omit<Grading, "id" | "created_at" | "created_by">,
+): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { error } = await supabase
+    .from("gradings")
+    .insert({ ...row, created_by: user?.id });
+  if (error) throw error;
+}
+
+export async function updateGrading(
+  id: string,
+  row: Partial<Omit<Grading, "id" | "created_at" | "created_by">>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("gradings")
+    .update(row)
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteGrading(id: string): Promise<void> {
+  const { error } = await supabase.from("gradings").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function uploadQRCode(equipmentId: string): Promise<string> {
   const path = `qr-codes/${equipmentId}.png`
 

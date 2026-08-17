@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Link, Outlet, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { requestLogout } from "../utils/logoutEvent"
-import { FiBox, FiChevronLeft, FiChevronRight, FiClock, FiGrid, FiInbox, FiLogOut, FiUsers } from "react-icons/fi"
+import { FiAward, FiBox, FiChevronLeft, FiChevronRight, FiClock, FiGrid, FiInbox, FiLogOut, FiUsers } from "react-icons/fi"
 
 const COLLAPSE_KEY = "skems:dashboard-collapsed"
 
@@ -31,7 +31,10 @@ export default function DashboardLayout() {
     { to: "/dashboard/requests", label: "Requests", icon: FiInbox, active: pathname.startsWith("/dashboard/requests") },
     { to: "/dashboard/borrowed", label: "Borrowed", icon: FiClock, active: pathname.startsWith("/dashboard/borrowed") },
     ...(isSuperAdmin
-      ? [{ to: "/dashboard/users", label: "Users", icon: FiUsers, active: pathname.startsWith("/dashboard/users") }]
+      ? [
+          { to: "/dashboard/users", label: "Users", icon: FiUsers, active: pathname.startsWith("/dashboard/users") },
+          { to: "/dashboard/grading", label: "Grading", icon: FiAward, active: pathname.startsWith("/dashboard/grading") },
+        ]
       : []),
   ]
 

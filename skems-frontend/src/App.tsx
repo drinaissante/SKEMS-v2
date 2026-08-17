@@ -14,6 +14,7 @@ import ProfilePage from './pages/profile/ProfilePage'
 import UsersPage from './pages/admin/UsersPage'
 import RequestsPage from './pages/admin/RequestsPage'
 import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
+import GradingPage from './pages/admin/GradingPage'
 import NotFound from './pages/NotFound'
 
 import MainLayout from './layouts/MainLayout'
@@ -28,6 +29,7 @@ import { useAuth } from './context/AuthContext'
 import { useEquipmentsRealtime } from './hooks/useEquipmentsRealtime'
 import { useRequestsRealtime } from './hooks/useRequestsRealtime'
 import { useBorrowedRealtime } from './hooks/useBorrowedRealtime'
+import { useGradingRealtime } from './hooks/useGradingRealtime'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
 import OfflineBanner from './components/OfflineBanner'
 import About from './pages/about/About'
@@ -79,6 +81,7 @@ function App() {
   useEquipmentsRealtime()
   useRequestsRealtime()
   useBorrowedRealtime()
+  useGradingRealtime()
   const online = useOnlineStatus()
   return (
     <>
@@ -153,6 +156,7 @@ function App() {
             <Route path='requests' element={<RequestsPage />} />
             <Route path='borrowed' element={<BorrowedPage />} />
             <Route path='users' element={<SuperAdminRoute><UsersPage /></SuperAdminRoute>} />
+            <Route path='grading' element={<SuperAdminRoute><GradingPage /></SuperAdminRoute>} />
           </Route>
 
           <Route path='/equipments' element={<Navigate to="/dashboard/equipments" replace />} />
