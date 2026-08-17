@@ -16,6 +16,7 @@ import {
   type Grading,
 } from "../../services/supabase"
 import { useMemberNames } from "../../hooks/useMemberNames"
+import { useEventNames } from "../../hooks/useEventNames"
 
 const CUSTOM_VALUE = "__custom__"
 
@@ -84,6 +85,7 @@ export default function GradingPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const { data: members = [], isLoading: loadingMembers } = useMemberNames()
+  const { data: eventNames = [], isLoading: loadingEvents } = useEventNames()
 
   const groupedMembers = useMemo((): [string, { fullName: string }[]][] => {
     const map = new Map<string, { fullName: string }[]>()
@@ -110,6 +112,18 @@ export default function GradingPage() {
       ? ""
       : knownNames.has(form.member_name)
         ? form.member_name
+        : CUSTOM_VALUE
+
+  const knownEventNames = useMemo(
+    () => new Set(eventNames),
+    [eventNames],
+  )
+
+  const eventSelectValue =
+    form.event_name === ""
+      ? ""
+      : knownEventNames.has(form.event_name)
+        ? form.event_name
         : CUSTOM_VALUE
 
   useEffect(() => {
@@ -519,15 +533,48 @@ export default function GradingPage() {
                 <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
                   Event Name
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={form.event_name}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, event_name: e.target.value }))
-                  }
-                  className="dark-input w-full"
-                />
+                {loadingEvents ? (
+                  <div className="dark-input w-full text-sm text-[#a6a6a6]">
+                    Loading event list...
+                  </div>
+                ) : (
+                  <select
+                    required={eventSelectValue !== CUSTOM_VALUE}
+                    value={eventSelectValue}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setForm((f) => ({
+                        ...f,
+                        event_name: val === CUSTOM_VALUE ? "" : val,
+                      }))
+                    }}
+                    className="dark-input w-full"
+                  >
+                    <option value="">Select an event...</option>
+                    {eventNames.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                    <option value={CUSTOM_VALUE}>Other (Custom)</option>
+                  </select>
+                )}
+                {eventSelectValue === CUSTOM_VALUE && (
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    placeholder="Enter event name"
+                    value={form.event_name}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        event_name: e.target.value,
+                      }))
+                    }
+                    className="dark-input w-full mt-2"
+                  />
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
