@@ -16,11 +16,6 @@ import {
 } from "../../services/supabase"
 import { useMemberNames } from "../../hooks/useMemberNames"
 import { 
-  STATUS_OPTIONS_GRADING, 
-  ROLE_OPTIONS, 
-  DURATION_OPTIONS, 
-  ATTENDANCE_OPTIONS, 
-  POINTS_OPTIONS,
   EMPTY_FORM,
   type FormData,
 } from "../../constants/gradingConstants"
@@ -33,6 +28,13 @@ import MemberField from "../../components/grading/MemberField"
 import ShotsField from "../../components/grading/ShotsField"
 import RubricsField from "../../components/grading/RubricsField"
 import OutputQualityField from "../../components/grading/OutputQualityField"
+import StatusField from "../../components/grading/StatusField"
+import RoleField from "../../components/grading/RoleField"
+import DurationField from "../../components/grading/DurationField"
+import AttendanceField from "../../components/grading/AttendanceField"
+import PointsField from "../../components/grading/PointsField"
+import EquipmentUsedField from "../../components/grading/EquipmentUsedField"
+import LensesUsedField from "../../components/grading/LensesUsedField"
 
 const MOBILE_ITEMS = 5
 const DESKTOP_ITEMS = 10
@@ -60,8 +62,6 @@ export default function GradingPage() {
   const [modalPage, setModalPage] = useState<1 | 2>(1)
 
   const { data: members = [], isLoading: loadingMembers } = useMemberNames()
-
-
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -313,127 +313,22 @@ export default function GradingPage() {
               {modalPage === 2 && (
                 <>
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                        Status
-                      </label>
-                      <select
-                        value={form.status}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, status: e.target.value }))
-                        }
-                        className="dark-input w-full"
-                      >
-                        <option value="">Select...</option>
-                        {STATUS_OPTIONS_GRADING.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                        Role
-                      </label>
-                      <select
-                        value={form.role}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, role: e.target.value }))
-                        }
-                        className="dark-input w-full"
-                      >
-                        <option value="">Select...</option>
-                        {ROLE_OPTIONS.map((r) => (
-                          <option key={r} value={r}>{r}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <StatusField form={form} setForm={setForm} />
+                    <RoleField form={form} setForm={setForm} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                        Duration
-                      </label>
-                      <select
-                        value={form.duration}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, duration: e.target.value }))
-                        }
-                        className="dark-input w-full"
-                      >
-                        <option value="">Select...</option>
-                        {DURATION_OPTIONS.map((d) => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                        Attendance
-                      </label>
-                      <select
-                        value={form.attendance}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, attendance: e.target.value }))
-                        }
-                        className="dark-input w-full"
-                      >
-                        <option value="">Select...</option>
-                        {ATTENDANCE_OPTIONS.map((a) => (
-                          <option key={a} value={a}>{a}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <DurationField form={form} setForm={setForm} />
+                    <AttendanceField form={form} setForm={setForm} />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                      Points
-                    </label>
-                    <select
-                      value={form.points}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, points: parseFloat(e.target.value) }))
-                      }
-                      className="dark-input w-full"
-                    >
-                      {POINTS_OPTIONS.map((p) => (
-                        <option key={p} value={p}>{p}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <PointsField form={form} setForm={setForm} />
                   <div className="flex gap-2">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                        Camera / Equipment Used
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Optional"
-                        value={form.camera_used}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, camera_used: e.target.value }))
-                        }
-                        className="dark-input w-full"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                        Lenses Used
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Optional"
-                        value={form.lenses_used}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, lenses_used: e.target.value }))
-                        }
-                        className="dark-input w-full"
-                      />
-                    </div>
+                    <EquipmentUsedField form={form} setForm={setForm} />
+                    <LensesUsedField form={form} setForm={setForm} />
                   </div>
                 </>
               )}
             </div>
-            
+
             <div className="flex items-center justify-between mt-5">
               <button
                 type="button"
