@@ -19,8 +19,10 @@ import {
   EMPTY_FORM,
   type FormData,
 } from "../../constants/gradingConstants"
+
 import { exportCSV } from "../../utils/exportCSV"
 import { formatGradingDate } from "../../utils/datetime"
+
 import GradingTable from "../../components/grading/GradingTable"
 import MobileGradingCard from "../../components/grading/MobileGradingCard"
 import EventField from "../../components/grading/EventField"
@@ -36,7 +38,7 @@ import PointsField from "../../components/grading/PointsField"
 import EquipmentUsedField from "../../components/grading/EquipmentUsedField"
 import LensesUsedField from "../../components/grading/LensesUsedField"
 
-const MOBILE_ITEMS = 5
+const MOBILE_ITEMS = 6
 const DESKTOP_ITEMS = 10
 
 export default function GradingPage() {
