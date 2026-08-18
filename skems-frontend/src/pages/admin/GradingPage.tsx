@@ -121,8 +121,8 @@ export default function GradingPage() {
   const filteredMembers = useMemo(() => {
     return members
       .filter((m) => {
-        if (memberStatusFilter && m.status !== memberStatusFilter) return false
-        if (memberSpecFilter && m.specialization !== memberSpecFilter) return false
+        if (memberStatusFilter && !m.status.toLowerCase().includes(memberStatusFilter.toLowerCase())) return false
+        if (memberSpecFilter && !m.specialization.toLowerCase().includes(memberSpecFilter.toLowerCase())) return false
         return true
       })
       .sort((a, b) => a.fullName.localeCompare(b.fullName))
@@ -528,11 +528,11 @@ export default function GradingPage() {
               {editRow ? "Edit Grading" : "Add Grading"}
             </h2>
             <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                  Date
-                </label>
-                <div className="flex gap-2">
+              <div className="flex gap-2">
+                <div className="flex-1 min-w-0">
+                  <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                    Date
+                  </label>
                   <input
                     type="date"
                     required
@@ -540,74 +540,62 @@ export default function GradingPage() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, date: e.target.value }))
                     }
-                    className="dark-input flex-1"
+                    className="dark-input w-full"
                   />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setForm((f) => ({
-                        ...f,
-                        date: new Date().toISOString().slice(0, 10),
-                      }))
-                    }
-                    className="btn-gold px-3 py-2 text-sm shrink-0"
-                  >
-                    Today
-                  </button>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                  Event Name
-                </label>
-                {loadingEvents ? (
-                  <div className="dark-input w-full text-sm text-[#a6a6a6]">
-                    Loading event list...
-                  </div>
-                ) : (
-                  <select
-                    required={eventSelectValue !== CUSTOM_VALUE}
-                    value={eventSelectValue}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      if (val === CUSTOM_VALUE) {
-                        setForm((f) => ({ ...f, event_name: "" }))
-                      } else {
-                        const startDate = eventLookup.get(val) || ""
+                <div className="flex-1 min-w-0">
+                  <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                    Event Name
+                  </label>
+                  {loadingEvents ? (
+                    <div className="dark-input w-full text-sm text-[#a6a6a6]">
+                      Loading event list...
+                    </div>
+                  ) : (
+                    <select
+                      required={eventSelectValue !== CUSTOM_VALUE}
+                      value={eventSelectValue}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        if (val === CUSTOM_VALUE) {
+                          setForm((f) => ({ ...f, event_name: "" }))
+                        } else {
+                          const startDate = eventLookup.get(val) || ""
+                          setForm((f) => ({
+                            ...f,
+                            event_name: val,
+                            ...(startDate ? { date: startDate } : {}),
+                          }))
+                        }
+                      }}
+                      className="dark-input w-full"
+                    >
+                      <option value="">Select an event...</option>
+                      {eventOptions.map((ev) => (
+                        <option key={ev.event_name} value={ev.event_name}>
+                          {ev.event_name}
+                        </option>
+                      ))}
+                      <option value={CUSTOM_VALUE}>Other (Custom)</option>
+                    </select>
+                  )}
+                  {eventSelectValue === CUSTOM_VALUE && (
+                    <input
+                      type="text"
+                      required
+                      autoFocus
+                      placeholder="Enter event name"
+                      value={form.event_name}
+                      onChange={(e) =>
                         setForm((f) => ({
                           ...f,
-                          event_name: val,
-                          ...(startDate ? { date: startDate } : {}),
+                          event_name: e.target.value,
                         }))
                       }
-                    }}
-                    className="dark-input w-full"
-                  >
-                    <option value="">Select an event...</option>
-                    {eventOptions.map((ev) => (
-                      <option key={ev.event_name} value={ev.event_name}>
-                        {ev.event_name}
-                      </option>
-                    ))}
-                    <option value={CUSTOM_VALUE}>Other (Custom)</option>
-                  </select>
-                )}
-                {eventSelectValue === CUSTOM_VALUE && (
-                  <input
-                    type="text"
-                    required
-                    autoFocus
-                    placeholder="Enter event name"
-                    value={form.event_name}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        event_name: e.target.value,
-                      }))
-                    }
-                    className="dark-input w-full mt-2"
-                  />
-                )}
+                      className="dark-input w-full mt-2"
+                    />
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
@@ -619,7 +607,7 @@ export default function GradingPage() {
                   </div>
                 ) : (
                   <>
-                    <div className="flex gap-2 mb-2">
+                    <div className="flex flex-col sm:flex-row gap-2 mb-2">
                       <select
                         value={memberStatusFilter}
                         onChange={(e) => setMemberStatusFilter(e.target.value)}
