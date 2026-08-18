@@ -281,10 +281,7 @@ export default function GradingPage() {
             <div className="space-y-3">
               {modalPage === 1 && (
                 <>
-                  {/* Events */}
                   <EventField form={form} setForm={setForm}/>
-
-                  {/* Member */}
                   <MemberField 
                     loadingMembers={loadingMembers} 
                     memberSearch={memberSearch} 
@@ -299,20 +296,6 @@ export default function GradingPage() {
                     showCustomMemberInput={showCustomMemberInput}
                     setShowCustomMemberInput={setShowCustomMemberInput}
                   />
-
-                  {/* Shots */}
-                  <ShotsField form={form} setForm={setForm} />
-
-                  {/* Rubrics */}
-                  <RubricsField form={form} setForm={setForm} />
-
-                  {/* Output Quality */}
-                  <OutputQualityField form={form} />
-                </>
-              )}
-
-              {modalPage === 2 && (
-                <>
                   <div className="grid grid-cols-2 gap-3">
                     <StatusField form={form} setForm={setForm} />
                     <RoleField form={form} setForm={setForm} />
@@ -321,11 +304,19 @@ export default function GradingPage() {
                     <DurationField form={form} setForm={setForm} />
                     <AttendanceField form={form} setForm={setForm} />
                   </div>
+                </>
+              )}
+
+              {modalPage === 2 && (
+                <>
                   <PointsField form={form} setForm={setForm} />
                   <div className="flex gap-2">
                     <EquipmentUsedField form={form} setForm={setForm} />
                     <LensesUsedField form={form} setForm={setForm} />
                   </div>
+                  <ShotsField form={form} setForm={setForm} />
+                  <RubricsField form={form} setForm={setForm} />
+                  <OutputQualityField form={form} />
                 </>
               )}
             </div>
@@ -363,7 +354,7 @@ export default function GradingPage() {
               >
                 Cancel
               </button>
-              {!editRow && (
+              {modalPage === 2 && !editRow && (
                 <button
                   type="button"
                   disabled={saveMutation.isPending}
@@ -373,13 +364,15 @@ export default function GradingPage() {
                   {saveMutation.isPending ? "Saving..." : "Again"}
                 </button>
               )}
-              <button
-                type="submit"
-                disabled={saveMutation.isPending}
-                className="btn-gold flex-1 py-2 text-sm disabled:opacity-40"
-              >
-                {saveMutation.isPending ? "Saving..." : "Save"}
-              </button>
+              {modalPage === 2 && (
+                <button
+                  type="submit"
+                  disabled={saveMutation.isPending}
+                  className="btn-gold flex-1 py-2 text-sm disabled:opacity-40"
+                >
+                  {saveMutation.isPending ? "Saving..." : "Save"}
+                </button>
+              )}
             </div>
           </form>
         </div>
