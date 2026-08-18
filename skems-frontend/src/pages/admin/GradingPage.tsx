@@ -27,7 +27,6 @@ import GradingTable from "../../components/grading/GradingTable"
 import MobileGradingCard from "../../components/grading/MobileGradingCard"
 import EventField from "../../components/grading/EventField"
 import MemberField from "../../components/grading/MemberField"
-import ShotsField from "../../components/grading/ShotsField"
 import RubricsField from "../../components/grading/RubricsField"
 import OutputQualityField from "../../components/grading/OutputQualityField"
 import StatusField from "../../components/grading/StatusField"
@@ -177,6 +176,16 @@ export default function GradingPage() {
     saveMutation.mutate({ id: editRow?.id, values: { ...form } })
   }
 
+  const isFormValid = useMemo(() =>
+    form.event_name !== "" &&
+    form.member_name !== "" &&
+    form.status !== "" &&
+    form.role !== "" &&
+    form.duration !== "" &&
+    form.attendance !== "",
+    [form]
+  )
+
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-fixed-black px-3 sm:px-4 py-4 sm:py-6">
       <div className="flex flex-col flex-1 min-h-0 max-w-7xl w-full mx-auto">
@@ -311,12 +320,46 @@ export default function GradingPage() {
 
               {modalPage === 2 && (
                 <>
-                  <PointsField form={form} setForm={setForm} />
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <PointsField form={form} setForm={setForm} />
+                    </div>
+                    <div className="w-24 shrink-0">
+                      <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                        Shots
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={form.shots_posted}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            shots_posted: parseInt(e.target.value) || 0,
+                          }))
+                        }
+                        className="dark-input w-full"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                      Notes
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Optional notes"
+                      value={form.notes}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, notes: e.target.value }))
+                      }
+                      className="dark-input w-full"
+                    />
+                  </div>
                   <div className="flex gap-2">
                     <EquipmentUsedField form={form} setForm={setForm} />
                     <LensesUsedField form={form} setForm={setForm} />
                   </div>
-                  <ShotsField form={form} setForm={setForm} />
                   <RubricsField form={form} setForm={setForm} />
                   <OutputQualityField form={form} />
                 </>
@@ -359,7 +402,7 @@ export default function GradingPage() {
               {modalPage === 2 && !editRow && (
                 <button
                   type="button"
-                  disabled={saveMutation.isPending}
+                  disabled={saveMutation.isPending || !isFormValid}
                   onClick={(e) => handleSubmit(e, "again")}
                   className="flex-1 py-2 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-40"
                 >
@@ -369,7 +412,7 @@ export default function GradingPage() {
               {modalPage === 2 && (
                 <button
                   type="submit"
-                  disabled={saveMutation.isPending}
+                  disabled={saveMutation.isPending || !isFormValid}
                   className="btn-gold flex-1 py-2 text-sm disabled:opacity-40"
                 >
                   {saveMutation.isPending ? "Saving..." : "Save"}
