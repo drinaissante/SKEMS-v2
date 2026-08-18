@@ -89,7 +89,7 @@ export default function MemberField({
                         </select>
                     </div>
 
-                    <div className="border border-white/10 rounded-lg max-h-40 overflow-y-auto">
+                    <div className="border border-white/10 rounded-lg max-h-[90px] overflow-y-auto">
                         {filteredMembers.length === 0 ? (
                             <p className="text-xs text-[#a6a6a6] px-3 py-2">
                                 No members match the selected filters.

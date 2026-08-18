@@ -271,7 +271,7 @@ export default function GradingPage() {
         >
           <form
             onSubmit={handleSubmit}
-            className="dark-card shadow-xl p-4 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            className="dark-card shadow-xl p-4 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-bold text-white mb-4">
@@ -280,7 +280,7 @@ export default function GradingPage() {
                 Page {modalPage} of 2
               </span>
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1">
               {modalPage === 1 && (
                 <>
                   <EventField form={form} setForm={setForm}/>
