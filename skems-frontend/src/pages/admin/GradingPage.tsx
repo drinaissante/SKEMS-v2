@@ -16,7 +16,7 @@ import {
   type Grading,
 } from "../../services/supabase"
 import { useMemberNames } from "../../hooks/useMemberNames"
-import { useEventNames } from "../../hooks/useEventNames"
+import { useEventNames, type EventOption } from "../../hooks/useEventNames"
 
 const CUSTOM_VALUE = "__custom__"
 
@@ -124,6 +124,12 @@ export default function GradingPage() {
 
   const { data: members = [], isLoading: loadingMembers } = useMemberNames()
   const { data: eventOptions = [], isLoading: loadingEvents } = useEventNames()
+
+  useEffect(() => {
+    eventOptions.map((v: EventOption, idx: number, array: EventOption[]) => {
+    console.log(v + " | " + idx + " | " + array);
+    })
+  }, []);
 
   const filteredMembers = useMemo(() => {
     return members
