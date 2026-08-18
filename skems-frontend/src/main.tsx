@@ -12,7 +12,15 @@ import ScrollToTop from './components/ScrollToTop.tsx'
 
 import './index.css'
 
-registerSW({ immediate: true })
+const updateSW = registerSW({
+  onNeedRefresh() {
+    window.dispatchEvent(new CustomEvent("pwa-update-available"))
+  },
+  onOfflineReady() {
+    window.dispatchEvent(new CustomEvent("pwa-offline-ready"))
+  },
+})
+window.__pwaUpdateSW = updateSW
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } },

@@ -32,6 +32,7 @@ import { useBorrowedRealtime } from './hooks/useBorrowedRealtime'
 import { useGradingRealtime } from './hooks/useGradingRealtime'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
 import OfflineBanner from './components/OfflineBanner'
+import PWAUpdatePrompt from './components/PWAUpdatePrompt'
 import About from './pages/about/About'
 import Restricted from './pages/restricted/Restricted'
 
@@ -86,6 +87,7 @@ function App() {
   return (
     <>
       {!online && <OfflineBanner />}
+      <PWAUpdatePrompt />
       <ToastProvider>
       <Routes>
         <Route path='/change-password' element={<ChangePasswordPage />} />
