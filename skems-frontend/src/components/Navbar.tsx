@@ -270,16 +270,28 @@ export default function Navbar() {
                     {pathname.startsWith("/dashboard/borrowed") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
                   </NavLink>
                   {isSuperAdmin && (
-                    <NavLink
-                      to="/dashboard/users"
-                      onClick={() => setSidebarOpen(false)}
-                      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                        pathname.startsWith("/dashboard/users") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
-                      }`}
-                    >
-                      Manage Users
-                      {pathname.startsWith("/dashboard/users") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
-                    </NavLink>
+                    <>
+                      <NavLink
+                        to="/dashboard/users"
+                        onClick={() => setSidebarOpen(false)}
+                        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                          pathname.startsWith("/dashboard/users") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+                        }`}
+                      >
+                        Manage Users
+                        {pathname.startsWith("/dashboard/users") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+                      </NavLink>
+                      <NavLink
+                        to="/dashboard/grading"
+                        onClick={() => setSidebarOpen(false)}
+                        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                          pathname.startsWith("/dashboard/grading") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+                        }`}
+                      >
+                        Grading
+                        {pathname.startsWith("/dashboard/grading") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+                      </NavLink>
+                    </>
                   )}
                 </>
               )}
