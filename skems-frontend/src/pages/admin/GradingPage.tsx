@@ -578,7 +578,7 @@ export default function GradingPage() {
                     <option value="">Select an event...</option>
                     {sortedEvents.map((ev) => (
                       <option key={ev.event_name} value={ev.event_name}>
-                        {toDDMMYYYY(ev.start_date)} | {ev.event_name}
+                        {ev.start_date} | {ev.event_name}
                       </option>
                     ))}
                     <option value={CUSTOM_VALUE}>Other (Custom)</option>

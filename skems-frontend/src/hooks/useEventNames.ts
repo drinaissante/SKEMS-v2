@@ -26,7 +26,7 @@ function parseSheetDate(raw: any): string {
   const parts = datePart.split("/");
   if (parts.length < 3) return "";
 
-    const [day, month, year] = parts;
+  const [day, month, year] = parts;
   if (!year || !month || !day) return "";
 
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
