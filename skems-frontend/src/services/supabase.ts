@@ -720,6 +720,13 @@ export interface Grading {
   creative_impact: number;
   brand_alignment: number;
   revision_factor: number;
+  status: string | null;
+  role: string | null;
+  duration: string | null;
+  attendance: string | null;
+  points: number | null;
+  camera_used: string | null;
+  lenses_used: string | null;
   created_at: string;
   created_by: string;
 }
