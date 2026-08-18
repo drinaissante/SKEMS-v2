@@ -6,6 +6,7 @@ import {
   FiEdit2,
   FiTrash2,
   FiChevronDown,
+  FiDownload,
 } from "react-icons/fi"
 import {
   fetchGradings,
@@ -115,6 +116,7 @@ export default function GradingPage() {
   const [memberSpecFilter, setMemberSpecFilter] = useState("")
   const [memberSearch, setMemberSearch] = useState("")
   const [showCustomMemberInput, setShowCustomMemberInput] = useState(false)
+  const [saveMode, setSaveMode] = useState<"save" | "again">("save")
 
   const { data: members = [], isLoading: loadingMembers } = useMemberNames()
   const { data: eventOptions = [], isLoading: loadingEvents } = useEventNames()
@@ -166,8 +168,14 @@ export default function GradingPage() {
     }) => (data.id ? updateGrading(data.id, data.values) : addGrading(data.values)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["gradings"] })
-      setShowModal(false)
-      setEditRow(null)
+      if (saveMode === "again") {
+        const kept = { date: form.date, event_name: form.event_name }
+        setForm({ ...EMPTY_FORM, ...kept })
+        setShowCustomMemberInput(false)
+      } else {
+        setShowModal(false)
+        setEditRow(null)
+      }
     },
   })
 
@@ -235,9 +243,34 @@ export default function GradingPage() {
     setShowModal(true)
   }
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = (e: React.FormEvent, mode: "save" | "again" = "save") => {
     e.preventDefault()
+    setSaveMode(mode)
     saveMutation.mutate({ id: editRow?.id, values: { ...form } })
+  }
+
+  const exportCSV = () => {
+    const header = "Date,Event,Member,Shots Posted,Notes,Tech Execution,Creative Impact,Brand Alignment,Revision Factor,Output Quality,Created At"
+    const rows = filtered.map((g) => [
+      g.date,
+      `"${g.event_name.replace(/"/g, '""')}"`,
+      `"${g.member_name.replace(/"/g, '""')}"`,
+      g.shots_posted,
+      `"${g.notes.replace(/"/g, '""')}"`,
+      g.tech_execution,
+      g.creative_impact,
+      g.brand_alignment,
+      g.revision_factor,
+      (computeOutputQuality(g.tech_execution, g.creative_impact, g.brand_alignment, g.revision_factor) * 100).toFixed(1) + "%",
+      g.created_at?.slice(0, 10) || "",
+    ].join(","))
+    const blob = new Blob([header + "\n" + rows.join("\n")], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `gradings_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -247,12 +280,21 @@ export default function GradingPage() {
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
             Grading
           </h1>
-          <button
-            onClick={openAdd}
-            className="btn-gold px-4 py-2 text-sm flex items-center gap-2 ml-auto"
-          >
-            <FiPlus size={16} /> Add Grading
-          </button>
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              onClick={exportCSV}
+              disabled={filtered.length === 0}
+              className="btn-ghost px-4 py-2 text-sm flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <FiDownload size={16} /> Export CSV
+            </button>
+            <button
+              onClick={openAdd}
+              className="btn-gold px-4 py-2 text-sm flex items-center gap-2"
+            >
+              <FiPlus size={16} /> Add Grading
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-2 mb-4">
@@ -810,6 +852,16 @@ export default function GradingPage() {
               >
                 Cancel
               </button>
+              {!editRow && (
+                <button
+                  type="button"
+                  disabled={saveMutation.isPending}
+                  onClick={(e) => handleSubmit(e, "again")}
+                  className="flex-1 py-2 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer disabled:opacity-40"
+                >
+                  {saveMutation.isPending ? "Saving..." : "Again"}
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={saveMutation.isPending}
