@@ -29,6 +29,34 @@ const RUBRIC_COLORS: Record<number, string> = {
 
 const RUBRIC_OPTIONS = [4, 3, 2, 1]
 
+const STATUS_OPTIONS = [
+  "Trainee",
+  "Member",
+  "Photo Head",
+  "Driver",
+  "Dept. Social Media Head",
+  "Dept. Graphics Head",
+  "Vice President",
+  "Treasurer",
+  "Video Head",
+  "President",
+  "Event Coordinator",
+  "Secretary",
+  "Creatives Directory",
+  "Video Editing Head",
+  "Dept. Photo Head",
+  "SWNG Head",
+]
+
+const SPEC_OPTIONS = [
+  "Photographer",
+  "SWNG",
+  "Videographer",
+  "Graphics",
+  "Editor",
+  "Driver",
+]
+
 type FormData = {
   date: string
   event_name: string
@@ -83,46 +111,32 @@ export default function GradingPage() {
   const [editRow, setEditRow] = useState<Grading | null>(null)
   const [form, setForm] = useState<FormData>(EMPTY_FORM)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [memberStatusFilter, setMemberStatusFilter] = useState("")
+  const [memberSpecFilter, setMemberSpecFilter] = useState("")
+  const [showCustomMemberInput, setShowCustomMemberInput] = useState(false)
 
   const { data: members = [], isLoading: loadingMembers } = useMemberNames()
-  const { data: eventNames = [], isLoading: loadingEvents } = useEventNames()
+  const { data: eventOptions = [], isLoading: loadingEvents } = useEventNames()
 
-  const groupedMembers = useMemo((): [string, { fullName: string }[]][] => {
-    const map = new Map<string, { fullName: string }[]>()
-    for (const m of members) {
-      const key = m.specialization || "Uncategorized"
-      if (!map.has(key)) map.set(key, [])
-      map.get(key)!.push(m)
-    }
-    return [...map.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([spec, list]) => [
-        spec,
-        list.sort((a, b) => a.fullName.localeCompare(b.fullName)),
-      ])
-  }, [members])
+  const filteredMembers = useMemo(() => {
+    return members
+      .filter((m) => {
+        if (memberStatusFilter && m.status !== memberStatusFilter) return false
+        if (memberSpecFilter && m.specialization !== memberSpecFilter) return false
+        return true
+      })
+      .sort((a, b) => a.fullName.localeCompare(b.fullName))
+  }, [members, memberStatusFilter, memberSpecFilter])
 
-  const knownNames = useMemo(
-    () => new Set(members.map((m) => m.fullName)),
-    [members],
-  )
-
-  const selectValue =
-    form.member_name === ""
-      ? ""
-      : knownNames.has(form.member_name)
-        ? form.member_name
-        : CUSTOM_VALUE
-
-  const knownEventNames = useMemo(
-    () => new Set(eventNames),
-    [eventNames],
+  const eventLookup = useMemo(
+    () => new Map(eventOptions.map((e) => [e.event_name, e.start_date])),
+    [eventOptions],
   )
 
   const eventSelectValue =
     form.event_name === ""
       ? ""
-      : knownEventNames.has(form.event_name)
+      : eventLookup.has(form.event_name)
         ? form.event_name
         : CUSTOM_VALUE
 
@@ -181,6 +195,9 @@ export default function GradingPage() {
   const openAdd = () => {
     setEditRow(null)
     setForm(EMPTY_FORM)
+    setMemberStatusFilter("")
+    setMemberSpecFilter("")
+    setShowCustomMemberInput(false)
     setShowModal(true)
   }
 
@@ -197,6 +214,16 @@ export default function GradingPage() {
       brand_alignment: g.brand_alignment,
       revision_factor: g.revision_factor,
     })
+    const match = members.find((m) => m.fullName === g.member_name)
+    if (match) {
+      setMemberStatusFilter(match.status)
+      setMemberSpecFilter(match.specialization)
+      setShowCustomMemberInput(false)
+    } else {
+      setMemberStatusFilter("")
+      setMemberSpecFilter("")
+      setShowCustomMemberInput(true)
+    }
     setShowModal(true)
   }
 
@@ -543,17 +570,23 @@ export default function GradingPage() {
                     value={eventSelectValue}
                     onChange={(e) => {
                       const val = e.target.value
-                      setForm((f) => ({
-                        ...f,
-                        event_name: val === CUSTOM_VALUE ? "" : val,
-                      }))
+                      if (val === CUSTOM_VALUE) {
+                        setForm((f) => ({ ...f, event_name: "" }))
+                      } else {
+                        const startDate = eventLookup.get(val) || ""
+                        setForm((f) => ({
+                          ...f,
+                          event_name: val,
+                          ...(startDate ? { date: startDate } : {}),
+                        }))
+                      }
                     }}
                     className="dark-input w-full"
                   >
                     <option value="">Select an event...</option>
-                    {eventNames.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
+                    {eventOptions.map((ev) => (
+                      <option key={ev.event_name} value={ev.event_name}>
+                        {ev.event_name}
                       </option>
                     ))}
                     <option value={CUSTOM_VALUE}>Other (Custom)</option>
@@ -585,32 +618,76 @@ export default function GradingPage() {
                     Loading member list...
                   </div>
                 ) : (
-                  <select
-                    required={selectValue !== CUSTOM_VALUE}
-                    value={selectValue}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      setForm((f) => ({
-                        ...f,
-                        member_name: val === CUSTOM_VALUE ? "" : val,
-                      }))
-                    }}
-                    className="dark-input w-full"
-                  >
-                    <option value="">Select a member...</option>
-                    {groupedMembers.map(([spec, list]) => (
-                      <optgroup key={spec} label={spec}>
-                        {list.map((m) => (
-                          <option key={m.fullName} value={m.fullName}>
-                            {m.fullName}
-                          </option>
+                  <>
+                    <div className="flex gap-2 mb-2">
+                      <select
+                        value={memberStatusFilter}
+                        onChange={(e) => setMemberStatusFilter(e.target.value)}
+                        className="dark-input flex-1 text-sm"
+                      >
+                        <option value="">All Status</option>
+                        {STATUS_OPTIONS.map((s) => (
+                          <option key={s} value={s}>{s}</option>
                         ))}
-                      </optgroup>
-                    ))}
-                    <option value={CUSTOM_VALUE}>Other (Custom)</option>
-                  </select>
+                      </select>
+                      <select
+                        value={memberSpecFilter}
+                        onChange={(e) => setMemberSpecFilter(e.target.value)}
+                        className="dark-input flex-1 text-sm"
+                      >
+                        <option value="">All Specialization</option>
+                        {SPEC_OPTIONS.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="border border-white/10 rounded-lg max-h-40 overflow-y-auto">
+                      {filteredMembers.length === 0 ? (
+                        <p className="text-xs text-[#a6a6a6] px-3 py-2">
+                          No members match the selected filters.
+                        </p>
+                      ) : (
+                        filteredMembers.map((m) => (
+                          <button
+                            key={m.fullName}
+                            type="button"
+                            onClick={() => {
+                              setForm((f) => ({ ...f, member_name: m.fullName }))
+                              setShowCustomMemberInput(false)
+                            }}
+                            className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors border-b border-white/5 last:border-b-0 ${
+                              form.member_name === m.fullName && !showCustomMemberInput
+                                ? "bg-[#fdb125]/20 text-[#fdb125] font-bold"
+                                : "text-white hover:bg-white/5"
+                            }`}
+                          >
+                            {m.fullName}
+                            <span className="text-[10px] text-[#a6a6a6] ml-2">
+                              {m.status}
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCustomMemberInput((prev) => {
+                          if (!prev) setForm((f) => ({ ...f, member_name: "" }))
+                          return !prev
+                        })
+                      }}
+                      className={`mt-2 px-3 py-1.5 text-xs rounded-lg border transition-colors cursor-pointer ${
+                        showCustomMemberInput
+                          ? "bg-[#fdb125]/20 border-[#fdb125]/40 text-[#fdb125]"
+                          : "bg-white/5 border-white/10 text-[#a6a6a6] hover:text-white"
+                      }`}
+                    >
+                      {showCustomMemberInput ? "Cancel Custom" : "Other (Custom)"}
+                    </button>
+                  </>
                 )}
-                {selectValue === CUSTOM_VALUE && (
+                {showCustomMemberInput && (
                   <input
                     type="text"
                     required
@@ -625,6 +702,11 @@ export default function GradingPage() {
                     }
                     className="dark-input w-full mt-2"
                   />
+                )}
+                {!showCustomMemberInput && form.member_name && (
+                  <p className="text-xs text-[#a6a6a6] mt-1">
+                    Selected: <span className="text-white font-medium">{form.member_name}</span>
+                  </p>
                 )}
               </div>
               <div>
