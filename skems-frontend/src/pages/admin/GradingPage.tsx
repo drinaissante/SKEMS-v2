@@ -88,11 +88,11 @@ function formatGradingDate(dateStr: string): string {
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
 }
 
-function toDDMMYYYY(iso: string): string {
-  if (!iso) return ""
-  const [y, m, d] = iso.split("-")
-  return `${d}/${m}/${y}`
-}
+// function toDDMMYYYY(iso: string): string {
+//   if (!iso) return ""
+//   const [y, m, d] = iso.split("-")
+//   return `${d}/${m}/${y}`
+// }
 
 function RubricChip({ value }: { value: number }) {
   return (
