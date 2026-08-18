@@ -88,6 +88,12 @@ function formatGradingDate(dateStr: string): string {
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
 }
 
+function toDDMMYYYY(iso: string): string {
+  if (!iso) return ""
+  const [y, m, d] = iso.split("-")
+  return `${d}/${m}/${y}`
+}
+
 function RubricChip({ value }: { value: number }) {
   return (
     <span
@@ -132,6 +138,11 @@ export default function GradingPage() {
 
   const eventLookup = useMemo(
     () => new Map(eventOptions.map((e) => [e.event_name, e.start_date])),
+    [eventOptions],
+  )
+
+  const sortedEvents = useMemo(
+    () => [...eventOptions].sort((a, b) => b.start_date.localeCompare(a.start_date)),
     [eventOptions],
   )
 
@@ -531,59 +542,44 @@ export default function GradingPage() {
               {editRow ? "Edit Grading" : "Add Grading"}
             </h2>
             <div className="space-y-3">
-              <div className="flex gap-2">
-                <div className="flex-1 min-w-0">
-                  <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    required={eventSelectValue !== CUSTOM_VALUE && !!form.event_name}
-                    disabled={eventSelectValue !== CUSTOM_VALUE && !form.event_name}
-                    value={form.date}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, date: e.target.value }))
-                    }
-                    className={`dark-input w-full ${eventSelectValue !== CUSTOM_VALUE && !form.event_name ? "opacity-40 cursor-not-allowed" : ""}`}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                    Event Name
-                  </label>
-                  {loadingEvents ? (
-                    <div className="dark-input w-full text-sm text-[#a6a6a6]">
-                      Loading event list...
-                    </div>
-                  ) : (
-                    <select
-                      required={eventSelectValue !== CUSTOM_VALUE}
-                      value={eventSelectValue}
-                      onChange={(e) => {
-                        const val = e.target.value
+              <div>
+                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                  Event
+                </label>
+                {loadingEvents ? (
+                  <div className="dark-input w-full text-sm text-[#a6a6a6]">
+                    Loading event list...
+                  </div>
+                ) : (
+                  <select
+                    required={eventSelectValue !== CUSTOM_VALUE}
+                    value={eventSelectValue}
+                    onChange={(e) => {
+                      const val = e.target.value
                       if (val === CUSTOM_VALUE) {
                         setForm((f) => ({ ...f, event_name: "", date: "" }))
-                        } else {
-                          const startDate = eventLookup.get(val) || ""
-                          setForm((f) => ({
-                            ...f,
-                            event_name: val,
-                            ...(startDate ? { date: startDate } : {}),
-                          }))
-                        }
-                      }}
-                      className="dark-input w-full"
-                    >
-                      <option value="">Select an event...</option>
-                      {eventOptions.map((ev) => (
-                        <option key={ev.event_name} value={ev.event_name}>
-                          {ev.event_name}
-                        </option>
-                      ))}
-                      <option value={CUSTOM_VALUE}>Other (Custom)</option>
-                    </select>
-                  )}
-                  {eventSelectValue === CUSTOM_VALUE && (
+                      } else {
+                        const startDate = eventLookup.get(val) || ""
+                        setForm((f) => ({
+                          ...f,
+                          event_name: val,
+                          ...(startDate ? { date: startDate } : {}),
+                        }))
+                      }
+                    }}
+                    className="dark-input w-full"
+                  >
+                    <option value="">Select an event...</option>
+                    {sortedEvents.map((ev) => (
+                      <option key={ev.event_name} value={ev.event_name}>
+                        {toDDMMYYYY(ev.start_date)} | {ev.event_name}
+                      </option>
+                    ))}
+                    <option value={CUSTOM_VALUE}>Other (Custom)</option>
+                  </select>
+                )}
+                {eventSelectValue === CUSTOM_VALUE && (
+                  <div className="flex gap-2 mt-2">
                     <input
                       type="text"
                       required
@@ -596,10 +592,19 @@ export default function GradingPage() {
                           event_name: e.target.value,
                         }))
                       }
-                      className="dark-input w-full mt-2"
+                      className="dark-input flex-1 min-w-0"
                     />
-                  )}
-                </div>
+                    <input
+                      type="date"
+                      required
+                      value={form.date}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, date: e.target.value }))
+                      }
+                      className="dark-input w-40 shrink-0"
+                    />
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
@@ -745,13 +750,14 @@ export default function GradingPage() {
                   <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
                     Notes
                   </label>
-                  <textarea
+                  <input
+                    type="text"
+                    placeholder="Optional notes"
                     value={form.notes}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, notes: e.target.value }))
                     }
                     className="dark-input w-full"
-                    rows={2}
                   />
                 </div>
               </div>
