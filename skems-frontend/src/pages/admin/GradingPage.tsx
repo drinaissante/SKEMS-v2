@@ -70,7 +70,7 @@ type FormData = {
 }
 
 const EMPTY_FORM: FormData = {
-  date: new Date().toISOString().slice(0, 10),
+  date: "",
   event_name: "",
   member_name: "",
   shots_posted: 0,
@@ -230,7 +230,7 @@ export default function GradingPage() {
     setShowModal(true)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault()
     saveMutation.mutate({ id: editRow?.id, values: { ...form } })
   }
@@ -538,12 +538,13 @@ export default function GradingPage() {
                   </label>
                   <input
                     type="date"
-                    required
+                    required={eventSelectValue !== CUSTOM_VALUE && !!form.event_name}
+                    disabled={eventSelectValue !== CUSTOM_VALUE && !form.event_name}
                     value={form.date}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, date: e.target.value }))
                     }
-                    className="dark-input w-full"
+                    className={`dark-input w-full ${eventSelectValue !== CUSTOM_VALUE && !form.event_name ? "opacity-40 cursor-not-allowed" : ""}`}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -560,8 +561,8 @@ export default function GradingPage() {
                       value={eventSelectValue}
                       onChange={(e) => {
                         const val = e.target.value
-                        if (val === CUSTOM_VALUE) {
-                          setForm((f) => ({ ...f, event_name: "" }))
+                      if (val === CUSTOM_VALUE) {
+                        setForm((f) => ({ ...f, event_name: "", date: "" }))
                         } else {
                           const startDate = eventLookup.get(val) || ""
                           setForm((f) => ({
