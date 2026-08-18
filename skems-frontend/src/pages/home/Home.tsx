@@ -84,6 +84,7 @@ export default function Home() {
           </video>
         )}
 
+
         <div className="absolute inset-0 bg-black/50" />
 
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center">

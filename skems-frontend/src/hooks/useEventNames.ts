@@ -66,6 +66,10 @@ async function fetchEventNames(): Promise<EventOption[]> {
     events.shift();
   }
 
+  events.forEach((v) => {
+    console.log(v.start_date);
+  });
+
   return events;
 }
 

@@ -88,12 +88,6 @@ function formatGradingDate(dateStr: string): string {
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
 }
 
-// function toDDMMYYYY(iso: string): string {
-//   if (!iso) return ""
-//   const [y, m, d] = iso.split("-")
-//   return `${d}/${m}/${y}`
-// }
-
 function RubricChip({ value }: { value: number }) {
   return (
     <span
@@ -124,12 +118,6 @@ export default function GradingPage() {
 
   const { data: members = [], isLoading: loadingMembers } = useMemberNames()
   const { data: eventOptions = [], isLoading: loadingEvents } = useEventNames()
-
-  useEffect(() => {
-    eventOptions.map((v: EventOption, idx: number, array: EventOption[]) => {
-    console.log(v + " | " + idx + " | " + array);
-    })
-  }, []);
 
   const filteredMembers = useMemo(() => {
     return members
