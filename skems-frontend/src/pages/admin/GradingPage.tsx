@@ -52,6 +52,7 @@ export default function GradingPage() {
   const [editRow, setEditRow] = useState<Grading | null>(null)
   const [form, setForm] = useState<FormData>(EMPTY_FORM)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
   const [memberStatusFilter, setMemberStatusFilter] = useState("")
   const [memberSpecFilter, setMemberSpecFilter] = useState("")
@@ -228,10 +229,10 @@ export default function GradingPage() {
         ) : (
           <>
             {/* Desktop table */}
-            <GradingTable paginatedItems={paginatedItems} openEdit={openEdit} setConfirmDeleteId={setConfirmDeleteId}/>
+            <GradingTable paginatedItems={paginatedItems} openEdit={openEdit} setConfirmDeleteId={setConfirmDeleteId} expandedRow={expandedRow} setExpandedRow={setExpandedRow}/>
 
             {/* Mobile cards */}
-            <MobileGradingCard paginatedItems={paginatedItems} openEdit={openEdit} setConfirmDeleteId={setConfirmDeleteId} />
+            <MobileGradingCard paginatedItems={paginatedItems} openEdit={openEdit} setConfirmDeleteId={setConfirmDeleteId} expandedRow={expandedRow} setExpandedRow={setExpandedRow} />
 
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-4 py-3">

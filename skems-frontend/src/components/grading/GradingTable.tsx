@@ -1,4 +1,4 @@
-import { FiEdit2, FiTrash2 } from "react-icons/fi"
+import { FiEdit2, FiTrash2, FiChevronDown } from "react-icons/fi"
 import { computeOutputQuality, type Grading } from "../../services/supabase"
 import { formatGradingDate } from "../../utils/datetime"
 import RubricChip from "./RubricChip"
@@ -6,13 +6,17 @@ import RubricChip from "./RubricChip"
 interface GradingTableProps {
     paginatedItems: Grading[],
     openEdit: (g: Grading) => void,
-    setConfirmDeleteId: React.Dispatch<React.SetStateAction<string | null>>
+    setConfirmDeleteId: React.Dispatch<React.SetStateAction<string | null>>,
+    expandedRow: string | null,
+    setExpandedRow: React.Dispatch<React.SetStateAction<string | null>>
 }
 
 export default function GradingTable({
     paginatedItems,
     openEdit,
-    setConfirmDeleteId
+    setConfirmDeleteId,
+    expandedRow,
+    setExpandedRow
 }: GradingTableProps) {
     return (
         <div className="hidden md:block overflow-x-auto dark-card">
@@ -63,6 +67,7 @@ export default function GradingTable({
                     g.revision_factor,
                 )
                 return (
+                    <>
                     <tr
                     key={g.id}
                     className="border-t border-white/10 hover:bg-white/5"
@@ -103,6 +108,15 @@ export default function GradingTable({
                     <td className="px-3 py-2.5">
                         <div className="flex items-center justify-center gap-1">
                         <button
+                            onClick={() => setExpandedRow((prev) => prev === g.id ? null : g.id)}
+                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                                expandedRow === g.id ? "bg-white/20 text-white" : "bg-white/10 hover:bg-white/20 text-[#a6a6a6]"
+                            }`}
+                            title="Details"
+                        >
+                            <FiChevronDown size={14} className={`transition-transform ${expandedRow === g.id ? "rotate-180" : ""}`} />
+                        </button>
+                        <button
                             onClick={() => openEdit(g)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
                             title="Edit"
@@ -119,6 +133,57 @@ export default function GradingTable({
                         </div>
                     </td>
                     </tr>
+                    {expandedRow === g.id && (
+                    <tr>
+                        <td colSpan={11} className="px-3 py-3 bg-white/[0.02]">
+                        <div className="grid grid-cols-3 gap-x-6 gap-y-1.5 text-xs">
+                            {g.status && (
+                            <div>
+                                <span className="text-[#a6a6a6]">Status: </span>
+                                <span className="text-white">{g.status}</span>
+                            </div>
+                            )}
+                            {g.role && (
+                            <div>
+                                <span className="text-[#a6a6a6]">Role: </span>
+                                <span className="text-white">{g.role}</span>
+                            </div>
+                            )}
+                            {g.duration && (
+                            <div>
+                                <span className="text-[#a6a6a6]">Duration: </span>
+                                <span className="text-white">{g.duration}</span>
+                            </div>
+                            )}
+                            {g.attendance && (
+                            <div>
+                                <span className="text-[#a6a6a6]">Attendance: </span>
+                                <span className="text-white">{g.attendance}</span>
+                            </div>
+                            )}
+                            {g.points != null && (
+                            <div>
+                                <span className="text-[#a6a6a6]">Points: </span>
+                                <span className="text-white">{g.points}</span>
+                            </div>
+                            )}
+                            {g.camera_used && (
+                            <div>
+                                <span className="text-[#a6a6a6]">Camera: </span>
+                                <span className="text-white">{g.camera_used}</span>
+                            </div>
+                            )}
+                            {g.lenses_used && (
+                            <div>
+                                <span className="text-[#a6a6a6]">Lenses: </span>
+                                <span className="text-white">{g.lenses_used}</span>
+                            </div>
+                            )}
+                        </div>
+                        </td>
+                    </tr>
+                    )}
+                    </>
                 )
                 })}
             </tbody>

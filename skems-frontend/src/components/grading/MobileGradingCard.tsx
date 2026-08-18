@@ -1,21 +1,23 @@
 import { FiChevronDown, FiTrash2 } from "react-icons/fi"
 import { computeOutputQuality, type Grading } from "../../services/supabase"
 import { formatGradingDate } from "../../utils/datetime"
-import { useState } from "react"
 import RubricChip from "./RubricChip"
 
 interface MobileGradingCardProps {
     paginatedItems: Grading[],
     openEdit: (g: Grading) => void,
-    setConfirmDeleteId: React.Dispatch<React.SetStateAction<string | null>>
+    setConfirmDeleteId: React.Dispatch<React.SetStateAction<string | null>>,
+    expandedRow: string | null,
+    setExpandedRow: React.Dispatch<React.SetStateAction<string | null>>
 }
 
 export default function MobileGradingCard({
     paginatedItems,
     openEdit,
-    setConfirmDeleteId
+    setConfirmDeleteId,
+    expandedRow,
+    setExpandedRow
 }: MobileGradingCardProps) {
-    const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
     return (
         <div className="md:hidden space-y-2">
@@ -90,6 +92,48 @@ export default function MobileGradingCard({
                             {(oq * 100).toFixed(1)}%
                         </span>
                         </div>
+                        {g.status && (
+                        <div className="flex justify-between">
+                            <span>Status</span>
+                            <span className="font-medium text-white">{g.status}</span>
+                        </div>
+                        )}
+                        {g.role && (
+                        <div className="flex justify-between">
+                            <span>Role</span>
+                            <span className="font-medium text-white">{g.role}</span>
+                        </div>
+                        )}
+                        {g.duration && (
+                        <div className="flex justify-between">
+                            <span>Duration</span>
+                            <span className="font-medium text-white">{g.duration}</span>
+                        </div>
+                        )}
+                        {g.attendance && (
+                        <div className="flex justify-between">
+                            <span>Attendance</span>
+                            <span className="font-medium text-white">{g.attendance}</span>
+                        </div>
+                        )}
+                        {g.points != null && (
+                        <div className="flex justify-between">
+                            <span>Points</span>
+                            <span className="font-medium text-white">{g.points}</span>
+                        </div>
+                        )}
+                        {g.camera_used && (
+                        <div className="flex justify-between">
+                            <span>Camera</span>
+                            <span className="font-medium text-white">{g.camera_used}</span>
+                        </div>
+                        )}
+                        {g.lenses_used && (
+                        <div className="flex justify-between">
+                            <span>Lenses</span>
+                            <span className="font-medium text-white">{g.lenses_used}</span>
+                        </div>
+                        )}
                         <div className="flex gap-2 pt-2">
                         <button
                             onClick={() => openEdit(g)}
