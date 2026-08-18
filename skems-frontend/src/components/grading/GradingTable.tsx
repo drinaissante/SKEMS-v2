@@ -131,49 +131,49 @@ export default function GradingTable({
                             {g.status && (
                                 <div>
                                     <span className="text-[#a6a6a6]">Status: </span>
-                                    <span className="text-white">{g.status}</span>
+                                    <span className="text-white">{g.status || "—"}</span>
                                 </div>
                             )}
                             {g.role && (
                                 <div>
                                     <span className="text-[#a6a6a6]">Role: </span>
-                                    <span className="text-white">{g.role}</span>
+                                    <span className="text-white">{g.role || "—"}</span>
                                 </div>
                             )}
                             {g.duration && (
                                 <div>
                                     <span className="text-[#a6a6a6]">Duration: </span>
-                                    <span className="text-white">{g.duration}</span>
+                                    <span className="text-white">{g.duration || "—"}</span>
                                 </div>
                             )}
                             {g.attendance && (
                                 <div>
                                     <span className="text-[#a6a6a6]">Attendance: </span>
-                                    <span className="text-white">{g.attendance}</span>
+                                    <span className="text-white">{g.attendance || "—"}</span>
                                 </div>
                             )}
                             {g.points != null && (
                                 <div>
                                     <span className="text-[#a6a6a6]">Points: </span>
-                                    <span className="text-white">{g.points}</span>
+                                    <span className="text-white">{g.points || "—"}</span>
                                 </div>
                             )}
                             {g.camera_used && (
                                 <div>
                                     <span className="text-[#a6a6a6]">Camera: </span>
-                                    <span className="text-white">{g.camera_used}</span>
+                                    <span className="text-white">{g.camera_used || "—"}</span>
                                 </div>
                             )}
                             {g.lenses_used && (
                                 <div>
                                     <span className="text-[#a6a6a6]">Lenses: </span>
-                                    <span className="text-white">{g.lenses_used}</span>
+                                    <span className="text-white">{g.lenses_used || "—"}</span>
                                 </div>
                             )}
                             {g.notes && (
                                 <div className="mt-1.5 text-xs">
                                     <span className="text-[#a6a6a6]">Notes: </span>
-                                    <span className="text-white">{g.notes}</span>
+                                    <span className="text-white">{g.notes || "—"}</span>
                                 </div>
                             )}
                         </div>
