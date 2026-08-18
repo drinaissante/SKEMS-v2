@@ -35,9 +35,6 @@ export default function GradingTable({
                 <th className="px-3 py-2.5 font-medium text-center whitespace-nowrap">
                     Shots
                 </th>
-                <th className="px-3 py-2.5 font-medium whitespace-nowrap">
-                    Notes
-                </th>
                 <th className="px-3 py-2.5 font-medium text-center whitespace-nowrap">
                     Tech
                 </th>
@@ -84,12 +81,6 @@ export default function GradingTable({
                     <td className="px-3 py-2.5 text-[#a6a6a6] text-center">
                         {g.shots_posted}
                     </td>
-                    <td
-                        className="px-3 py-2.5 text-[#a6a6a6] max-w-32 truncate"
-                        title={g.notes}
-                    >
-                        {g.notes || "—"}
-                    </td>
                     <td className="px-3 py-2.5 text-center">
                         <RubricChip value={g.tech_execution} />
                     </td>
@@ -135,7 +126,7 @@ export default function GradingTable({
                     </tr>
                     {expandedRow === g.id && (
                     <tr>
-                        <td colSpan={11} className="px-3 py-3 bg-white/[0.02]">
+                        <td colSpan={10} className="px-3 py-3 bg-white/[0.02]">
                         <div className="grid grid-cols-3 gap-x-6 gap-y-1.5 text-xs">
                             {g.status && (
                             <div>
@@ -180,6 +171,12 @@ export default function GradingTable({
                             </div>
                             )}
                         </div>
+                        {g.notes && (
+                            <div className="mt-1.5 text-xs">
+                                <span className="text-[#a6a6a6]">Notes: </span>
+                                <span className="text-white">{g.notes}</span>
+                            </div>
+                        )}
                         </td>
                     </tr>
                     )}
