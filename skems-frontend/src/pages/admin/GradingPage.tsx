@@ -16,7 +16,7 @@ import {
   type Grading,
 } from "../../services/supabase"
 import { useMemberNames } from "../../hooks/useMemberNames"
-import { useEventNames, type EventOption } from "../../hooks/useEventNames"
+import { useEventNames } from "../../hooks/useEventNames"
 
 const CUSTOM_VALUE = "__custom__"
 
