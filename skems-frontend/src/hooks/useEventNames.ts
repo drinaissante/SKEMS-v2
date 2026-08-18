@@ -9,6 +9,13 @@ const SHEET_ID = "171tDcO9NzSrS37H1Hwo-kbjdwRcHwWYblsPpVgStTls"
 const GID = "1617646139"
 
 function parseSheetDate(raw: string): string {
+  const gvizMatch = raw.match(/Date\((\d+),(\d+),(\d+)/)
+  if (gvizMatch) {
+    const year = parseInt(gvizMatch[1])
+    const month = parseInt(gvizMatch[2]) + 1
+    const day = parseInt(gvizMatch[3])
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+  }
   const datePart = raw.split(" ")[0]
   const [month, day, year] = datePart.split("/")
   if (!year || !month || !day) return ""
@@ -31,13 +38,13 @@ async function fetchEventNames(): Promise<EventOption[]> {
 
   const events: EventOption[] = rawData.table.rows
     .map(
-      (row: { c: { v: string }[] | null }) => {
+      (row: { c: { v: string; f?: string }[] | null }) => {
         const name = row.c && row.c[0] ? row.c[0].v : ""
-        const rawDate = row.c && row.c[1] ? row.c[1].v : ""
+        const rawDate = row.c && row.c[1] ? (row.c[1].f || row.c[1].v || "") : ""
         return { event_name: name, start_date: parseSheetDate(rawDate) }
       },
     )
-    .filter((e: EventOption) => e.event_name && e.start_date)
+    .filter((e: EventOption) => e.event_name)
     .sort((a: EventOption, b: EventOption) => a.start_date.localeCompare(b.start_date))
 
   if (events[0]?.event_name === "Event_Name") {

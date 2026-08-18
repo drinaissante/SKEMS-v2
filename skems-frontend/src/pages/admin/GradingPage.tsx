@@ -42,7 +42,7 @@ const STATUS_OPTIONS = [
   "President",
   "Event Coordinator",
   "Secretary",
-  "Creatives Directory",
+  "Creatives Director",
   "Video Editing Head",
   "Dept. Photo Head",
   "SWNG Head",
