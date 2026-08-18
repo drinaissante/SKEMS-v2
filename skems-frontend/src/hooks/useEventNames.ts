@@ -1,10 +1,22 @@
 import { useQuery } from "@tanstack/react-query"
 
+export type EventOption = {
+  event_name: string
+  start_date: string
+}
+
 const SHEET_ID = "171tDcO9NzSrS37H1Hwo-kbjdwRcHwWYblsPpVgStTls"
 const GID = "1617646139"
 
-async function fetchEventNames(): Promise<string[]> {
-  const query = encodeURIComponent("SELECT B")
+function parseSheetDate(raw: string): string {
+  const datePart = raw.split(" ")[0]
+  const [month, day, year] = datePart.split("/")
+  if (!year || !month || !day) return ""
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+}
+
+async function fetchEventNames(): Promise<EventOption[]> {
+  const query = encodeURIComponent("SELECT B, C")
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq=${query}&gid=${GID}`
 
   const response = await fetch(url)
@@ -17,17 +29,22 @@ async function fetchEventNames(): Promise<string[]> {
   )
   const rawData = JSON.parse(jsonString)
 
-  const events: string[] = rawData.table.rows.map(
-    (row: { c: { v: string }[] | null }) => {
-      return row.c && row.c[0] ? row.c[0].v : ""
-    },
-  )
+  const events: EventOption[] = rawData.table.rows
+    .map(
+      (row: { c: { v: string }[] | null }) => {
+        const name = row.c && row.c[0] ? row.c[0].v : ""
+        const rawDate = row.c && row.c[1] ? row.c[1].v : ""
+        return { event_name: name, start_date: parseSheetDate(rawDate) }
+      },
+    )
+    .filter((e: EventOption) => e.event_name && e.start_date)
+    .sort((a: EventOption, b: EventOption) => a.start_date.localeCompare(b.start_date))
 
-  if (events[0] === "Event_Name") {
+  if (events[0]?.event_name === "Event_Name") {
     events.shift()
   }
 
-  return events.filter((name) => name).sort()
+  return events
 }
 
 export function useEventNames() {
