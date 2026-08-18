@@ -113,6 +113,7 @@ export default function GradingPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [memberStatusFilter, setMemberStatusFilter] = useState("")
   const [memberSpecFilter, setMemberSpecFilter] = useState("")
+  const [memberSearch, setMemberSearch] = useState("")
   const [showCustomMemberInput, setShowCustomMemberInput] = useState(false)
 
   const { data: members = [], isLoading: loadingMembers } = useMemberNames()
@@ -123,10 +124,11 @@ export default function GradingPage() {
       .filter((m) => {
         if (memberStatusFilter && !m.status.toLowerCase().includes(memberStatusFilter.toLowerCase())) return false
         if (memberSpecFilter && !m.specialization.toLowerCase().includes(memberSpecFilter.toLowerCase())) return false
+        if (memberSearch && !m.fullName.toLowerCase().includes(memberSearch.toLowerCase())) return false
         return true
       })
       .sort((a, b) => a.fullName.localeCompare(b.fullName))
-  }, [members, memberStatusFilter, memberSpecFilter])
+  }, [members, memberStatusFilter, memberSpecFilter, memberSearch])
 
   const eventLookup = useMemo(
     () => new Map(eventOptions.map((e) => [e.event_name, e.start_date])),
@@ -197,6 +199,7 @@ export default function GradingPage() {
     setForm(EMPTY_FORM)
     setMemberStatusFilter("")
     setMemberSpecFilter("")
+    setMemberSearch("")
     setShowCustomMemberInput(false)
     setShowModal(true)
   }
@@ -607,6 +610,16 @@ export default function GradingPage() {
                   </div>
                 ) : (
                   <>
+                    <div className="relative mb-2">
+                      <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={14} />
+                      <input
+                        type="text"
+                        placeholder="Search by name..."
+                        value={memberSearch}
+                        onChange={(e) => setMemberSearch(e.target.value)}
+                        className="dark-input w-full pl-8 pr-3 py-1.5 text-sm"
+                      />
+                    </div>
                     <div className="flex flex-col sm:flex-row gap-2 mb-2">
                       <select
                         value={memberStatusFilter}
@@ -640,8 +653,12 @@ export default function GradingPage() {
                             key={m.fullName}
                             type="button"
                             onClick={() => {
-                              setForm((f) => ({ ...f, member_name: m.fullName }))
-                              setShowCustomMemberInput(false)
+                              if (form.member_name === m.fullName && !showCustomMemberInput) {
+                                setForm((f) => ({ ...f, member_name: "" }))
+                              } else {
+                                setForm((f) => ({ ...f, member_name: m.fullName }))
+                                setShowCustomMemberInput(false)
+                              }
                             }}
                             className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors border-b border-white/5 last:border-b-0 ${
                               form.member_name === m.fullName && !showCustomMemberInput
@@ -694,39 +711,48 @@ export default function GradingPage() {
                 {!showCustomMemberInput && form.member_name && (
                   <p className="text-xs text-[#a6a6a6] mt-1">
                     Selected: <span className="text-white font-medium">{form.member_name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, member_name: "" }))}
+                      className="ml-2 text-red-400 hover:text-red-300 cursor-pointer"
+                    >
+                      ×
+                    </button>
                   </p>
                 )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                  Total No. of Shots Posted
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  required
-                  value={form.shots_posted}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      shots_posted: parseInt(e.target.value) || 0,
-                    }))
-                  }
-                  className="dark-input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                  Notes
-                </label>
-                <textarea
-                  value={form.notes}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, notes: e.target.value }))
-                  }
-                  className="dark-input w-full"
-                  rows={2}
-                />
+              <div className="flex gap-2">
+                <div className="w-24 shrink-0">
+                  <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                    Shots
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={form.shots_posted}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        shots_posted: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    className="dark-input w-full"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    value={form.notes}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, notes: e.target.value }))
+                    }
+                    className="dark-input w-full"
+                    rows={2}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {(
