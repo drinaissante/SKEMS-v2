@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react"
+import type { ReactNode } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useSearchParams } from "react-router-dom"
 import {
@@ -34,6 +35,15 @@ const dtOpts: Intl.DateTimeFormatOptions = {
 
 function formatDateTime(iso: string) {
   return formatWallClock(iso, dtOpts)
+}
+
+function InfoBlock({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-wide text-[#a6a6a6] font-bold mb-1">{label}</p>
+      <div className="text-sm text-white">{children}</div>
+    </div>
+  )
 }
 
 export default function RequestsPage() {
@@ -210,20 +220,19 @@ export default function RequestsPage() {
                 <div
                   key={r.id}
                   id={`request-${r.id}`}
-                  className={`dark-card ${highlightId === r.id ? "request-row-highlight" : ""}`}
+                  className={`dark-card rounded-xl border border-white/10 overflow-hidden ${highlightId === r.id ? "request-row-highlight" : ""}`}
                 >
                   <button
                     onClick={() => toggleRow(r.id)}
-                    className="w-full flex items-center gap-3 px-3 py-3 text-left cursor-pointer"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-white text-sm truncate">
-                        {r.equipment_name} <span className="text-[#a6a6a6] font-normal">×{r.quantity}</span>
-                      </p>
-                      <p className="text-xs text-[#a6a6a6] truncate">{r.borrower_name}</p>
+                      <p className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</p>
+                      <h3 className="text-base font-bold text-white leading-snug">{r.equipment_name}</h3>
                     </div>
+                    <span className="shrink-0 text-[#a6a6a6] font-normal text-sm">×{r.quantity}</span>
                     <span
-                      className={`shrink-0 px-2 py-0.5 rounded text-xs font-bold ${
+                      className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${
                         statusColors[r.status] ?? "bg-white/10 text-[#a6a6a6]"
                       }`}
                     >
@@ -238,77 +247,77 @@ export default function RequestsPage() {
                   </button>
 
                   {expandedRow === r.id && (
-                    <div className="px-3 pb-3 pt-1 border-t border-white/10 space-y-2 text-xs text-[#a6a6a6]">
-                      <div className="flex justify-between">
-                        <span>Equipment ID</span>
-                        <span className="font-medium text-[#c89116]">{r.equipment_id}</span>
+                    <div className="px-4 pb-4 pt-1 border-t border-white/10 flex flex-col gap-4">
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <InfoBlock label="Student #">
+                          <span className="text-sm text-white">{r.student_number}</span>
+                        </InfoBlock>
+                        <InfoBlock label="Position/Dept">
+                          <span className="text-sm text-white">{r.position_department || "—"}</span>
+                        </InfoBlock>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Student #</span>
-                        <span className="font-medium text-white">{r.student_number}</span>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <InfoBlock label="Owner">
+                          <span className="text-sm text-white">{r.owner || "—"}</span>
+                        </InfoBlock>
+                        <InfoBlock label="Reason">
+                          <span className="text-sm text-white">{r.reason || "—"}</span>
+                        </InfoBlock>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Position/Dept</span>
-                        <span className="font-medium text-white text-right max-w-48">{r.position_department || "—"}</span>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <InfoBlock label="Pickup Location">
+                          <span className="text-sm text-white">{r.pickup_location || "—"}</span>
+                        </InfoBlock>
+                        <InfoBlock label="Return Location">
+                          <span className="text-sm text-white">{r.return_location || "—"}</span>
+                        </InfoBlock>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Reason</span>
-                        <span className="font-medium text-white text-right max-w-48">{r.reason}</span>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                        <InfoBlock label="Borrowed">
+                          <span className="whitespace-nowrap text-xs text-white">{formatDateTime(r.date_borrowed)}</span>
+                        </InfoBlock>
+                        <InfoBlock label="Due">
+                          <span className="whitespace-nowrap text-xs text-white">{formatDateTime(r.date_due)}</span>
+                        </InfoBlock>
+                        {r.returned_on && (
+                          <InfoBlock label="Returned">
+                            <span className="whitespace-nowrap text-xs text-white">{formatDateTime(r.returned_on)}</span>
+                          </InfoBlock>
+                        )}
                       </div>
-                      <div className="flex justify-between">
-                        <span>Pickup Loc.</span>
-                        <span className="font-medium text-white text-right max-w-48">{r.pickup_location || "—"}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Return Loc.</span>
-                        <span className="font-medium text-white text-right max-w-48">{r.return_location || "—"}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Owner</span>
-                        <span className="font-medium text-white text-right max-w-48">{r.owner || "—"}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Borrowed</span>
-                        <span className="font-medium text-white">{formatDateTime(r.date_borrowed)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Due</span>
-                        <span className="font-medium text-white">{formatDateTime(r.date_due)}</span>
-                      </div>
-                      {r.returned_on && (
-                        <div className="flex justify-between">
-                          <span>Returned</span>
-                          <span className="font-medium text-white">{formatDateTime(r.returned_on)}</span>
-                        </div>
-                      )}
+
                       {r.status !== "Approved" && (
-                        <div className="flex gap-2 pt-2">
+                        <div className="flex flex-wrap gap-2 mt-auto pt-2 border-t border-white/10">
                           {r.status === "Pending" && (
                             <>
                               <button
                                 onClick={() => handleStatus(r.id, "Approved")}
                                 disabled={approveMutation.isPending}
-                                className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
-                                title="Approve"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
                               >
-                                {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={16} />}
+                                {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={14} />}
+                                Approve
                               </button>
                               <button
                                 onClick={() => handleStatus(r.id, "Denied")}
-                                className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer"
-                                title="Deny"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer"
                               >
-                                <FiXCircle size={16} />
+                                <FiXCircle size={14} />
+                                Deny
                               </button>
                             </>
                           )}
                           <button
                             onClick={() => setConfirmDeleteId(r.id)}
                             disabled={deleteMutation.isPending}
-                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0"
-                            title="Delete"
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
                           >
-                            {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={16} />}
+                            {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={14} />}
+                            Delete
                           </button>
                         </div>
                       )}
