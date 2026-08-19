@@ -134,3 +134,49 @@ export function buildViewRequestComponents(requestId?: string) {
     },
   ];
 }
+
+export interface PartnershipEmbedData {
+  name: string;
+  email: string;
+  details: string;
+  fileUrl?: string;
+}
+
+export function buildPartnershipEmbed(
+  data: PartnershipEmbedData,
+  bot: BotUser | null,
+): Record<string, unknown> {
+  const embed: Record<string, unknown> = {
+    title: "New Partnership Inquiry",
+    color: GOLD,
+    fields: [
+      { name: "Organization / Name", value: data.name },
+      { name: "Email", value: data.email },
+      { name: "Project Details", value: data.details },
+    ],
+    timestamp: new Date().toISOString(),
+  };
+  if (bot) {
+    const author: Record<string, string> = { name: bot.name };
+    if (bot.iconUrl) author.icon_url = bot.iconUrl;
+    embed.author = author;
+  }
+  return embed;
+}
+
+export function buildPartnershipComponents(fileUrl?: string) {
+  if (!fileUrl || !/^https:\/\//i.test(fileUrl)) return undefined;
+  return [
+    {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          style: 5,
+          label: "View Attachment",
+          url: fileUrl,
+        },
+      ],
+    },
+  ];
+}

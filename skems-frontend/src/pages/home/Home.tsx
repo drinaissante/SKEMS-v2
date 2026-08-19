@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom"
 import { useEffect, useRef, useState, useMemo } from "react"
 
 import { cacheHeroVideo, getCachedHeroVideo } from "../../utils/videoCache"
+import { uploadPartnershipFile } from "../../services/supabase"
 
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
@@ -73,6 +74,42 @@ export default function Home() {
       observer.observe(el)
       return () => observer.disconnect()
     }, [])
+
+  const [partnerName, setPartnerName] = useState("")
+  const [partnerEmail, setPartnerEmail] = useState("")
+  const [partnerDetails, setPartnerDetails] = useState("")
+  const [partnerFile, setPartnerFile] = useState<File | null>(null)
+  const [partnerSubmitting, setPartnerSubmitting] = useState(false)
+  const [partnerSubmitted, setPartnerSubmitted] = useState(false)
+  const [partnerError, setPartnerError] = useState("")
+
+  const handlePartnershipSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPartnerSubmitting(true)
+    setPartnerError("")
+    try {
+      let fileUrl: string | undefined
+      if (partnerFile) {
+        fileUrl = await uploadPartnershipFile(partnerFile)
+      }
+      const res = await fetch("/api/notify-partnership", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: partnerName,
+          email: partnerEmail,
+          details: partnerDetails,
+          fileUrl,
+        }),
+      })
+      if (!res.ok) throw new Error("Send failed")
+      setPartnerSubmitted(true)
+    } catch {
+      setPartnerError("Failed to send. Please try again.")
+    } finally {
+      setPartnerSubmitting(false)
+    }
+  }
 
   return (
     <>
@@ -210,10 +247,15 @@ export default function Home() {
             Have a project in mind? Let's collaborate.
           </p>
 
-          {/* TODO: make this submit to discord  */}
+          {partnerSubmitted ? (
+            <div className="p-5 sm:p-8 text-center">
+              <p className="text-lg font-bold text-[#fdb125] mb-2">Thank you!</p>
+              <p className="text-sm text-[#a6a6a6]">Your inquiry has been sent. We'll get back to you soon.</p>
+            </div>
+          ) : (
           <form
             className=" p-5 sm:p-8 space-y-4"
-            onSubmit={(e) => e.preventDefault()} 
+            onSubmit={handlePartnershipSubmit}
           >
             <div>
               <label htmlFor="partner-name" className="block text-sm font-medium text-[#666] mb-1">
@@ -225,6 +267,8 @@ export default function Home() {
                 required
                 maxLength={150}
                 placeholder="Organization / Your Full Name"
+                value={partnerName}
+                onChange={(e) => setPartnerName(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-white placeholder-gray-600 transition-color duration-300"
               />
             </div>
@@ -239,6 +283,8 @@ export default function Home() {
                 required
                 maxLength={254}
                 placeholder="you@organization.com"
+                value={partnerEmail}
+                onChange={(e) => setPartnerEmail(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-white placeholder-gray-600 transition-color duration-300"
               />
             </div>
@@ -253,30 +299,39 @@ export default function Home() {
                 rows={5}
                 maxLength={3000}
                 placeholder="Describe your project, goals, and how you'd like to partner..."
+                value={partnerDetails}
+                onChange={(e) => setPartnerDetails(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-[#5f5c5c93] rounded-lg focus:outline-none focus:border-[#fdb125] text-white resize-y placeholder-gray-600 transition-color duration-300"
               />
             </div>
 
             <div>
               <label htmlFor="partner-letter" className="block text-sm font-medium text-[#666] mb-1">
-                Attach Formal Letter / Proposal <span className="text-red-500">*</span>
+                Attach Formal Letter / Proposal
               </label>
               <input
                 id="partner-letter"
                 type="file"
                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={(e) => setPartnerFile(e.target.files?.[0] ?? null)}
                 className="text-sm text-[#666] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-[#c89116] file:text-white file:cursor-pointer"
               />
               <p className="text-xs italic text-[#a6a6a6] mt-1">Accepted formats: PDF, Word (.doc, .docx)</p>
             </div>
 
+            {partnerError && (
+              <p className="text-sm text-red-400">{partnerError}</p>
+            )}
+
             <button
               type="submit"
-              className="flex justify-self-center px-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white font-bold rounded-lg transition-colors duration-200 cursor-pointer text-sm sm:text-base"
+              disabled={partnerSubmitting}
+              className="flex justify-self-center px-10 py-3 border-2 border-[#c89116] text-[#c89116] hover:bg-[#fdb125] hover:text-white font-bold rounded-lg transition-colors duration-200 cursor-pointer text-sm sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Send Request
+              {partnerSubmitting ? "Sending..." : "Send Request"}
             </button>
           </form>
+          )}
         </div>
       </section>
     </>

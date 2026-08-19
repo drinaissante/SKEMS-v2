@@ -123,6 +123,19 @@ export async function uploadImage(file: File): Promise<string> {
   return publicUrlData.publicUrl;
 }
 
+export async function uploadPartnershipFile(file: File): Promise<string> {
+  const ext = file.name.split(".").pop();
+  const path = `inquiries/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("sk-partnerships")
+    .upload(path, file, { contentType: file.type });
+  if (error) throw error;
+  const { data } = supabase.storage
+    .from("sk-partnerships")
+    .getPublicUrl(path);
+  return data.publicUrl;
+}
+
 export async function updateProfile(
   userId: string,
   updates: {
