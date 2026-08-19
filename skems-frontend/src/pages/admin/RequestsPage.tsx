@@ -11,7 +11,7 @@ import { useToast } from "../../hooks/useToast"
 import { useAuth } from "../../context/AuthContext"
 import { FiSearch, FiChevronDown, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi"
 import { usePageTitle } from "../../hooks/usePageTitle"
-import { formatWallClock, formatManila } from "../../utils/datetime"
+import { formatWallClock } from "../../utils/datetime"
 
 const MOBILE_ITEMS = 5
 const DESKTOP_ITEMS = 10
@@ -34,10 +34,6 @@ const dtOpts: Intl.DateTimeFormatOptions = {
 
 function formatDateTime(iso: string) {
   return formatWallClock(iso, dtOpts)
-}
-
-function formatDateTimeManila(iso: string) {
-  return formatManila(iso, dtOpts)
 }
 
 export default function RequestsPage() {
@@ -209,97 +205,7 @@ export default function RequestsPage() {
           </p>
         ) : (
           <>
-            <div className="hidden md:block overflow-x-auto dark-card">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-white/5 text-white text-left">
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Equipment</th>
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Qty</th>
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Borrower</th>
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Student #</th>
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Reason</th>
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Borrowed</th>
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Due</th>
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Returned</th>
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Status</th>
-                    <th className="px-3 py-2 sm:px-4 sm:py-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedItems.map((r) => (
-                    <tr
-                      key={r.id}
-                      id={`request-${r.id}`}
-                      className={`border-t border-white/10 hover:bg-white/5 ${
-                        highlightId === r.id ? "request-row-highlight" : ""
-                      }`}
-                    >
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 font-medium text-white">
-                        {r.equipment_name}
-                        <span className="text-[#a6a6a6] text-xs ml-1">{r.equipment_id}</span>
-                      </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] text-center">{r.quantity}</td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6]">{r.borrower_name}</td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6]">{r.student_number}</td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] max-w-48 truncate">{r.reason}</td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] whitespace-nowrap text-xs">
-                        {formatDateTime(r.date_borrowed)}
-                      </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] whitespace-nowrap text-xs">
-                        {formatDateTime(r.date_due)}
-                      </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3 text-[#a6a6a6] whitespace-nowrap text-xs">
-                        {r.returned_on ? formatDateTimeManila(r.returned_on) : "—"}
-                      </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
-                            statusColors[r.status] ?? "bg-white/10 text-[#a6a6a6]"
-                          }`}
-                        >
-                          {r.status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-3">
-                        <div className="flex items-center gap-1">
-                          {r.status === "Pending" && (
-                            <>
-                              <button
-                                onClick={() => handleStatus(r.id, "Approved")}
-                                disabled={approveMutation.isPending}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
-                                title="Approve"
-                              >
-                                {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={15} />}
-                              </button>
-                              <button
-                                onClick={() => handleStatus(r.id, "Denied")}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer"
-                                title="Deny"
-                              >
-                                <FiXCircle size={15} />
-                              </button>
-                            </>
-                          )}
-                          {r.status !== "Approved" && (
-                            <button
-                              onClick={() => setConfirmDeleteId(r.id)}
-                              disabled={deleteMutation.isPending}
-                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed ml-auto"
-                              title="Delete"
-                            >
-                              {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={15} />}
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="md:hidden space-y-2">
+            <div className="space-y-2">
               {paginatedItems.map((r) => (
                 <div
                   key={r.id}
