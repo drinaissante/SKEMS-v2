@@ -104,7 +104,8 @@ export default function Home() {
       })
       if (!res.ok) throw new Error("Send failed")
       setPartnerSubmitted(true)
-    } catch {
+    } catch (err) {
+      console.error("Partnership submit failed:", err)
       setPartnerError("Failed to send. Please try again.")
     } finally {
       setPartnerSubmitting(false)
