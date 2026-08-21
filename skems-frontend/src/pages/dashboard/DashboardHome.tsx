@@ -317,7 +317,6 @@ export default function DashboardHome() {
           equipment={undefined}
           onSave={handleSave}
           onClose={() => setEditingEquipment(undefined)}
-          conditions={conditions}
           defaultOwner={user?.fullName ?? ""}
         />
       )}
