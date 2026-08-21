@@ -11,8 +11,6 @@ import skIconFallback from "/sk_icon.jpg"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { formatWallClock } from "../../utils/datetime"
 
-const conditions = ["Working", "Borrowed", "Needs Repair", "Broken", "Not checked", "Unavailable"]
-
 export default function EquipmentDetailPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -252,7 +250,6 @@ export default function EquipmentDetailPage() {
           equipment={equipment}
           onSave={handleSave}
           onClose={() => setShowEditModal(false)}
-          conditions={conditions}
           defaultOwner={user?.fullName ?? ""}
         />
       )}

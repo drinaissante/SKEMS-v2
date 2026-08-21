@@ -17,8 +17,6 @@ import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
 import { formatWallClock } from "../../utils/datetime"
 
-const conditions = ["Working", "Borrowed", "Needs Repair", "Broken", "Not checked", "Unavailable"]
-
 const sheetsUrl = import.meta.env.VITE_SHEETS_URL as string | undefined
 
 function formatShortDate(iso: string) {
