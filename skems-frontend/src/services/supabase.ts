@@ -476,6 +476,14 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
     throw new Error("This equipment is currently borrowed out. Please wait for it to be returned before approving.");
   }
 
+  const { data: equipment } = await supabase
+    .from("equipments")
+    .select("condition")
+    .eq("equipment_id", request.equipment_id)
+    .single()
+
+  const equipmentCondition = equipment?.condition ?? ""
+
   await addBorrowedItem({
     equipment_id: request.equipment_id,
     quantity: request.quantity,
@@ -492,6 +500,7 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
     scanned_by: adminUserId,
     user_id: request.user_id ?? null,
     discord_message_id: request.discord_message_id ?? null,
+    condition_before: equipmentCondition,
   });
 
   const { error: statusErr } = await supabase
@@ -600,6 +609,7 @@ export interface NewBorrowRecord {
   scanned_by: string
   user_id: string | null
   discord_message_id?: string | null
+  condition_before?: string
 }
 
 export async function fetchBorrowedItems() {
@@ -654,6 +664,7 @@ export async function addBorrowedItem(data: NewBorrowRecord) {
       user_id: data.user_id,
       discord_message_id: data.discord_message_id ?? null,
       returned_on: null,
+      condition_before: data.condition_before ?? null,
       condition_after: null,
       notes: null,
     });
