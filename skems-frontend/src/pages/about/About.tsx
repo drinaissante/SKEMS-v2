@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo } from "react"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { useTypewriter } from "../../hooks/useTypewriter"
 import { useMemberNames, type Member } from "../../hooks/useMemberNames"
@@ -9,35 +9,38 @@ const texts: string[] = [
     "Our Story.",
 ]
 
+const LEADERSHIP_GROUPS = [
+  { title: "President", statuses: ["President, Event Coor."] },
+  { title: "Vice President", statuses: ["Vice Pres, Treasurer"] },
+  { title: "Secretary", statuses: ["Secretary"] },
+  { title: "Driver", statuses: ["Driver"] },
+] as const
+
 export default function About() {
   usePageTitle("About")
-
-  const lineRef = useRef<HTMLDivElement>(null)
-
-    const [shown, setShown] = useState(false)
-
-    // reanimate gold gradient line on scroll
-    useEffect(() => {
-    const el = lineRef.current
-    if (!el) return
-
-    const observer = new IntersectionObserver(
-        ([entry]) => {
-        setShown(entry.isIntersecting)
-        },
-        { threshold: 0.4 },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-    }, [])
 
   const { output, holding } = useTypewriter(texts, 80, 40, 2000)
   const { data: members = [], isLoading } = useMemberNames()
 
+  const leaderStatuses = useMemo(() => {
+    return new Set<string>(LEADERSHIP_GROUPS.flatMap((g) => g.statuses))
+  }, [])
+
+  const { leadershipMembers, remainingMembers } = useMemo(() => {
+    const leadership: Member[] = []
+    const remaining: Member[] = []
+    for (const m of members) {
+      if (!m.status) continue
+      if (leaderStatuses.has(m.status)) leadership.push(m)
+      else remaining.push(m)
+    }
+    return { leadershipMembers: leadership, remainingMembers: remaining }
+  }, [members, leaderStatuses])
+
   const groupedMembers = useMemo((): [string, [string, Member[]][]][] => {
     const groups = new Map<string, Map<string, Member[]>>()
 
-    for (const m of members) {
+    for (const m of remainingMembers) {
       if (!m.specialization || !m.status) continue
       if (!groups.has(m.specialization)) groups.set(m.specialization, new Map())
       const byStatus = groups.get(m.specialization)!
@@ -64,7 +67,7 @@ export default function About() {
         spec,
         [...byStatus.entries()].sort(([a], [b]) => sortStatuses(a, b)),
       ])
-  }, [members])
+  }, [remainingMembers])
 
   return (
     <div className="min-h-screen bg-fixed-black flex flex-col items-center">
@@ -79,41 +82,70 @@ export default function About() {
         </div>
 
         <div className="w-full max-w-6xl px-4 pb-16">
-      
-            {/* the gold bar */}
-            <div
-            ref={lineRef}
-            className={`h-0.5 mx-auto mb-8 bg-linear-to-r from-transparent via-[#fdb125] to-transparent ${shown ? "animate-gold-grow" : ""}`}
-            />
-
-            <h2 className="text-2xl font-bold text-white text-center mb-8">Meet the Team</h2>
+            <h2 className="text-2xl font-bold text-white text-center mb-2">The Executive Board</h2>
+            <p className="text-sm text-gray-400 text-center mb-8 max-w-xl mx-auto">
+                The powerhouse crew of Sine Kultura.
+            </p>
 
             {isLoading ? (
                 <p className="text-center text-[#a6a6a6]">Loading members...</p>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {groupedMembers.map(([spec, statusEntries]) => (
-                        <div key={spec} className="dark-card rounded-xl border border-white/10 p-4">
-                            <h3 className="text-sm font-bold text-[#c89116] uppercase tracking-wide mb-3">{spec}</h3>
-                            <div className="space-y-3">
-                                {statusEntries.map(([status, list]) => (
-                                    <div key={status}>
-                                        <p className="text-[10px] font-bold text-[#a6a6a6] uppercase tracking-wide wrap-break-word mb-1">
-                                            {status}
-                                        </p>
-                                        <div className="space-y-1 pl-2">
-                                            {list.map((m) => (
-                                                <p key={m.fullName} className="text-sm text-white">
-                                                    {m.fullName}
-                                                </p>
+                <>
+                    {/* LEADERSHIP */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        {LEADERSHIP_GROUPS.map(({ title, statuses }) => {
+                            const list = leadershipMembers.filter((m) => (statuses as readonly string[]).includes(m.status))
+                            if (list.length === 0) return null
+                            list.sort((a, b) => a.fullName.localeCompare(b.fullName))
+                            return (
+                                <div key={title} className="dark-card rounded-xl border border-white/10 p-4">
+                                    <h3 className="text-sm font-bold text-[#c89116] uppercase tracking-wide mb-3 text-center ">{title}</h3>
+                                    <div className="space-y-1 pl-2">
+                                        {list.map((m) => (
+                                            <div key={m.fullName} className="text-center">
+                                                <span className="text-sm text-white">{m.fullName}</span>
+                                                
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+
+                    {groupedMembers.length > 0 && (
+                        <>
+                            <h3 className="text-lg font-bold text-white text-center mb-6">Meet the Team</h3>
+                            <p className="text-sm text-gray-400 text-center mb-8 max-w-xl mx-auto">
+                                The visionary team behind every frame.
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {groupedMembers.map(([spec, statusEntries]) => (
+                                    <div key={spec} className="dark-card rounded-xl border border-white/10 p-4">
+                                        <h3 className="text-sm font-bold text-[#c89116] uppercase tracking-wide mb-3 text-center">{spec}</h3>
+                                        <div className="space-y-3">
+                                            {statusEntries.map(([status, list]) => (
+                                                <div key={status}>
+                                                    <p className="text-[10px] font-bold text-[#a6a6a6] uppercase tracking-wide wrap-break-word mb-1">
+                                                        {status}
+                                                    </p>
+                                                    <div className="space-y-1 pl-2">
+                                                        {list.map((m) => (
+                                                            <p key={m.fullName} className="text-sm text-white">
+                                                                {m.fullName}
+                                                            </p>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        </>
+                    )}
+                </>
             )}
         </div>
     </div>
