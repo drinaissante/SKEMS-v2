@@ -12,7 +12,7 @@ export default function EquipmentUsedField({
     return (
         <div className="flex-1 min-w-0">
             <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                Camera / Equipment Used
+                Equipment Used
             </label>
             <input
                 type="text"

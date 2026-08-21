@@ -90,8 +90,8 @@ export const EMPTY_FORM: FormData = {
 } as const;
 
 export const RUBRICS = [
-  ["tech_execution", "Tech Execution (1-4)"],
-  ["creative_impact", "Creative Impact (1-4)"],
-  ["brand_alignment", "Brand Alignment (1-4)"],
-  ["revision_factor", "Revision Factor (1-4)"],
+  ["tech_execution", "Tech Execution"],
+  ["creative_impact", "Creative Impact"],
+  ["brand_alignment", "Brand Alignment"],
+  ["revision_factor", "Revision Factor"],
 ] as const;
