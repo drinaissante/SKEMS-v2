@@ -78,15 +78,16 @@ export default function Footer() {
               Follow Us
             </div>
             
-            <div className="flex gap-2 cursor-pointer hover:text-[#c89116] transition-colors duration-200">
-              <a href="https://www.facebook.com/sinekulturabulsu" target="/">
-                <FaFacebook size={24} /> <span className="flex items-center text-xs italic">@sinekulturabulsu</span>
+            <div className="cursor-pointer hover:text-[#c89116] transition-colors duration-200">
+              <a className="flex gap-2 items-center text-xs italic" href="https://www.facebook.com/sinekulturabulsu" target="/">
+                <FaFacebook size={24} /> <span >@sinekulturabulsu</span>
               </a>
             </div>
 
-            <div className="flex gap-2 cursor-pointer hover:text-[#c89116] transition-colors duration-200">
-              <a href="https://www.tiktok.com/@bulsu.sinekultura" target="/">
-                <FaTiktok size={24} />  <span className="flex items-center text-xs italic">@bulsu.sinekultura</span>
+            <div className=" cursor-pointer hover:text-[#c89116] transition-colors duration-200">
+              <a  className="flex gap-2 items-center text-xs italic" href="https://www.tiktok.com/@bulsu.sinekultura" target="/">
+                <FaTiktok size={24} />
+                <span >@bulsu.sinekultura</span>
               </a>
             </div>
         </div>
