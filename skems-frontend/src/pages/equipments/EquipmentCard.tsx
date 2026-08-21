@@ -1,6 +1,7 @@
+import { Link } from "react-router-dom"
 import type { Equipment } from "../../services/api"
 import skIconFallback from "/sk_icon.jpg"
-import { formatWallClock } from "../../utils/datetime"
+import { formatManila } from "../../utils/datetime"
 
 export default function EquipmentCard({
   eq,
@@ -8,14 +9,17 @@ export default function EquipmentCard({
   onDelete,
   onImageClick,
   uploadingImages = {},
+  requestMap,
 }: {
   eq: Equipment
   onEdit?: (eq: Equipment) => void
   onDelete?: (id: string) => void
   onImageClick?: (eq: Equipment) => void
   uploadingImages?: Record<string, boolean>
+  requestMap?: Map<string, string>
 }) {
   const uploading = uploadingImages[eq.id]
+  const dateFormat = { month: "short" as const, day: "numeric" as const, year: "numeric" as const, hour: "2-digit" as const, minute: "2-digit" as const }
   return (
     <div className="dark-card p-4 relative">
       <div className="absolute top-2 right-2 z-10 flex gap-1">
@@ -61,9 +65,7 @@ export default function EquipmentCard({
       <div className="text-xs text-[#a6a6a6] space-y-0.5">
         <p><span className="font-medium">Owner:</span> {eq.owner}</p>
         <p><span className="font-medium">Given to SK:</span> {eq.dateGivenToSK}</p>
-        {eq.comments && !eq.borrowerName && (
-          <p><span className="font-medium">Comments:</span> {eq.comments}</p>
-        )}
+        <p><span className="font-medium">Comments:</span> {eq.comments ?? "—"}</p>
       </div>
 
       <div className="flex items-center justify-between mt-3">
@@ -81,9 +83,16 @@ export default function EquipmentCard({
       {eq.borrowerName && (
         <div className="mt-2 pt-2 border-t border-white/10 text-xs text-[#a6a6a6]">
           <p><span className="font-medium">Borrower:</span> {eq.borrowerName}</p>
-          <p><span className="font-medium">Borrowed:</span> {formatWallClock(eq.dateBorrowed, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
-          <p><span className="font-medium">Due:</span> {formatWallClock(eq.dateDue, { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
-          {eq.comments && <p><span className="font-medium">Reason:</span> {eq.comments}</p>}
+          <p><span className="font-medium">Borrowed:</span> {formatManila(eq.dateBorrowed, dateFormat)}</p>
+          <p><span className="font-medium">Due:</span> {formatManila(eq.dateDue, dateFormat)}</p>
+          {requestMap?.has(eq.id) && (
+            <Link
+              to={`/dashboard/requests?id=${requestMap.get(eq.id)}`}
+              className="inline-block mt-1 px-2 py-0.5 rounded bg-white/10 border border-white/10 hover:bg-white/20 text-white text-[10px] font-bold transition-colors cursor-pointer"
+            >
+              View Request →
+            </Link>
+          )}
         </div>
       )}
     </div>

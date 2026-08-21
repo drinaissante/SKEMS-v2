@@ -8,6 +8,7 @@ import {
   type Equipment,
 } from "../../services/api"
 import { uploadImage, uploadQRCode } from "../../services/supabase"
+import { fetchAllRequests } from "../../services/supabase"
 import { generateQRDoc } from "../../utils/qrExport"
 
 import EquipmentFormModal from "./AddEquipmentModal"
@@ -60,6 +61,20 @@ export default function EquipmentsPage() {
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
   })
+
+  const { data: requests = [] } = useQuery({
+    queryKey: ["admin-requests"],
+    queryFn: fetchAllRequests,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const requestMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const r of requests) {
+      if (r.equipment_id) map.set(r.equipment_id, r.id)
+    }
+    return map
+  }, [requests])
 
   const handleSync = useCallback(async () => {
     showToast("Updating...", "info")
@@ -289,6 +304,7 @@ export default function EquipmentsPage() {
                       onImageClick={setExpandedImage}
                       onEdit={isAdmin ? (e) => setEditingEquipment(e) : undefined}
                       onDelete={isAdmin ? handleDelete : undefined}
+                      requestMap={requestMap}
                     />
                   ) : (
                     <EquipmentCardPlaceholder key={`ph-${i}`} />
@@ -306,6 +322,7 @@ export default function EquipmentsPage() {
                       onImageClick={setExpandedImage}
                       onEdit={isAdmin ? (e) => setEditingEquipment(e) : undefined}
                       onDelete={isAdmin ? handleDelete : undefined}
+                      requestMap={requestMap}
                     />
                   ) : (
                     <EquipmentCardPlaceholder key={`ph-${i}`} />
