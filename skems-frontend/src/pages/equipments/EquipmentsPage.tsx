@@ -69,9 +69,11 @@ export default function EquipmentsPage() {
   })
 
   const requestMap = useMemo(() => {
-    const map = new Map<string, string>()
+    const map = new Map<string, { id: string; reason: string }>()
     for (const r of requests) {
-      if (r.equipment_id) map.set(r.equipment_id, r.id)
+      if (r.equipment_id && (r.status === "Pending" || r.status === "Approved")) {
+        map.set(r.equipment_id, { id: r.id, reason: r.reason })
+      }
     }
     return map
   }, [requests])

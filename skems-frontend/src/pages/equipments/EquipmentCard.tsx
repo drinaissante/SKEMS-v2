@@ -16,7 +16,7 @@ export default function EquipmentCard({
   onDelete?: (id: string) => void
   onImageClick?: (eq: Equipment) => void
   uploadingImages?: Record<string, boolean>
-  requestMap?: Map<string, string>
+  requestMap?: Map<string, { id: string; reason: string }>
 }) {
   const uploading = uploadingImages[eq.id]
   const dateFormat = { month: "short" as const, day: "numeric" as const, year: "numeric" as const, hour: "2-digit" as const, minute: "2-digit" as const }
@@ -80,15 +80,21 @@ export default function EquipmentCard({
         </span>
       </div>
 
-      {eq.borrowerName && (
+      {requestMap?.has(eq.id) && (
         <div className="mt-2 pt-2 border-t border-white/10 text-xs text-[#a6a6a6]">
           <p><span className="font-medium">Borrower:</span> {eq.borrowerName}</p>
           <p><span className="font-medium">Borrowed:</span> {formatManila(eq.dateBorrowed, dateFormat)}</p>
           <p><span className="font-medium">Due:</span> {formatManila(eq.dateDue, dateFormat)}</p>
+          {(() => {
+            const req = requestMap?.get(eq.id)
+            return req?.reason ? (
+              <p><span className="font-medium">Reason:</span> {req.reason}</p>
+            ) : null
+          })()}
           {requestMap?.has(eq.id) && (
             <Link
-              to={`/dashboard/requests?id=${requestMap.get(eq.id)}`}
-              className="inline-block mt-1 px-2 py-0.5 rounded bg-white/10 border border-white/10 hover:bg-white/20 text-white text-[10px] font-bold transition-colors cursor-pointer"
+              to={`/dashboard/requests?id=${requestMap.get(eq.id)!.id}`}
+              className="inline-block mt-2 px-3 py-1.5 rounded-lg border border-[#c89116] text-[#c89116] hover:bg-[#c89116] hover:text-white text-xs font-bold transition-colors cursor-pointer"
             >
               View Request →
             </Link>
