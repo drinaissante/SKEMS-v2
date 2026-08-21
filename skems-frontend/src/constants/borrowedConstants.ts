@@ -1,4 +1,4 @@
-import { formatWallClock, formatManila } from "../utils/datetime"
+import { formatManila } from "../utils/datetime"
 
 export const CONDITION_OPTIONS = ["Working", "Needs Repair", "Broken", "Not checked"] as const
 
@@ -14,7 +14,7 @@ export const MOBILE_ITEMS = 3
 export const DESKTOP_ITEMS = 8
 
 export function formatDate(val: string) {
-  return formatWallClock(val, {
+  return formatManila(val, {
     month: "long",
     day: "numeric",
     year: "numeric",
