@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { useTypewriter } from "../../hooks/useTypewriter"
 import { useMemberNames, type Member } from "../../hooks/useMemberNames"
@@ -12,29 +12,58 @@ const texts: string[] = [
 export default function About() {
   usePageTitle("About")
 
+  const lineRef = useRef<HTMLDivElement>(null)
+
+    const [shown, setShown] = useState(false)
+
+    // reanimate gold gradient line on scroll
+    useEffect(() => {
+    const el = lineRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+        ([entry]) => {
+        setShown(entry.isIntersecting)
+        },
+        { threshold: 0.4 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+    }, [])
+
   const { output, holding } = useTypewriter(texts, 80, 40, 2000)
   const { data: members = [], isLoading } = useMemberNames()
 
-  const groupedMembers = useMemo(() => {
-    const groups = new Map<string, Member[]>()
+  const groupedMembers = useMemo((): [string, [string, Member[]][]][] => {
+    const groups = new Map<string, Map<string, Member[]>>()
 
     for (const m of members) {
-      if (!m.specialization) continue
-      const list = groups.get(m.specialization) || []
-      list.push(m)
-      groups.set(m.specialization, list)
+      if (!m.specialization || !m.status) continue
+      if (!groups.has(m.specialization)) groups.set(m.specialization, new Map())
+      const byStatus = groups.get(m.specialization)!
+      if (!byStatus.has(m.status)) byStatus.set(m.status, [])
+      byStatus.get(m.status)!.push(m)
     }
 
-    for (const list of groups.values()) {
-      list.sort((a, b) => {
-        const aHead = a.status.toLowerCase().includes("head") ? 0 : 1
-        const bHead = b.status.toLowerCase().includes("head") ? 0 : 1
-        if (aHead !== bHead) return aHead - bHead
-        return a.fullName.localeCompare(b.fullName)
-      })
+    for (const byStatus of groups.values()) {
+      for (const list of byStatus.values()) {
+        list.sort((a, b) => a.fullName.localeCompare(b.fullName))
+      }
     }
 
-    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
+    const sortStatuses = (a: string, b: string) => {
+      const aHead = a.toLowerCase().includes("head") ? 0 : 1
+      const bHead = b.toLowerCase().includes("head") ? 0 : 1
+      if (aHead !== bHead) return aHead - bHead
+      return a.localeCompare(b)
+    }
+
+    return [...groups.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([spec, byStatus]) => [
+        spec,
+        [...byStatus.entries()].sort(([a], [b]) => sortStatuses(a, b)),
+      ])
   }, [members])
 
   return (
@@ -50,20 +79,35 @@ export default function About() {
         </div>
 
         <div className="w-full max-w-6xl px-4 pb-16">
+      
+            {/* the gold bar */}
+            <div
+            ref={lineRef}
+            className={`h-0.5 mx-auto mb-8 bg-linear-to-r from-transparent via-[#fdb125] to-transparent ${shown ? "animate-gold-grow" : ""}`}
+            />
+
             <h2 className="text-2xl font-bold text-white text-center mb-8">Meet the Team</h2>
 
             {isLoading ? (
                 <p className="text-center text-[#a6a6a6]">Loading members...</p>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {groupedMembers.map(([spec, list]) => (
+                    {groupedMembers.map(([spec, statusEntries]) => (
                         <div key={spec} className="dark-card rounded-xl border border-white/10 p-4">
                             <h3 className="text-sm font-bold text-[#c89116] uppercase tracking-wide mb-3">{spec}</h3>
-                            <div className="space-y-2">
-                                {list.map((m) => (
-                                    <div key={m.fullName} className="flex items-center justify-between gap-2">
-                                        <span className="text-sm text-white truncate">{m.fullName}</span>
-                                        <span className="text-[10px] text-[#a6a6a6] shrink-0">{m.status}</span>
+                            <div className="space-y-3">
+                                {statusEntries.map(([status, list]) => (
+                                    <div key={status}>
+                                        <p className="text-[10px] font-bold text-[#a6a6a6] uppercase tracking-wide wrap-break-word mb-1">
+                                            {status}
+                                        </p>
+                                        <div className="space-y-1 pl-2">
+                                            {list.map((m) => (
+                                                <p key={m.fullName} className="text-sm text-white">
+                                                    {m.fullName}
+                                                </p>
+                                            ))}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
