@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { useEffect, useRef, useState, useMemo } from "react"
+import { useEffect, useState, useMemo } from "react"
 
 import { cacheHeroVideo, getCachedHeroVideo } from "../../utils/videoCache"
 import { uploadPartnershipFile } from "../../services/supabase"
@@ -57,23 +57,23 @@ export default function Home() {
   }, [bgUrl]);
 
 
-    const lineRef = useRef<HTMLDivElement>(null)
-    const [shown, setShown] = useState(false)
+    // const lineRef = useRef<HTMLDivElement>(null)
+    // const [shown, setShown] = useState(false)
   
-    // reanimate gold gradient line on scroll
-    useEffect(() => {
-      const el = lineRef.current
-      if (!el) return
+    // // reanimate gold gradient line on scroll
+    // useEffect(() => {
+    //   const el = lineRef.current
+    //   if (!el) return
   
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          setShown(entry.isIntersecting)
-        },
-        { threshold: 0.4 },
-      )
-      observer.observe(el)
-      return () => observer.disconnect()
-    }, [])
+    //   const observer = new IntersectionObserver(
+    //     ([entry]) => {
+    //       setShown(entry.isIntersecting)
+    //     },
+    //     { threshold: 0.4 },
+    //   )
+    //   observer.observe(el)
+    //   return () => observer.disconnect()
+    // }, [])
 
   const [partnerName, setPartnerName] = useState("")
   const [partnerEmail, setPartnerEmail] = useState("")
@@ -187,7 +187,7 @@ export default function Home() {
       </div>
 
       {/* our work / portfolio */}
-      <section className="bg-fixed-black px-4 py-6">
+      {/* <section className="bg-fixed-black px-4 py-6">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-xl sm:text-2xl lg:text-2xl font-bold text-white text-center mb-2">
             Latest Masterpieces
@@ -196,7 +196,7 @@ export default function Home() {
             A glimpse into our recent cinematic and photographic journeys.
           </p>
 
-          {/*  TODO: placeholders */}
+          {/*  TODO: placeholders
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {[0, 1, 2].map((i) => (
               <div
@@ -228,16 +228,16 @@ export default function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* partner with us */}
-      <section id="partnerships" className="bg-fixed-black py-6 scroll-mt-24">
+      <section id="partnerships" className="shadow-2xl bg-fixed-black py-6 scroll-mt-24">
       
         {/* the gold bar */}
-        <div
+        {/* <div
           ref={lineRef}
           className={`h-0.5 mx-auto mb-8 bg-linear-to-r from-transparent via-[#fdb125] to-transparent ${shown ? "animate-gold-grow" : ""}`}
-        />
+        /> */}
 
         <div className="max-w-3xl mx-auto">
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white text-center mb-2">
