@@ -21,8 +21,8 @@ import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
 
 import ShowDeleteModal from "../../modals/ShowDeleteModal"
+import { CONDITION_OPTIONS } from "../../constants/borrowedConstants"
 
-const conditions = ["Working", "Borrowed", "Needs Repair", "Broken", "Not checked", "Unavailable"]
 const MOBILE_ITEMS = 3
 const DESKTOP_ITEMS = 8
 
@@ -241,7 +241,7 @@ export default function EquipmentsPage() {
               className="dark-input flex-1 md:flex-none"
             >
               <option value="All">All Conditions</option>
-              {conditions.map((c) => (
+              {CONDITION_OPTIONS.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
@@ -357,7 +357,6 @@ export default function EquipmentsPage() {
           equipment={editingEquipment ?? undefined}
           onSave={handleSave}
           onClose={() => setEditingEquipment(undefined)}
-          conditions={conditions}
           defaultOwner={user?.fullName ?? ""}
         />
       )}

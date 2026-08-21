@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react"
 import skIconFallback from "/sk_icon.jpg"
+import { CONDITION_OPTIONS } from "../../constants/borrowedConstants";
 
 interface EquipmentFormModalProps {
   equipment?: { id: string; name: string; category: string; image: string; owner: string; dateGivenToSK: string; condition: string; comments: string; borrowerName: string; dateBorrowed: string; dateDue: string }
   onSave: (eq: { name: string; category: string; image: string; owner: string; dateGivenToSK: string; condition: string; comments: string; borrowerName: string; dateBorrowed: string; dateDue: string }, imageFile?: File | null) => Promise<void>
   onClose: () => void
-  conditions: string[]
   defaultOwner?: string
 }
 
@@ -13,7 +13,6 @@ export default function EquipmentFormModal({
   equipment,
   onSave,
   onClose,
-  conditions,
   defaultOwner = "",
 }: EquipmentFormModalProps) {
   const isEdit = !!equipment
@@ -212,7 +211,7 @@ export default function EquipmentFormModal({
               onChange={(e) => setCondition(e.target.value)}
               className="dark-input w-full"
             >
-              {conditions.map((c: string) => (
+              {CONDITION_OPTIONS.map((c: string) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>

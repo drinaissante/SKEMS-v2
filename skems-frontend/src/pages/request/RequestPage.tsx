@@ -267,7 +267,7 @@ export default function RequestPage() {
                 </svg>
               </div>
               <p className="text-base sm:text-lg font-bold text-green-300 mb-2">Request Submitted!</p>
-              <p className="text-sm text-[#a6a6a6] mb-4">Please wait for approval from the SK officer.</p>
+              <p className="text-sm text-[#a6a6a6] mb-4">Please wait for approval from an SK officer.</p>
               <button
                 onClick={() => setSuccess(false)}
                 className="btn-gold inline-block px-6 py-2 text-sm"
