@@ -80,8 +80,8 @@ export default function EquipmentCard({
         </span>
       </div>
 
-      {requestMap?.has(eq.id) && (
-        <div className="mt-2 pt-2 border-t border-white/10 text-xs text-[#a6a6a6]">
+      {eq.borrowerName && (
+        <div className="mt-2 pt-2 border-t border-white/10 text-xs text-[#a6a6a6] space-y-0.5">
           <p><span className="font-medium">Borrower:</span> {eq.borrowerName}</p>
           <p><span className="font-medium">Borrowed:</span> {formatManila(eq.dateBorrowed, dateFormat)}</p>
           <p><span className="font-medium">Due:</span> {formatManila(eq.dateDue, dateFormat)}</p>
