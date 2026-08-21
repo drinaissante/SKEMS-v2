@@ -215,7 +215,7 @@ export default function RequestsPage() {
           </p>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start">
               {paginatedItems.map((r) => (
                 <div
                   key={r.id}
