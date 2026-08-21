@@ -34,6 +34,7 @@ import { useOnlineStatus } from './hooks/useOnlineStatus'
 import OfflineBanner from './components/OfflineBanner'
 import PWAUpdatePrompt from './components/PWAUpdatePrompt'
 import About from './pages/about/About'
+import Portfolio from './pages/portfolio/Portfolio'
 import Restricted from './pages/restricted/Restricted'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -98,6 +99,7 @@ function App() {
           <Route path='/register' element={<GuestRoute><RegisterPage /></GuestRoute>} />
           <Route path='/reset-password' element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
           <Route path='/about' element={<About />} />
+          <Route path='/portfolio' element={<Portfolio />} />
           <Route path='/restricted' element={<Restricted />} />
 
           <Route

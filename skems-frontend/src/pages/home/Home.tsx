@@ -221,7 +221,7 @@ export default function Home() {
 
           <div className="flex justify-center mt-10">
             <Link
-              to="/our-work"
+              to="/portfolio"
               className="inline-block px-10 py-3 border-2 border-[#c89116] text-[#c89116] bg-transparent hover:bg-[#fdb125] hover:text-white hover:border-[#fdb125] font-bold rounded-lg transition-colors duration-200 text-sm sm:text-base uppercase"
             >
               View Full Portfolio

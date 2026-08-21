@@ -48,7 +48,7 @@ export default function Footer() {
           </div>
 
           {/* TODO Work With Us = Contact on home page*/}
-          <Link to="/our-work">
+          <Link to="/portfolio">
             <span> Portfolio </span>
           </Link>
 
@@ -80,16 +80,14 @@ export default function Footer() {
             
             <div className="flex gap-2 cursor-pointer hover:text-[#c89116] transition-colors duration-200">
               <a href="https://www.facebook.com/sinekulturabulsu" target="/">
-                <FaFacebook size={24} /> 
+                <FaFacebook size={24} /> <span className="flex items-center text-xs italic">@sinekulturabulsu</span>
               </a>
-              <span className="flex items-center text-xs italic">@sinekulturabulsu</span>
             </div>
 
             <div className="flex gap-2 cursor-pointer hover:text-[#c89116] transition-colors duration-200">
               <a href="https://www.tiktok.com/@bulsu.sinekultura" target="/">
-                <FaTiktok size={24} /> 
+                <FaTiktok size={24} />  <span className="flex items-center text-xs italic">@bulsu.sinekultura</span>
               </a>
-              <span className="flex items-center text-xs italic">@bulsu.sinekultura</span>
             </div>
         </div>
 

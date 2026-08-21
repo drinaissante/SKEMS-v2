@@ -32,11 +32,11 @@ export default function Navbar() {
               {pathname === "/" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
             </NavLink>
             <NavLink
-              to="/our-work"
-              className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/our-work" ? "text-[#fdb125]" : ""}`}
+              to="/portfolio"
+              className={`relative transition-colors duration-200 hover:text-[#c89116] cursor-pointer ${pathname === "/portfolio" ? "text-[#fdb125]" : ""}`}
             >
-              Our Work
-              {pathname === "/our-work" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
+              Portfolio
+              {pathname === "/portfolio" && <GradientLine className="absolute inset-x-0 -bottom-2" />}
             </NavLink>
             <NavLink
               to="/about"
@@ -196,14 +196,14 @@ export default function Navbar() {
             {pathname === "/" && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
           </NavLink>
           <NavLink
-            to="/our-work"
+            to="/portfolio"
             onClick={() => setSidebarOpen(false)}
             className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-              pathname === "/our-work" ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+              pathname === "/portfolio" ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
             }`}
           >
-            Our Work
-            {pathname === "/our-work" && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+            Portfolio
+            {pathname === "/portfolio" && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
           </NavLink>
           <NavLink
             to="/about"
