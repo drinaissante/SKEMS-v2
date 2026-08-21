@@ -23,7 +23,8 @@ export default function ShowDeleteModal({
         mutationFn: deleteEquipment,
         onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["equipments"] })
-        showToast("Equipment deleted!", "info", { label: "Sync now?", onClick: handleSync })
+        showToast("Equipment deleted!", "success")
+        setTimeout(handleSync, 3500)
         },
     })
     

@@ -75,7 +75,8 @@ export default function DashboardHome() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
-      showToast("Equipment saved!", "info", { label: "Sync now?", onClick: handleSync })
+      showToast("Equipment saved!", "success")
+      setTimeout(handleSync, 3500)
     },
   })
 

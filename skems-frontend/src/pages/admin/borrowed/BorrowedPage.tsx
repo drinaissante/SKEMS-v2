@@ -104,7 +104,8 @@ export default function BorrowedPage() {
     }) => updateBorrowedItem(equipmentId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
-      showToast("Changes saved!", "info", { label: "Sync now?", onClick: handleSync })
+      showToast("Changes saved!", "success")
+      setTimeout(handleSync, 3500)
     },
   })
 
@@ -113,7 +114,8 @@ export default function BorrowedPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
-      showToast("Record deleted!", "info", { label: "Sync now?", onClick: handleSync })
+      showToast("Record deleted!", "success")
+      setTimeout(handleSync, 3500)
     },
   })
 
@@ -123,7 +125,8 @@ export default function BorrowedPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
-      showToast("Equipment returned!", "info", { label: "Sync now?", onClick: handleSync })
+      showToast("Equipment returned!", "success")
+      setTimeout(handleSync, 3500)
     },
   })
 
