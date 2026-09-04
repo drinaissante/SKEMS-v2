@@ -285,6 +285,7 @@ export default function ProfilePage() {
             </a>
           </div>
         </div>
+      </div>
     </div>
   )
 }
