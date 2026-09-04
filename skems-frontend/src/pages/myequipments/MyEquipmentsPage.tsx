@@ -180,7 +180,7 @@ export default function MyEquipmentsPage() {
         <div className="flex flex-col md:flex-row gap-2 mb-4 relative z-10">
           <input
             type="text"
-            placeholder="Search by name or owner..."
+            placeholder="Search by name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="dark-input w-full md:flex-1 min-w-35"
