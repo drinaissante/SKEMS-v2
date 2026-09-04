@@ -93,7 +93,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen flex items-start justify-center px-3 py-25 bg-fixed-black">
-      <div className="w-full max-w-3xl flex flex-col md:flex-row gap-5 md:items-start">
+      <div className="w-full max-w-5xl flex flex-col md:flex-row gap-5 md:items-start">
         <form
           onSubmit={handleSave}
           className="w-full md:flex-1 dark-card p-5 sm:p-8"
@@ -210,10 +210,11 @@ export default function ProfilePage() {
           </button>
         </form>
 
-        <div className="w-full md:flex-1 dark-card p-5 sm:p-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">
-            Discord Link
-          </h2>
+        <div className="w-full md:flex-1 flex flex-col gap-5">
+          <div className="dark-card p-5 sm:p-8">
+            <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">
+              Discord Link
+            </h2>
 
           {discordLink ? (
             <div className="text-center space-y-3">
@@ -265,8 +266,25 @@ export default function ProfilePage() {
               </button>
             </div>
           )}
+          </div>
+
+          <div className="dark-card p-5 sm:p-8 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3">
+              Join Discord
+            </h2>
+            <p className="text-sm text-[#a6a6a6] mb-4">
+              Connect with the Sine Kultura community on Discord.
+            </p>
+            <a
+              href="https://discord.gg/hkPTHrdKQq"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-gold inline-block px-6 py-2.5 text-sm"
+            >
+              Join Server
+            </a>
+          </div>
         </div>
-      </div>
     </div>
   )
 }

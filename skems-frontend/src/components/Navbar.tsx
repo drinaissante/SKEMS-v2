@@ -115,6 +115,14 @@ export default function Navbar() {
                         My Requests
                       </NavLink>
 
+                      <NavLink
+                        to={`/profiles/${user?.id}/equipments`}
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                      >
+                        My Equipments
+                      </NavLink>
+
                       <hr className="border-[#a6a6a6]/30" />
 
                       <button
@@ -242,54 +250,54 @@ export default function Navbar() {
                   <NavLink
                     to="/dashboard/equipments"
                     onClick={() => setSidebarOpen(false)}
-                    className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                    className={`relative flex items-center gap-3 pl-8 pr-3 py-2.5 rounded-lg text-sm transition-colors ${
                       pathname.startsWith("/dashboard/equipments") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
                     }`}
                   >
                     Equipment
-                    {pathname.startsWith("/dashboard/equipments") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+                    {pathname.startsWith("/dashboard/equipments") && <span className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
                   </NavLink>
                   <NavLink
                     to="/dashboard/requests"
                     onClick={() => setSidebarOpen(false)}
-                    className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                    className={`relative flex items-center gap-3 pl-8 pr-3 py-2.5 rounded-lg text-sm transition-colors ${
                       pathname.startsWith("/dashboard/requests") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
                     }`}
                   >
                     Manage Requests
-                    {pathname.startsWith("/dashboard/requests") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+                    {pathname.startsWith("/dashboard/requests") && <span className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
                   </NavLink>
                   <NavLink
                     to="/dashboard/borrowed"
                     onClick={() => setSidebarOpen(false)}
-                    className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                    className={`relative flex items-center gap-3 pl-8 pr-3 py-2.5 rounded-lg text-sm transition-colors ${
                       pathname.startsWith("/dashboard/borrowed") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
                     }`}
                   >
                     Borrowed
-                    {pathname.startsWith("/dashboard/borrowed") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+                    {pathname.startsWith("/dashboard/borrowed") && <span className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
                   </NavLink>
                   {isSuperAdmin && (
                     <>
                       <NavLink
                         to="/dashboard/users"
                         onClick={() => setSidebarOpen(false)}
-                        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                        className={`relative flex items-center gap-3 pl-8 pr-3 py-2.5 rounded-lg text-sm transition-colors ${
                           pathname.startsWith("/dashboard/users") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
                         }`}
                       >
                         Manage Users
-                        {pathname.startsWith("/dashboard/users") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+                        {pathname.startsWith("/dashboard/users") && <span className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
                       </NavLink>
                       <NavLink
                         to="/dashboard/grading"
                         onClick={() => setSidebarOpen(false)}
-                        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                        className={`relative flex items-center gap-3 pl-8 pr-3 py-2.5 rounded-lg text-sm transition-colors ${
                           pathname.startsWith("/dashboard/grading") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
                         }`}
                       >
                         Grading
-                        {pathname.startsWith("/dashboard/grading") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+                        {pathname.startsWith("/dashboard/grading") && <span className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
                       </NavLink>
                     </>
                   )}
@@ -305,6 +313,17 @@ export default function Navbar() {
               >
                 My Requests
                 {pathname === "/my-requests" && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+              </NavLink>
+
+              <NavLink
+                to={`/profiles/${user?.id}/equipments`}
+                onClick={() => setSidebarOpen(false)}
+                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  pathname.startsWith("/profiles/") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+                }`}
+              >
+                My Equipments
+                {pathname.startsWith("/profiles/") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
               </NavLink>
 
               <NavLink

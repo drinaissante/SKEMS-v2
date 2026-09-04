@@ -39,6 +39,16 @@ export async function fetchEquipments(): Promise<Equipment[]> {
   return (data ?? []).map(mapRowToEquipment);
 }
 
+export async function fetchEquipmentsByOwner(owner: string): Promise<Equipment[]> {
+  const { data, error } = await supabase
+    .from("equipments")
+    .select("*")
+    .eq("owner", owner)
+    .order("equipment_id", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map(mapRowToEquipment);
+}
+
 export async function addEquipment(
   equipment: Omit<Equipment, "id">,
 ): Promise<Equipment> {

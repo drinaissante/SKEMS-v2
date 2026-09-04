@@ -11,6 +11,7 @@ import EquipmentsPage from './pages/equipments/EquipmentsPage'
 import RequestPage from './pages/request/RequestPage'
 import MyRequestsPage from './pages/myrequests/MyRequestsPage'
 import ProfilePage from './pages/profile/ProfilePage'
+import MyEquipmentsPage from './pages/myequipments/MyEquipmentsPage'
 import UsersPage from './pages/admin/UsersPage'
 import RequestsPage from './pages/admin/RequestsPage'
 import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
@@ -134,6 +135,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <MyRequestsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path='/profiles/:uuid/equipments'
+            element={
+              <ProtectedRoute>
+                <MyEquipmentsPage />
               </ProtectedRoute>
             }
           />
