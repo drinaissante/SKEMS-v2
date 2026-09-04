@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { fetchAllProfiles, fetchAllDiscordLinks, toggleAdmin } from "../../services/supabase"
+import { fetchAllProfiles, fetchAllDiscordLinks, toggleAdmin, updateProfile } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { FiSearch, FiCheck, FiX } from "react-icons/fi"
@@ -29,10 +29,12 @@ interface Profile {
 
 export default function UsersPage() {
   usePageTitle("Manage Users")
-  const { user } = useAuth()
+  const { user, isSuperAdmin } = useAuth()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
+  const [positionDraft, setPositionDraft] = useState("")
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   useEffect(() => {
@@ -64,6 +66,15 @@ export default function UsersPage() {
     }) => toggleAdmin(profileId, isAdmin, currentUserId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profiles"] })
+    },
+  })
+
+  const positionMutation = useMutation({
+    mutationFn: ({ profileId, position }: { profileId: string; position: string }) =>
+      updateProfile(profileId, { position }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] })
+      setEditingProfile(null)
     },
   })
 
@@ -175,9 +186,20 @@ export default function UsersPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#a6a6a6]">
-                          {p.position || "—"}
-                        </span>
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#a6a6a6]">
+                            {p.position || "—"}
+                          </span>
+                          {isSuperAdmin && (
+                            <button
+                              onClick={() => { setEditingProfile(p); setPositionDraft(p.position ?? "") }}
+                              className="text-xs px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-[#fdb125] transition-colors cursor-pointer"
+                              title="Edit position"
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <button
@@ -223,6 +245,37 @@ export default function UsersPage() {
           </>
         )}
       </div>
+
+      {editingProfile && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm">
+            <h3 className="text-lg font-bold text-white mb-4">Edit Position</h3>
+            <p className="text-sm text-[#a6a6a6] mb-3">{editingProfile.full_name}</p>
+            <input
+              type="text"
+              value={positionDraft}
+              onChange={(e) => setPositionDraft(e.target.value)}
+              placeholder="e.g. President, Trainee..."
+              className="dark-input w-full text-sm"
+            />
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={() => setEditingProfile(null)}
+                className="btn-ghost flex-1 py-2 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => positionMutation.mutate({ profileId: editingProfile.id, position: positionDraft.trim() })}
+                disabled={positionMutation.isPending}
+                className="flex-1 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm disabled:opacity-40"
+              >
+                {positionMutation.isPending ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
