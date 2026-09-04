@@ -10,11 +10,15 @@ const texts: string[] = [
 ]
 
 const LEADERSHIP_GROUPS = [
-  { title: "President", statuses: ["President, Event Coor."] },
-  { title: "Vice President", statuses: ["Vice Pres, Treasurer"] },
-  { title: "Secretary", statuses: ["Secretary"] },
-  { title: "Driver", statuses: ["Driver"] },
+  { title: "President", keywords: ["president", "pres"] },
+  { title: "Vice President", keywords: ["vice pres", "vp"] },
+  { title: "Secretary", keywords: ["secretary", "sec"
+  ] },
+  { title: "Treasurer", keywords: ["treasurer", "tres"] },
 ] as const
+
+const memberMatchesKeywords = (status: string, keywords: readonly string[]) =>
+  keywords.some((k) => status.toLowerCase().includes(k.toLowerCase()))
 
 export default function About() {
   usePageTitle("About")
@@ -22,20 +26,17 @@ export default function About() {
   const { output, holding } = useTypewriter(texts, 80, 40, 2000)
   const { data: members = [], isLoading } = useMemberNames()
 
-  const leaderStatuses = useMemo(() => {
-    return new Set<string>(LEADERSHIP_GROUPS.flatMap((g) => g.statuses))
-  }, [])
-
   const { leadershipMembers, remainingMembers } = useMemo(() => {
     const leadership: Member[] = []
     const remaining: Member[] = []
     for (const m of members) {
       if (!m.status) continue
-      if (leaderStatuses.has(m.status)) leadership.push(m)
+      const isLeadership = LEADERSHIP_GROUPS.some((g) => memberMatchesKeywords(m.status!, g.keywords))
+      if (isLeadership) leadership.push(m)
       else remaining.push(m)
     }
     return { leadershipMembers: leadership, remainingMembers: remaining }
-  }, [members, leaderStatuses])
+  }, [members])
 
   const groupedMembers = useMemo((): [string, [string, Member[]][]][] => {
     const groups = new Map<string, Map<string, Member[]>>()
@@ -93,8 +94,8 @@ export default function About() {
                 <>
                     {/* LEADERSHIP */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        {LEADERSHIP_GROUPS.map(({ title, statuses }) => {
-                            const list = leadershipMembers.filter((m) => (statuses as readonly string[]).includes(m.status))
+                        {LEADERSHIP_GROUPS.map(({ title, keywords }) => {
+                            const list = leadershipMembers.filter((m) => (keywords as readonly string[]).some(k => m.status!.toLowerCase().includes(k.toLowerCase())))
                             if (list.length === 0) return null
                             list.sort((a, b) => a.fullName.localeCompare(b.fullName))
                             return (
