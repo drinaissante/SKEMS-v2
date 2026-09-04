@@ -23,6 +23,7 @@ interface Profile {
   is_admin: boolean
   is_superadmin: boolean
   email: string
+  position: string | null
   discordLink: DiscordLink | null
 }
 
@@ -135,14 +136,23 @@ export default function UsersPage() {
                     <th className="px-4 py-3 font-medium">Student Number</th>
                     <th className="px-4 py-3 font-medium hidden sm:table-cell">Email</th>
                     <th className="px-4 py-3 font-medium text-center">Discord</th>
-                    <th className="px-4 py-3 font-medium text-center">Admin</th>
+                    <th className="px-4 py-3 font-medium text-center">Position</th>
                     <th className="px-4 py-3 font-medium text-center">Toggle</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
                   {paginatedItems.map((p) => (
                     <tr key={p.id} className="text-white">
-                      <td className="px-4 py-3 whitespace-nowrap">{p.full_name}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span>{p.full_name}</span>
+                          {p.is_superadmin ? (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300" title="Super Admin">SA</span>
+                          ) : p.is_admin ? (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-500/15 text-green-300" title="Admin">A</span>
+                          ) : null}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap">{p.student_number}</td>
                       <td className="px-4 py-3 hidden sm:table-cell text-[#a6a6a6] whitespace-nowrap">
                         {p.email}
@@ -165,15 +175,9 @@ export default function UsersPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {p.is_admin ? (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-300">
-                            Admin
-                          </span>
-                        ) : (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#a6a6a6]">
-                            Member
-                          </span>
-                        )}
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#a6a6a6]">
+                          {p.position || "—"}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <button
