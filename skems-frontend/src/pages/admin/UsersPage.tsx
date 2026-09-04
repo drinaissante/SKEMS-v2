@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { fetchAllProfiles, fetchAllDiscordLinks, toggleAdmin, updateProfile } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
@@ -156,7 +157,13 @@ export default function UsersPage() {
                     <tr key={p.id} className="text-white">
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <span>{p.full_name}</span>
+                          <Link
+                            to={`/profiles/${p.id}/equipments`}
+                            className="hover:text-[#fdb125] hover:underline transition-colors cursor-pointer"
+                            title="View equipments"
+                          >
+                            {p.full_name}
+                          </Link>
                           {p.is_superadmin ? (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300" title="Super Admin">SA</span>
                           ) : p.is_admin ? (
