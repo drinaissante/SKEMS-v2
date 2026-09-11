@@ -8,7 +8,7 @@ export type EventOption = {
 const SHEET_ID = "171tDcO9NzSrS37H1Hwo-kbjdwRcHwWYblsPpVgStTls";
 const GID = "1617646139";
 
-function parseSheetDate(raw: any): string {
+function parseSheetDate(raw: unknown): string {
   if (!raw) return "";
   const str = String(raw);
 
@@ -51,7 +51,7 @@ async function fetchEventNames(): Promise<EventOption[]> {
   }
 
   const events: EventOption[] = rawData.table.rows
-    .map((row: { c: Array<{ v?: any; f?: string } | null> | null }) => {
+    .map((row: { c: Array<{ v?: string | number | boolean | null; f?: string } | null> | null }) => {
       const c = row?.c;
       const name = c && c[0] && c[0].v != null ? String(c[0].v) : "";
       const rawDate = c && c[1] ? c[1].f || c[1].v || "" : "";

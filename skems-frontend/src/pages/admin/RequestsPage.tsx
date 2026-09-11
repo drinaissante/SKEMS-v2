@@ -145,9 +145,11 @@ export default function RequestsPage() {
     const el = document.getElementById(`request-${focusId}`)
     if (!el) return
     highlighted.current = true
-    setExpandedRow(focusId)
-    el.scrollIntoView({ block: "center", behavior: "smooth" })
-    const show = setTimeout(() => setHighlightId(focusId), 0)
+    const show = setTimeout(() => {
+      setExpandedRow(focusId)
+      el.scrollIntoView({ block: "center", behavior: "smooth" })
+      setHighlightId(focusId)
+    }, 0)
     const hide = setTimeout(() => setHighlightId(null), 2600)
     return () => {
       clearTimeout(show)
