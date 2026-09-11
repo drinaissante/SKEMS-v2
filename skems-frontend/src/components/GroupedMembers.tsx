@@ -57,7 +57,7 @@ export default function SpecCarousel({
               {memberCount} {memberCount === 1 ? "member" : "members"}
             </span>
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1 pb-6">
             {entry?.[1].map(([status, list]) => (
               <div key={status}>
                 <p className="text-[10px] font-bold text-[#a6a6a6] uppercase tracking-wide wrap-break-word mb-1 text-center">
