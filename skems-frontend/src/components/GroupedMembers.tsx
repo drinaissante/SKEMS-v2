@@ -46,7 +46,7 @@ export default function SpecCarousel({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.35 }}
-          className="relative flex-1 dark-card rounded-xl border border-white/10 overflow-hidden flex flex-col h-[min(60vh,34rem)] min-h-[22rem]"
+          className="relative flex-1 dark-card rounded-xl border border-white/10 overflow-hidden flex flex-col h-[min(60vh,34rem)] min-h-88"
         >
           <div className="absolute inset-x-0 top-0 h-0.5 bg-linear-to-r from-[#cab453] to-[#ffd000]" />
           <div className="text-center mb-6 pt-8 shrink-0">
