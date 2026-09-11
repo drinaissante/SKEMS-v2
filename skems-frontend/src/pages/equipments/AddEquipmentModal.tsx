@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
+import { FiSearch } from "react-icons/fi"
 import skIconFallback from "/sk_icon.jpg"
 import { CONDITION_OPTIONS } from "../../constants/borrowedConstants";
+import { useMemberNames } from "../../hooks/useMemberNames"
 
 interface EquipmentFormModalProps {
   equipment?: { id: string; name: string; category: string; image: string; owner: string; dateGivenToSK: string; condition: string; comments: string; borrowerName: string; dateBorrowed: string; dateDue: string }
@@ -30,6 +32,9 @@ export default function EquipmentFormModal({
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const prevPreviewRef = useRef<string | null>(null)
+  const [ownerSearch, setOwnerSearch] = useState("")
+  const [showCustomOwner, setShowCustomOwner] = useState(false)
+  const { data: members = [], isLoading: loadingMembers } = useMemberNames()
 
   useEffect(() => {
     return () => {
@@ -83,8 +88,18 @@ export default function EquipmentFormModal({
     }
   }
 
+  const filteredOwners = useMemo(() => {
+    return members
+      .filter((m) => {
+        if (ownerSearch && !m.fullName.toLowerCase().includes(ownerSearch.toLowerCase())) return false
+        return true
+      })
+      .sort((a, b) => a.fullName.localeCompare(b.fullName))
+  }, [members, ownerSearch])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!owner.trim()) return
     setSaving(true)
     try {
       await onSave({
@@ -169,12 +184,98 @@ export default function EquipmentFormModal({
             <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
               Owner <span className="text-red-500">*</span>
             </label>
-            <input
-              required
-              value={owner}
-              onChange={(e) => setOwner(e.target.value)}
-              className="dark-input w-full"
-            />
+
+            {loadingMembers ? (
+              <div className="dark-input w-full text-sm text-[#a6a6a6]">
+                Loading member list...
+              </div>
+            ) : (
+              <>
+                <div className="relative mb-2">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={14} />
+                  <input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={ownerSearch}
+                    onChange={(e) => setOwnerSearch(e.target.value)}
+                    className="dark-input w-full pl-8 pr-3 py-1.5 text-sm"
+                  />
+                </div>
+
+                {!showCustomOwner && (
+                  <div className="border border-white/10 rounded-lg max-h-32 overflow-y-auto">
+                    {filteredOwners.length === 0 ? (
+                      <p className="text-xs text-[#a6a6a6] px-3 py-2">No members match your search.</p>
+                    ) : (
+                      filteredOwners.map((m) => (
+                        <button
+                          key={m.fullName}
+                          type="button"
+                          onClick={() => {
+                            if (owner === m.fullName) {
+                              setOwner("")
+                            } else {
+                              setOwner(m.fullName)
+                              setOwnerSearch("")
+                            }
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors border-b border-white/5 last:border-b-0 ${
+                            owner === m.fullName
+                              ? "bg-[#fdb125]/20 text-[#fdb125] font-bold"
+                              : "text-white hover:bg-white/5"
+                          }`}
+                        >
+                          {m.fullName}
+                          <span className="text-[10px] text-[#a6a6a6] ml-2">{m.status}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCustomOwner((prev) => {
+                      if (!prev) setOwner("")
+                      return !prev
+                    })
+                  }}
+                  className={`mt-2 px-3 py-1.5 text-xs rounded-lg border transition-colors cursor-pointer ${
+                    showCustomOwner
+                      ? "bg-[#fdb125]/20 border-[#fdb125]/40 text-[#fdb125]"
+                      : "bg-white/5 border-white/10 text-[#a6a6a6] hover:text-white"
+                  }`}
+                >
+                  {showCustomOwner ? "Cancel Custom" : "Other (Custom)"}
+                </button>
+              </>
+            )}
+
+            {showCustomOwner && (
+              <input
+                type="text"
+                required
+                autoFocus
+                placeholder="Enter owner name"
+                value={owner}
+                onChange={(e) => setOwner(e.target.value)}
+                className="dark-input w-full mt-2"
+              />
+            )}
+
+            {!showCustomOwner && owner && (
+              <p className="text-xs text-[#a6a6a6] mt-1">
+                Selected: <span className="text-white font-medium">{owner}</span>
+                <button
+                  type="button"
+                  onClick={() => setOwner("")}
+                  className="ml-2 text-red-400 hover:text-red-300 cursor-pointer"
+                >
+                  ×
+                </button>
+              </p>
+            )}
           </div>
 
           <div>
