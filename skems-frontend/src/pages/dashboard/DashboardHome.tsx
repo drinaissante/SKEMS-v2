@@ -12,6 +12,7 @@ import { generateQRDoc } from "../../utils/qrExport"
 
 import EquipmentFormModal from "../equipments/AddEquipmentModal"
 import QrExportModal from "../../modals/QrExportModal"
+import { openExternalTab } from "../../utils/tauri"
 
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
@@ -176,6 +177,7 @@ export default function DashboardHome() {
               href={sheetsUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => openExternalTab(e, sheetsUrl)}
               className="w-full sm:w-auto px-3 py-2 text-sm bg-green-500/15 hover:bg-green-500/25 text-green-300 font-bold rounded-lg transition-colors cursor-pointer border border-green-500/30 inline-flex items-center justify-center"
             >
               Open Sheets

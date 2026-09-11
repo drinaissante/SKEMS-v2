@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useAuth } from "../../context/AuthContext"
 import { updatePassword, fetchDiscordLink } from "../../services/supabase"
 import { usePageTitle } from "../../hooks/usePageTitle"
+import { openExternalTab } from "../../utils/tauri"
 
 interface DiscordLink {
   user_id: string
@@ -279,6 +280,7 @@ export default function ProfilePage() {
               href="https://discord.gg/hkPTHrdKQq"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => openExternalTab(e, "https://discord.gg/hkPTHrdKQq")}
               className="btn-gold inline-block px-6 py-2.5 text-sm"
             >
               Join Server
