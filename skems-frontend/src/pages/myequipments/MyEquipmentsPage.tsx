@@ -214,7 +214,7 @@ export default function MyEquipmentsPage() {
             <p className="text-center text-[#a6a6a6] py-10">Loading equipment...</p>
           ) : equipments.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-62.5 text-center">
-              <p className="text-[#a6a6a6] mb-4">{profile?.full_name ?? "This user"} has no registered equipment yet.</p>
+              <p className="text-[#a6a6a6] mb-4">{isOwn ? ("You have no ") : (profile?.full_name ?? "User has no")} registered equipment yet.</p>
               {!isNonAdmin && (
                 <button
                   onClick={() => setEditingEquipment(null)}
