@@ -22,6 +22,7 @@ import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
 
 import ShowDeleteModal from "../../modals/ShowDeleteModal"
+import QrExportModal from "../../modals/QrExportModal"
 import { CONDITION_OPTIONS } from "../../constants/borrowedConstants"
 
 const MOBILE_ITEMS = 3
@@ -50,6 +51,7 @@ export default function EquipmentsPage() {
 
   const [syncing, setSyncing] = useState(false)
   const [exportingQR, setExportingQR] = useState(false)
+  const [qrExportCount, setQrExportCount] = useState(0)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   
   const [deletingId, setDeletingId] = useState("")
@@ -185,8 +187,8 @@ export default function EquipmentsPage() {
   const handleExportQR = async () => {
     try {
       setExportingQR(true)
-      await generateQRDoc(equipments)
-      showToast("QR codes exported!", "success")
+      const count = await generateQRDoc(equipments)
+      setQrExportCount(count)
     } catch (err) {
       showToast("Export failed: " + (err instanceof Error ? err.message : "Unknown error"), "error")
     } finally {
@@ -389,6 +391,10 @@ export default function EquipmentsPage() {
         queryClient={queryClient}
         handleSync={handleSync}
       />}
+
+      {qrExportCount > 0 && (
+        <QrExportModal count={qrExportCount} onClose={() => setQrExportCount(0)} />
+      )}
 
       {expandedImage && (
         <ImageLightbox

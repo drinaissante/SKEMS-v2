@@ -31,7 +31,7 @@ function qrParagraph(data: string, opts: IParagraphOptions): Paragraph {
   })
 }
 
-export async function generateQRDoc(equipments: Equipment[]) {
+export async function generateQRDoc(equipments: Equipment[]): Promise<number> {
   const { default: QRCode } = await import("qrcode")
   const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin
 
@@ -95,4 +95,6 @@ export async function generateQRDoc(equipments: Equipment[]) {
   a.click()
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
+
+  return equipments.length
 }

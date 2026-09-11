@@ -11,6 +11,7 @@ import { uploadImage, uploadQRCode, fetchBorrowedItems } from "../../services/su
 import { generateQRDoc } from "../../utils/qrExport"
 
 import EquipmentFormModal from "../equipments/AddEquipmentModal"
+import QrExportModal from "../../modals/QrExportModal"
 
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
@@ -40,6 +41,7 @@ export default function DashboardHome() {
   const [editingEquipment, setEditingEquipment] = useState<Equipment | null | undefined>(undefined)
   const [syncing, setSyncing] = useState(false)
   const [exportingQR, setExportingQR] = useState(false)
+  const [qrExportCount, setQrExportCount] = useState(0)
 
   const { data: equipments = [] } = useQuery({
     queryKey: ["equipments"],
@@ -104,8 +106,8 @@ export default function DashboardHome() {
   const handleExportQR = async () => {
     try {
       setExportingQR(true)
-      await generateQRDoc(equipments)
-      showToast("QR codes exported!", "success")
+      const count = await generateQRDoc(equipments)
+      setQrExportCount(count)
     } catch (err) {
       showToast("Export failed: " + (err instanceof Error ? err.message : "Unknown error"), "error")
     } finally {
@@ -318,6 +320,10 @@ export default function DashboardHome() {
           onClose={() => setEditingEquipment(undefined)}
           defaultOwner={user?.fullName ?? ""}
         />
+      )}
+
+      {qrExportCount > 0 && (
+        <QrExportModal count={qrExportCount} onClose={() => setQrExportCount(0)} />
       )}
     </div>
   )
