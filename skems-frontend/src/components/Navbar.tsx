@@ -334,7 +334,7 @@ export default function Navbar() {
                   pathname === "/profile" ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
                 }`}
               >
-                {isNonAdmin ? "Profile" : (user?.fullName ?? "Profile")}
+                Profile
                 {pathname === "/profile" && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
               </NavLink>
             </>
