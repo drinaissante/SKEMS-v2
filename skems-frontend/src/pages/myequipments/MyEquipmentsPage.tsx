@@ -30,7 +30,8 @@ export default function MyEquipmentsPage() {
 
   const { uuid } = useParams<{ uuid: string }>()
   const navigate = useNavigate()
-  const { isSuperAdmin, user } = useAuth()
+  const { isAdmin, isSuperAdmin, user } = useAuth()
+  const isNonAdmin = !isAdmin && !isSuperAdmin
   const queryClient = useQueryClient()
 
   const [uploadingImages, setUploadingImages] = useState<Record<string, boolean>>({})
@@ -213,13 +214,15 @@ export default function MyEquipmentsPage() {
             <p className="text-center text-[#a6a6a6] py-10">Loading equipment...</p>
           ) : equipments.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-62.5 text-center">
-              <p className="text-[#a6a6a6] mb-4">You have no equipments yet.</p>
-              <button
-                onClick={() => setEditingEquipment(null)}
-                className="btn-gold px-5 py-2.5 text-sm"
-              >
-                Add Equipment
-              </button>
+              <p className="text-[#a6a6a6] mb-4">{profile?.full_name ?? "This user"} has no registered equipment yet.</p>
+              {!isNonAdmin && (
+                <button
+                  onClick={() => setEditingEquipment(null)}
+                  className="btn-gold px-5 py-2.5 text-sm"
+                >
+                  Add Equipment
+                </button>
+              )}
             </div>
           ) : filtered.length === 0 ? (
             <p className="text-center text-[#a6a6a6] py-10">No equipment found.</p>
@@ -290,15 +293,17 @@ export default function MyEquipmentsPage() {
 
       </div>
 
-      <button
-        onClick={() => setEditingEquipment(null)}
-        className="fixed bottom-6 right-6 z-30 w-14 h-14 bg-[#c89116] hover:bg-[#caa453] text-white rounded-full shadow-lg flex items-center justify-center transition-colors cursor-pointer"
-        aria-label="Add Equipment"
-      >
-        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
+      {!isNonAdmin && (
+        <button
+          onClick={() => setEditingEquipment(null)}
+          className="fixed bottom-6 right-6 z-30 w-14 h-14 bg-[#c89116] hover:bg-[#caa453] text-white rounded-full shadow-lg flex items-center justify-center transition-colors cursor-pointer"
+          aria-label="Add Equipment"
+        >
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      )}
 
       {editingEquipment !== undefined && (
         <EquipmentFormModal
@@ -316,6 +321,7 @@ export default function MyEquipmentsPage() {
         setDeletingId={setDeletingId}
         queryClient={queryClient}
         handleSync={() => {}}
+        onDeleted={() => queryClient.invalidateQueries({ queryKey: ["my-equipments"] })}
       />}
 
       {expandedImage && (
