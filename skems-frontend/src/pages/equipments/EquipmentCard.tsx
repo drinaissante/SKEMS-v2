@@ -58,27 +58,32 @@ export default function EquipmentCard({
         )}
       </div>
 
-      <p className="text-xs text-[#a6a6a6] font-mono mb-0.5">{eq.id}</p>
-      <h3 className="font-bold text-white text-sm sm:text-base">{eq.name}</h3>
-      <p className="text-xs text-[#a6a6a6] mb-1">{eq.category}</p>
+      <Link
+        to={`/equipment?id=${eq.id}`}
+        className="block cursor-pointer group"
+      >
+        <p className="text-xs text-[#a6a6a6] font-mono mb-0.5 group-hover:text-[#fdb125] transition-colors">{eq.id}</p>
+        <h3 className="font-bold text-white text-sm sm:text-base group-hover:text-[#fdb125] transition-colors">{eq.name}</h3>
+        <p className="text-xs text-[#a6a6a6] mb-1">{eq.category}</p>
 
-      <div className="text-xs text-[#a6a6a6] space-y-0.5">
-        <p><span className="font-medium">Owner:</span> {eq.owner}</p>
-        <p><span className="font-medium">Given to SK:</span> {eq.dateGivenToSK}</p>
-        <p><span className="font-medium">Comments:</span> {eq.comments ?? "—"}</p>
-      </div>
+        <div className="text-xs text-[#a6a6a6] space-y-0.5">
+          <p><span className="font-medium">Owner:</span> {eq.owner}</p>
+          <p><span className="font-medium">Given to SK:</span> {eq.dateGivenToSK}</p>
+          <p><span className="font-medium">Comments:</span> {eq.comments ?? "—"}</p>
+        </div>
 
-      <div className="flex items-center justify-between mt-3">
-        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-          eq.condition === "Working" ? "bg-green-500/15 text-green-300" :
-          eq.condition === "Borrowed" ? "bg-[#c89116] text-white" :
-          eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
-          eq.condition === "Broken" ? "bg-red-500/15 text-red-300" :
-          "bg-white/10 text-[#a6a6a6]"
-        }`}>
-          {eq.condition}
-        </span>
-      </div>
+        <div className="flex items-center justify-between mt-3">
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+            eq.condition === "Working" ? "bg-green-500/15 text-green-300" :
+            eq.condition === "Borrowed" ? "bg-[#c89116] text-white" :
+            eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
+            eq.condition === "Broken" ? "bg-red-500/15 text-red-300" :
+            "bg-white/10 text-[#a6a6a6]"
+          }`}>
+            {eq.condition}
+          </span>
+        </div>
+      </Link>
 
       {eq.borrowerName && (
         <div className="mt-2 pt-2 border-t border-white/10 text-xs text-[#a6a6a6] space-y-0.5">
