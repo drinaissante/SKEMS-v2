@@ -17,7 +17,8 @@ pub fn run() {
         )?;
       }
 
-      let handle = app.handle().clone();
+      let nav_handle = app.handle().clone();
+      let new_window_handle = app.handle().clone();
       let url = if cfg!(debug_assertions) {
         WebviewUrl::External(DEV_URL.parse().expect("valid dev url"))
       } else {
@@ -37,13 +38,21 @@ pub fn run() {
             || host == "localhost"
             || host == "127.0.0.1";
           if !is_app {
-            let handle = handle.clone();
+            let handle = nav_handle.clone();
             let url_string = url.as_ref().to_string();
             tauri::async_runtime::spawn(async move {
               let _ = handle.opener().open_url(url_string, None::<&str>);
             });
           }
           is_app
+        })
+        .on_new_window(move |url, _features| {
+          let handle = new_window_handle.clone();
+          let url_string = url.to_string();
+          tauri::async_runtime::spawn(async move {
+            let _ = handle.opener().open_url(url_string, None::<&str>);
+          });
+          tauri::webview::NewWindowResponse::Deny
         })
         .build()?;
 
