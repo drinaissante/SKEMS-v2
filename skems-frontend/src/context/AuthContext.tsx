@@ -25,7 +25,7 @@ interface AuthContextType {
   isLoggedIn: boolean
   isAdmin: boolean
   isSuperAdmin: boolean
-  login: (identifier: string, password: string, captchaToken: string) => Promise<boolean>
+  login: (identifier: string, password: string, captchaToken: string) => Promise<string | null>
   register: (data: RegisterData) => Promise<boolean>
   logout: () => Promise<void>
   updateUser: (data: Partial<Omit<User, "id" | "isAdmin" | "isSuperAdmin">>) => Promise<void>
@@ -143,16 +143,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const login = async (identifier: string, password: string, captchaToken: string): Promise<boolean> => {
+  const login = async (identifier: string, password: string, captchaToken: string): Promise<string | null> => {
     try {
       const data = await signIn(identifier, password, captchaToken)
       if (data?.user) {
         await resolveUser(data.user.id)
-        return true
+        return null
       }
-      return false
-    } catch {
-      return false
+      return "Invalid student number, email, or password. Please try again later."
+    } catch (err) {
+      const message = err instanceof Error ? err.message.toLowerCase() : ""
+      const code = (err as { code?: string }).code ?? ""
+      if (code === "email_not_confirmed" || message.includes("email not confirmed")) {
+        return "Please confirm your email address before logging in. Check your inbox for the confirmation link."
+      }
+      if (message.includes("no account found")) {
+        return "No account found with that student number."
+      }
+      return "Invalid student number, email, or password. Please try again later."
     }
   }
 

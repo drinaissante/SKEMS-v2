@@ -46,15 +46,15 @@ export default function LoginPage() {
 
     setLoading(true)
 
-    const ok = await login(identifier, password, captchaToken)
+    const errorMsg = await login(identifier, password, captchaToken)
 
     setLoading(false)
     
     if (captcha.current)
       captcha.current.resetCaptcha()
 
-    if (!ok) {
-      setError("Invalid student number, email, or password. Please try again later.")
+    if (errorMsg) {
+      setError(errorMsg)
       return
     }
 
