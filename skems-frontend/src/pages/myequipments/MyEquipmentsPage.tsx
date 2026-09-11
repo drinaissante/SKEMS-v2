@@ -215,7 +215,7 @@ export default function MyEquipmentsPage() {
           ) : equipments.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full min-h-62.5 text-center">
               <p className="text-[#a6a6a6] mb-4"> 
-                {isOwn ? "You have no" : profile?.full_name ?? "User"} {isOwn ? "have" : "has"} no registered equipment yet. 
+                No registered equipment yet. 
               </p>
               {!isNonAdmin && (
                 <button
