@@ -13,6 +13,7 @@ export function useEquipmentsRealtime() {
         { event: "*", schema: "public", table: "equipments" },
         () => {
           queryClient.invalidateQueries({ queryKey: ["equipments"] })
+          queryClient.invalidateQueries({ queryKey: ["my-equipments"] })
         },
       )
       .subscribe()

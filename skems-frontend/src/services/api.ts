@@ -40,10 +40,11 @@ export async function fetchEquipments(): Promise<Equipment[]> {
 }
 
 export async function fetchEquipmentsByOwner(owner: string): Promise<Equipment[]> {
+  const pattern = owner.trim().replace(/\s+/g, "%");
   const { data, error } = await supabase
     .from("equipments")
     .select("*")
-    .eq("owner", owner)
+    .ilike("owner", pattern)
     .order("equipment_id", { ascending: true });
   if (error) throw error;
   return (data ?? []).map(mapRowToEquipment);

@@ -63,7 +63,7 @@ export default function MyEquipmentsPage() {
     queryKey: ["my-equipments", uuid, ownerName],
     queryFn: () => fetchEquipmentsByOwner(ownerName),
     enabled: canAccess && !!ownerName,
-    staleTime: 30 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
   })
 
