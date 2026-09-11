@@ -8,7 +8,6 @@ import { FiLogOut } from "react-icons/fi"
 
 export default function Navbar() {
   const { isLoggedIn, isAdmin, isSuperAdmin, user } = useAuth()
-  const isNonAdmin = !isAdmin && !isSuperAdmin
   const { pathname } = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
