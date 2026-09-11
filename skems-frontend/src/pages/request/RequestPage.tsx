@@ -224,7 +224,7 @@ export default function RequestPage() {
 
   if (!user) return null
 
-  const positionDepartment = toTitleCase(user.position ?? "")
+  const positionDepartment = toTitleCase(user.position ?? "Trainee")
 
   const fmt = (v: string) =>
     formatWallClock(v, {
