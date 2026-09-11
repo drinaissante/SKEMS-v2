@@ -1,8 +1,8 @@
-import { useMemo } from "react"
+import { useMemo, useEffect } from "react"
 import type { ReactNode } from "react"
-import { Link } from "react-router-dom"
+import { Link, useParams, useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import { fetchMyRequests } from "../../services/supabase"
+import { fetchMyRequests, fetchProfile } from "../../services/supabase"
 import { fetchEquipments } from "../../services/api"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
@@ -48,12 +48,30 @@ function InfoRow({ label, children }: { label: string; children: ReactNode }) {
 
 export default function MyRequestsPage() {
   usePageTitle("My Requests")
-  const { user } = useAuth()
+  const { user, isSuperAdmin } = useAuth()
+  const { uuid } = useParams<{ uuid: string }>()
+  const navigate = useNavigate()
+
+  const isOwn = user?.id === uuid
+  const canAccess = isOwn || isSuperAdmin
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile-by-id", uuid],
+    queryFn: () => fetchProfile(uuid!),
+    enabled: !!uuid,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  useEffect(() => {
+    if (!canAccess) {
+      navigate("/restricted", { replace: true })
+    }
+  }, [canAccess, navigate])
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["my-requests", user?.id],
     queryFn: () => fetchMyRequests(user!.id),
-    enabled: !!user,
+    enabled: !!user && canAccess,
   })
 
   const { data: equipments = [] } = useQuery({
@@ -73,7 +91,7 @@ export default function MyRequestsPage() {
     <div className="min-h-screen bg-fixed-black px-3 sm:px-4 py-4 sm:py-6">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4">
-          My Requests
+          {isOwn ? "My Requests" : `${profile?.full_name ?? "User"}'s Requests`}
         </h1>
 
         {isLoading ? (
