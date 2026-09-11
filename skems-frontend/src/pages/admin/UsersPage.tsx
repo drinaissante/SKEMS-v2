@@ -211,9 +211,9 @@ export default function UsersPage() {
                       <td className="px-4 py-3 text-center">
                         <button
                           onClick={() => handleToggle(p)}
-                          disabled={toggleMutation.isPending || p.id === user?.id}
+                          disabled={toggleMutation.isPending || p.id === user?.id || !!p.is_superadmin}
                           className="px-4 py-2 text-xs font-bold rounded-lg bg-[#c89116] hover:bg-[#caa453] disabled:opacity-40 text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
-                          title={p.id === user?.id ? "Cannot modify your own role" : undefined}
+                          title={p.id === user?.id ? "Cannot modify your own role" : p.is_superadmin ? "Super admins cannot be modified" : undefined}
                         >
                           {toggleMutation.isPending && toggleMutation.variables?.profileId === p.id
                             ? "..."
