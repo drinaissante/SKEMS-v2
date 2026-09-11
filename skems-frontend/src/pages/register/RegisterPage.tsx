@@ -304,7 +304,7 @@ export default function RegisterPage() {
                     value={password}
                     maxLength={128}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 pr-10 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                    className="w-full px-3 py-2 pr-10 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-white"
                   />
                   <button
                     type="button"
@@ -331,7 +331,7 @@ export default function RegisterPage() {
                     value={confirmPassword}
                     maxLength={128}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-2 pr-10 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                    className="w-full px-3 py-2 pr-10 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-white"
                   />
                   <button
                     type="button"

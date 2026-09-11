@@ -73,12 +73,12 @@ export default function ChangePasswordPage() {
 
   if (noSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-3 bg-[#f5f5f5] relative">
+      <div className="min-h-screen flex items-center justify-center px-3 bg-fixed-black relative">
         <img src={skHeaderPng} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-lg p-5 sm:p-8 border border-[#d9d9d9] text-center">
-          <p className="text-[#222] font-bold text-lg mb-4">Link expired</p>
-          <p className="text-sm text-[#666] mb-6">
+        <div className="relative z-10 w-full max-w-md dark-card rounded-xl border border-white/10 p-5 sm:p-8 text-center">
+          <p className="text-white font-bold text-lg mb-4">Link expired</p>
+          <p className="text-sm text-[#a6a6a6] mb-6">
             This password reset link is no longer valid. Request a new one from the login page.
           </p>
           <button
@@ -94,17 +94,17 @@ export default function ChangePasswordPage() {
 
   if (!sessionReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5]">
-        <p className="text-[#666] text-sm">Checking...</p>
+      <div className="min-h-screen flex items-center justify-center bg-fixed-black">
+        <p className="text-[#a6a6a6] text-sm">Checking...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-3 bg-[#f5f5f5] relative">
+    <div className="min-h-screen flex items-center justify-center px-3 bg-fixed-black relative">
       <img src={skHeaderPng} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" />
       <div className="absolute inset-0 bg-black/50" />
-      <div className="relative z-10 w-full max-w-md bg-white rounded-xl shadow-lg p-5 sm:p-8 border border-[#d9d9d9]">
+      <div className="relative z-10 w-full max-w-md dark-card rounded-xl border border-white/10 p-5 sm:p-8">
         <div className="flex items-center justify-center gap-2 mb-5 select-none">
           <img src="/sk_icon_no_bg.png" className="h-7 w-7" alt="" />
           <span className="text-[#fdb125] font-bold text-xl">Sine Kultura</span>
@@ -112,13 +112,13 @@ export default function ChangePasswordPage() {
 
         {success ? (
           <div className="text-center">
-            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-14 h-14 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <p className="text-lg font-bold text-green-600 mb-2">Password updated!</p>
-            <p className="text-sm text-[#666] mb-6">Your password has been changed successfully.</p>
+            <p className="text-lg font-bold text-green-400 mb-2">Password updated!</p>
+            <p className="text-sm text-[#a6a6a6] mb-6">Your password has been changed successfully.</p>
             <button
               onClick={handleGoToLogin}
               className="px-6 py-2 bg-[#c89116] hover:bg-[#caa453] text-white font-bold rounded-lg transition-colors cursor-pointer text-sm"
@@ -128,12 +128,12 @@ export default function ChangePasswordPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <h2 className="text-xl font-bold text-center text-[#222]">Reset Password</h2>
+            <h2 className="text-xl font-bold text-center text-white">Reset Password</h2>
 
-            {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#666] mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-[#a6a6a6] mb-1">
                 New Password
               </label>
               <div className="relative">
@@ -145,12 +145,12 @@ export default function ChangePasswordPage() {
                   value={password}
                   maxLength={128}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  className="w-full px-3 py-2 pr-10 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-white"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-[#666] cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-white cursor-pointer"
                   tabIndex={-1}
                 >
                   {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
@@ -159,7 +159,7 @@ export default function ChangePasswordPage() {
             </div>
 
             <div>
-              <label htmlFor="confirm" className="block text-sm font-medium text-[#666] mb-1">
+              <label htmlFor="confirm" className="block text-sm font-medium text-[#a6a6a6] mb-1">
                 Confirm New Password
               </label>
               <div className="relative">
@@ -171,12 +171,12 @@ export default function ChangePasswordPage() {
                   value={confirm}
                   maxLength={128}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-[#222]"
+                  className="w-full px-3 py-2 pr-10 text-base border border-[#d9d9d9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fdb125] text-white"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-[#666] cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] hover:text-white cursor-pointer"
                   tabIndex={-1}
                 >
                   {showConfirm ? <FiEyeOff size={18} /> : <FiEye size={18} />}
