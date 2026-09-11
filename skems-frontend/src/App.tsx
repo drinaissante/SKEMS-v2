@@ -131,7 +131,7 @@ function App() {
           />
 
           <Route
-            path='/my-requests'
+            path='/profiles/:uuid/requests'
             element={
               <ProtectedRoute>
                 <MyRequestsPage />
