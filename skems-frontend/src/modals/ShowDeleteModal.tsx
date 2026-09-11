@@ -8,6 +8,7 @@ interface ShowDeleteModalProps {
     setDeletingId: React.Dispatch<React.SetStateAction<string>>,
     queryClient: QueryClient,
     handleSync: () => void,
+    onDeleted?: () => void,
 }
 
 export default function ShowDeleteModal({
@@ -16,6 +17,7 @@ export default function ShowDeleteModal({
     setDeletingId,
     queryClient,
     handleSync,
+    onDeleted,
 }: ShowDeleteModalProps) {
   const { showToast } = useToast()
         
@@ -23,6 +25,7 @@ export default function ShowDeleteModal({
         mutationFn: deleteEquipment,
         onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["equipments"] })
+        onDeleted?.()
         showToast("Equipment deleted!", "success")
         setTimeout(handleSync, 3500)
         },
