@@ -37,6 +37,7 @@ import PWAUpdatePrompt from './components/PWAUpdatePrompt'
 import About from './pages/about/About'
 import Portfolio from './pages/portfolio/Portfolio'
 import Restricted from './pages/restricted/Restricted'
+import DiscordRpcTracker from './services/discord_rpc_tracker'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoggedIn } = useAuth()
@@ -88,6 +89,7 @@ function App() {
   const online = useOnlineStatus()
   return (
     <>
+      <DiscordRpcTracker />
       {!online && <OfflineBanner />}
       <PWAUpdatePrompt />
       <ToastProvider>
