@@ -15,29 +15,29 @@ export default function DiscordRpcTracker() {
     }
 
     let details = "Exploring App";
-    let stateMsg = "Home";
+    let state_msg = "Home";
 
     switch (location.pathname) {
       case "/":
       case "/about":
       case "/portfolio":
         details = "In Home";
-        stateMsg = "Idling";
+        state_msg = "Idling";
         break;
       case "/dashboard":
         details = "Viewing Dashboard";
-        stateMsg = "Tracking";
+        state_msg = "Tracking";
         break;
       case "/dashboard/equipments":
         details = "Viewing Equipments";
-        stateMsg = "Analyzing";
+        state_msg = "Analyzing";
         break;
       default:
         details = `Viewing ${location.pathname}`;
-        stateMsg = "Active";
+        state_msg = "Active";
     }
 
-    invoke("update_discord_rpc", { details: details, state_msg: stateMsg })
+    invoke("update_discord_rpc", { details: details, state_msg: state_msg })
       .then(() => console.log("Rpc updated"))
       .catch((err) => console.error("Failed to update Discord RPC:", err));
   }, [location]);

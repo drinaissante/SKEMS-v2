@@ -23,7 +23,6 @@ fn update_discord_rpc(
   state_msg: String,
   discord_state: State<'_, DiscordState>,
 ) -> Result<(), String> {
-  // Cache the new strings received from the React frontend
   if let Ok(mut details_lock) = discord_state.current_details.lock() {
       *details_lock = details.clone();
   }
@@ -31,10 +30,8 @@ fn update_discord_rpc(
       *state_lock = state_msg.clone();
   }
   
-  // 2. Set the dirty flag to true so the background thread knows it needs to update Discord
   discord_state.is_dirty.store(true, Ordering::SeqCst);
 
-  // Still attempt an immediate update in case the socket is already open
   if let Ok(mut client) = discord_state.client.lock() {
       let start_time = discord_state.start_time;
       let _ = client.set_activity(|activity| {
@@ -42,10 +39,11 @@ fn update_discord_rpc(
           .details(details)
           .state(state_msg)
           .timestamps(|t| t.start(start_time.try_into().unwrap()))
+          .assets(|assets| assets) 
       });
   }
 
-  info!("🎯 Discord RPC cached successfully via React invoke link!");
+  info!("Discord RPC cached successfully via React invoke link!");
   Ok(())
 }
 
@@ -86,7 +84,7 @@ pub fn run() {
 
   // 3. Launch the worker thread safely
   thread::spawn(move || {
-      info!("🚀 Launching isolated Discord background worker thread...");
+      info!("Launching isolated Discord background worker thread...");
       
       let mut was_connected = false;
 
@@ -116,6 +114,7 @@ pub fn run() {
                             .details(details_cached)
                             .state(state_cached)
                             .timestamps(|t| t.start(boot_timestamp.try_into().unwrap()))
+                            .assets(|assets| assets)
                       });
                       
                       // Clear the flags since Discord is now perfectly synchronized
