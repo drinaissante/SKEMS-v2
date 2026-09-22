@@ -105,7 +105,6 @@ export default function ScanPage() {
         student_number: data.fields.student_number ?? "",
         date: data.fields.date ?? "",
         position_department: data.fields.position_department ?? "",
-        owner: data.fields.owner ?? "",
         equipment_list: Array.isArray(data.fields.equipment_list) ? data.fields.equipment_list : [],
         purpose_of_use: data.fields.purpose_of_use ?? "",
         date_time_borrowing: normalizeDate(data.fields.date_time_borrowing ?? ""),
@@ -191,13 +190,12 @@ export default function ScanPage() {
   const submitFormScan = useCallback(async () => {
     if (!editableFields || !user) return
 
-    const fieldKeys = ["full_name", "student_number", "date", "position_department", "owner", "purpose_of_use", "date_time_borrowing", "date_time_return", "pickup_location", "return_location"] as const
+    const fieldKeys = ["full_name", "student_number", "date", "position_department", "purpose_of_use", "date_time_borrowing", "date_time_return", "pickup_location", "return_location"] as const
     const labels: Record<string, string> = {
       full_name: "Full Name",
       student_number: "Student Number",
       date: "Date",
       position_department: "Position/Department",
-      owner: "Owner",
       purpose_of_use: "Purpose of Use",
       date_time_borrowing: "Date & Time of Borrowing",
       date_time_return: "Date & Time of Return",

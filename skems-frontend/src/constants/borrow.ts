@@ -8,7 +8,6 @@ export interface ScannedFormFields {
   student_number: string
   date: string
   position_department: string
-  owner: string
   equipment_list: EquipmentItem[]
   purpose_of_use: string
   date_time_borrowing: string

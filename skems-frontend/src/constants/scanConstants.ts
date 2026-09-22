@@ -5,7 +5,6 @@ export const fieldLabels: Record<keyof Omit<ScannedFormFields, "equipment_list">
   student_number: "Student Number",
   date: "Date",
   position_department: "Position/Department",
-  owner: "Owner",
   purpose_of_use: "Purpose of Use",
   date_time_borrowing: "Date & Time of Borrowing",
   date_time_return: "Date & Time of Return",
