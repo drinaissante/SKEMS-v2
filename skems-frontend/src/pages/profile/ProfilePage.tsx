@@ -3,6 +3,7 @@ import { useAuth } from "../../context/AuthContext"
 import { updatePassword, fetchDiscordLink } from "../../services/supabase"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { openExternalTab } from "../../utils/tauri"
+import { useTutorial } from "../../context/TutorialContext"
 
 interface DiscordLink {
   user_id: string
@@ -15,6 +16,7 @@ interface DiscordLink {
 export default function ProfilePage() {
   usePageTitle("Profile")
   const { user, updateUser } = useAuth()
+  const { openTutorial } = useTutorial()
 
   const [fullName, setFullName] = useState(user?.fullName ?? "")
   const [studentNumber, setStudentNumber] = useState(user?.studentNumber ?? "")
@@ -285,6 +287,22 @@ export default function ProfilePage() {
             >
               Join Server
             </a>
+          </div>
+
+          <div className="dark-card p-5 sm:p-8 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3">
+              How to Request
+            </h2>
+            <p className="text-sm text-[#a6a6a6] mb-4">
+              New to borrowing equipment? Check the walkthrough on how to request one.
+            </p>
+            <button
+              type="button"
+              onClick={() => openTutorial({ userId: user.id, isAdmin: user.isAdmin })}
+              className="btn-gold inline-block px-6 py-2.5 text-sm"
+            >
+              View Walkthrough
+            </button>
           </div>
         </div>
       </div>

@@ -22,6 +22,7 @@ import MainLayout from './layouts/MainLayout'
 import DashboardLayout from './layouts/DashboardLayout'
 import DashboardHome from './pages/dashboard/DashboardHome'
 import { ToastProvider } from './components/Toast'
+import { TutorialProvider } from './context/TutorialContext'
 
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
@@ -93,6 +94,7 @@ function App() {
       {!online && <OfflineBanner />}
       <PWAUpdatePrompt />
       <ToastProvider>
+      <TutorialProvider>
       <Routes>
         <Route path='/change-password' element={<ChangePasswordPage />} />
 
@@ -187,7 +189,7 @@ function App() {
           
         </Route>
       </Routes>
-      
+      </TutorialProvider>
       <Analytics />
       <SpeedInsights />
       </ToastProvider>

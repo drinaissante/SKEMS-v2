@@ -1,6 +1,7 @@
 import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
+import { useTutorial } from "../../context/TutorialContext"
 import { FiEye, FiEyeOff } from "react-icons/fi"
 import loginMp4 from "/login.mp4"
 import LoginModal from "../../modals/LoginModal"
@@ -17,6 +18,7 @@ export default function LoginPage() {
 
   const navigate = useNavigate()
   const { login, user } = useAuth()
+  const { openTutorial } = useTutorial()
 
   const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
@@ -179,7 +181,11 @@ export default function LoginPage() {
       {showLoginSuccess && (
         <LoginModal
           userName={user?.fullName}
-          onClose={() => { setShowLoginSuccess(false); navigate("/") }}
+          onClose={() => {
+            setShowLoginSuccess(false)
+            navigate("/")
+            if (user) void openTutorial({ userId: user.id, isAdmin: user.isAdmin })
+          }}
         />
       )}
     </div>
