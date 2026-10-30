@@ -77,9 +77,11 @@ function EquipmentPickerList({ items, loading, search, inFormIds, onAdd }: Picke
             }`}
           >
             <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-white truncate">{eq.name}</p>
-                <p className="text-xs text-[#a6a6a6]">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
+                <p className="text-xs text-[#a6a6a6] sm:hidden">{eq.id}</p>
+                <p className="text-xs text-[#a6a6a6] sm:hidden">{eq.owner ? `Owner: ${eq.owner}` : "No owner"}</p>
+                <p className="hidden sm:block text-xs text-[#a6a6a6]">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
               </div>
               {!inForm && <FiPlus className="shrink-0 text-[#c89116]" size={16} />}
             </div>
@@ -436,7 +438,7 @@ export default function RequestPage() {
                       type="button"
                       onClick={() => goToStep(stepNum)}
                       disabled={stepNum > formStep}
-                      className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
+                      className={`text-[10px] font-bold px-2.5 py-1 sm:text-xs sm:px-3 sm:py-1.5 rounded-full transition-colors cursor-pointer ${
                         active
                           ? "bg-[#c89116] text-white"
                           : stepNum < formStep
@@ -460,7 +462,9 @@ export default function RequestPage() {
                           <div key={idx} className="border border-white/10 rounded-lg p-3 flex items-center gap-2">
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-white truncate">{item.name}</p>
-                              <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
+                              <p className="text-xs text-[#a6a6a6] sm:hidden">{item.equipmentId}</p>
+                              <p className="text-xs text-[#a6a6a6] sm:hidden">{item.owner ? `Owner: ${item.owner}` : "No owner"}</p>
+                              <p className="hidden sm:block text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
                               <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${conditionChipClass(item.condition)}`}>
                                 {item.condition}
                               </span>
