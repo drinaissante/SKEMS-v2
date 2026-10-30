@@ -39,7 +39,7 @@ function persistDismissed(userId: string) {
 }
 
 interface TutorialContextType {
-  openTutorial: (detail: TutorialPromptDetail) => Promise<void>
+  openTutorial: (detail: TutorialPromptDetail, opts?: { force?: boolean }) => Promise<void>
 }
 
 const TutorialContext = createContext<TutorialContextType | null>(null)
@@ -49,7 +49,16 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const [checking, setChecking] = useState(false)
   const activeUserIdRef = useRef("")
 
-  const openTutorial = useCallback(async (detail: TutorialPromptDetail) => {
+  const openTutorial = useCallback(async (detail: TutorialPromptDetail, opts?: { force?: boolean }) => {
+    const force = opts?.force ?? false
+
+    if (force) {
+      activeUserIdRef.current = detail.userId
+      setChecking(false)
+      setShow(true)
+      return
+    }
+
     if (detail.isAdmin) return
 
     try {

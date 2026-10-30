@@ -108,6 +108,7 @@ export default function RequestPage() {
   const [showQrScanner, setShowQrScanner] = useState(false)
   const [scanEpoch, setScanEpoch] = useState(0)
   const [success, setSuccess] = useState(false)
+  const [formStep, setFormStep] = useState(1)
   const [search, setSearch] = useState("")
   const [listPage, setListPage] = useState(1)
   const [showMobilePicker, setShowMobilePicker] = useState(false)
@@ -231,6 +232,33 @@ export default function RequestPage() {
     </div>
   )
 
+  const stepLabels = ["Equipment", "Details", "Schedule"]
+
+  const validateStep = (step: number): string | null => {
+    if (step === 1 && formItems.length === 0) return "Add at least one equipment item."
+    if (step === 2 && (!reason || !pickupLocation || !returnLocation)) return "Please fill in all fields."
+    if (step === 3) {
+      if (!dateBorrowed || !dateDue) return "Please fill in all fields."
+      if (new Date(dateDue) < new Date(dateBorrowed)) return "Return date must be after borrow date."
+    }
+    return null
+  }
+
+  const goToStep = (step: number) => {
+    if (step >= formStep) return
+    setFormStep(step)
+  }
+
+  const handleNext = () => {
+    const error = validateStep(formStep)
+    if (error) {
+      showToast(error, "error")
+      return
+    }
+    if (formStep < 3) setFormStep(s => s + 1)
+    else setShowModal(true)
+  }
+
   const removeItem = (idx: number) => {
     setFormItems(prev => prev.filter((_, i) => i !== idx))
   }
@@ -241,25 +269,6 @@ export default function RequestPage() {
       const max = getAvailableCount(item.equipmentId)
       return { ...item, quantity: Math.min(max, Math.max(1, qty)) }
     }))
-  }
-
-  const handleSubmit = (e: React.SubmitEvent) => {
-    e.preventDefault()
-
-    if (formItems.length === 0) {
-      showToast("Add at least one equipment item.", "error")
-      return
-    }
-    if (!reason || !positionDepartment || !pickupLocation || !returnLocation || !dateBorrowed || !dateDue) {
-      showToast("Please fill in all fields.", "error")
-      return
-    }
-    if (new Date(dateDue) < new Date(dateBorrowed)) {
-      showToast("Return date must be after borrow date.", "error")
-      return
-    }
-
-    setShowModal(true)
   }
 
   const confirmSubmit = async () => {
@@ -292,6 +301,7 @@ export default function RequestPage() {
       setReturnLocation("")
       setDateBorrowed("")
       setDateDue("")
+      setFormStep(1)
     } catch {
       showToast("Failed to submit request. Please try again.", "error")
     }
@@ -389,7 +399,6 @@ export default function RequestPage() {
             </div>
           ) : (
             <form
-              onSubmit={handleSubmit}
               onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDragOverForm(true) }}
               onDragLeave={(e) => { if (e.currentTarget === e.target || !e.currentTarget.contains(e.relatedTarget as Node)) setDragOverForm(false) }}
               onDrop={(e) => {
@@ -397,105 +406,159 @@ export default function RequestPage() {
                 setDragOverForm(false)
                 const eqId = e.dataTransfer.getData("text/plain")
                 const eq = equipments.find(x => x.id === eqId)
-                if (eq) addToFormItems(eq)
+                if (eq) {
+                  setFormStep(1)
+                  addToFormItems(eq)
+                }
               }}
               className={`space-y-4 rounded-xl transition-colors ${
                 dragOverForm ? "ring-2 ring-[#c89116] bg-[#c89116]/5" : ""
               }`}
             >
-              {formItems.length > 0 && (
-                <div className="space-y-2">
-                  {formItems.map((item, idx) => {
-                    const max = getAvailableCount(item.equipmentId)
-                    return (
-                      <div key={idx} className="border border-white/10 rounded-lg p-3 flex items-center gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">{item.name}</p>
-                          <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
-                          <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${
-                            item.condition === "Working" ? "bg-green-500/15 text-green-300" :
-                            item.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
-                            item.condition === "Broken" ? "bg-red-500/15 text-red-300" :
-                            "bg-white/10 text-[#a6a6a6]"
-                          }`}>{item.condition}</span>
-                        </div>
-                        <input
-                          type="number"
-                          min={1}
-                          max={max}
-                          value={item.quantity}
-                          onChange={(e) => updateQuantity(idx, Number(e.target.value))}
-                          className="dark-input w-16 px-2 py-1 text-sm text-center"
-                        />
-                        <span className="text-xs text-[#a6a6a6]">×</span>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(idx)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500/15 rounded transition-colors cursor-pointer"
-                        >
-                          <FiTrash2 size={14} />
-                          Remove
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
+              <div className="flex gap-2 justify-center">
+                {stepLabels.map((label, i) => {
+                  const stepNum = i + 1
+                  const active = formStep === stepNum
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => goToStep(stepNum)}
+                      disabled={stepNum > formStep}
+                      className={`text-xs font-bold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
+                        active
+                          ? "bg-[#c89116] text-white"
+                          : stepNum < formStep
+                            ? "bg-white/10 text-[#a6a6a6] hover:text-white cursor-pointer"
+                            : "bg-white/5 text-[#a6a6a6]/50 cursor-not-allowed"
+                      }`}
+                    >
+                      {stepNum}. {label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {formStep === 1 && (
+                <>
+                  {formItems.length > 0 ? (
+                    <div className="space-y-2">
+                      {formItems.map((item, idx) => {
+                        const max = getAvailableCount(item.equipmentId)
+                        return (
+                          <div key={idx} className="border border-white/10 rounded-lg p-3 flex items-center gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-white truncate">{item.name}</p>
+                              <p className="text-xs text-[#a6a6a6]">{item.equipmentId}{item.owner ? ` — ${item.owner}` : ""}</p>
+                              <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${conditionChipClass(item.condition)}`}>
+                                {item.condition}
+                              </span>
+                            </div>
+                            <input
+                              type="number"
+                              min={1}
+                              max={max}
+                              value={item.quantity}
+                              onChange={(e) => updateQuantity(idx, Number(e.target.value))}
+                              className="dark-input w-16 px-2 py-1 text-sm text-center"
+                            />
+                            <span className="text-xs text-[#a6a6a6]">×</span>
+                            <button
+                              type="button"
+                              onClick={() => removeItem(idx)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500/15 rounded transition-colors cursor-pointer"
+                            >
+                              <FiTrash2 size={14} />
+                              Remove
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="border border-dashed border-white/20 rounded-lg p-6 text-center">
+                      <p className="text-sm text-[#a6a6a6]">
+                        Drag equipment here from the left, or tap an item to add it.
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Name</label>
-                <input type="text" value={user.fullName} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
-              </div>
+              {formStep === 2 && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Name</label>
+                    <input type="text" value={user.fullName} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Student Number</label>
-                <input type="text" value={user.studentNumber} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Student Number</label>
+                    <input type="text" value={user.studentNumber} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Position / Department</label>
-                <input type="text" value={positionDepartment} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Position / Department</label>
+                    <input type="text" value={positionDepartment} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
+                  </div>
 
-              <div>
-                <label htmlFor="reason" className="block text-sm font-medium text-[#a6a6a6] mb-1">Reason for Borrowing <span className="text-red-500">*</span></label>
-                <textarea required id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={200} placeholder="Describe why you need this equipment..." className="dark-input w-full text-base resize-none" />
-                <p className="text-xs text-right text-[#a6a6a6] mt-1">{reason.length}/200</p>
-              </div>
+                  <div>
+                    <label htmlFor="reason" className="block text-sm font-medium text-[#a6a6a6] mb-1">Reason for Borrowing <span className="text-red-500">*</span></label>
+                    <textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={200} placeholder="Describe why you need this equipment..." className="dark-input w-full text-base resize-none" />
+                    <p className="text-xs text-right text-[#a6a6a6] mt-1">{reason.length}/200</p>
+                  </div>
 
-              <div>
-                <label htmlFor="pickupLocation" className="block text-sm font-medium text-[#a6a6a6] mb-1">Pickup Location <span className="text-red-500">*</span></label>
-                <input required id="pickupLocation" type="text" value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="dark-input w-full text-base" />
-              </div>
+                  <div>
+                    <label htmlFor="pickupLocation" className="block text-sm font-medium text-[#a6a6a6] mb-1">Pickup Location <span className="text-red-500">*</span></label>
+                    <input id="pickupLocation" type="text" value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="dark-input w-full text-base" />
+                  </div>
 
-              <div>
-                <label htmlFor="returnLocation" className="block text-sm font-medium text-[#a6a6a6] mb-1">Return Location <span className="text-red-500">*</span></label>
-                <input required id="returnLocation" type="text" value={returnLocation} onChange={(e) => setReturnLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="dark-input w-full text-base" />
-              </div>
+                  <div>
+                    <label htmlFor="returnLocation" className="block text-sm font-medium text-[#a6a6a6] mb-1">Return Location <span className="text-red-500">*</span></label>
+                    <input id="returnLocation" type="text" value={returnLocation} onChange={(e) => setReturnLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="dark-input w-full text-base" />
+                  </div>
+                </>
+              )}
 
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-sm font-medium text-[#a6a6a6]">Date & Time to be Borrowed <span className="text-red-500">*</span></label>
-                  <button type="button" onClick={() => setDateBorrowed(todayNow())} className="btn-gold text-xs px-2 py-1">Today</button>
-                </div>
-                <input type="datetime-local" value={dateBorrowed} onChange={(e) => setDateBorrowed(e.target.value)} className="dark-input w-full text-base" />
-              </div>
+              {formStep === 3 && (
+                <>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-[#a6a6a6]">Date & Time to be Borrowed <span className="text-red-500">*</span></label>
+                      <button type="button" onClick={() => setDateBorrowed(todayNow())} className="btn-gold text-xs px-2 py-1">Today</button>
+                    </div>
+                    <input type="datetime-local" value={dateBorrowed} onChange={(e) => setDateBorrowed(e.target.value)} className="dark-input w-full text-base" />
+                  </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-sm font-medium text-[#a6a6a6]">Date & Time to be Returned / Due Date <span className="text-red-500">*</span></label>
-                  <button type="button" onClick={() => setDateDue(todayNow())} className="btn-gold text-xs px-2 py-1">Today</button>
-                </div>
-                <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="dark-input w-full text-base" />
-              </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-[#a6a6a6]">Date & Time to be Returned / Due Date <span className="text-red-500">*</span></label>
+                      <button type="button" onClick={() => setDateDue(todayNow())} className="btn-gold text-xs px-2 py-1">Today</button>
+                    </div>
+                    <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="dark-input w-full text-base" />
+                  </div>
+                </>
+              )}
 
-              <button
-                type="submit"
-                disabled={submitting || isLoading || formItems.length === 0}
-                className="btn-gold w-full py-2.5 text-sm sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {submitting ? "Submitting..." : "Submit Request"}
-              </button>
+              <div className="flex gap-3 pt-1">
+                {formStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setFormStep(s => s - 1)}
+                    className="btn-ghost flex-1 py-2.5 rounded-lg text-sm"
+                  >
+                    Back
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={submitting}
+                  className="btn-gold flex-1 py-2.5 rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {formStep < 3 ? "Next" : submitting ? "Submitting..." : "Review & Submit"}
+                </button>
+              </div>
             </form>
           )}
 

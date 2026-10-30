@@ -298,7 +298,7 @@ export default function ProfilePage() {
             </p>
             <button
               type="button"
-              onClick={() => openTutorial({ userId: user.id, isAdmin: user.isAdmin })}
+              onClick={() => openTutorial({ userId: user.id, isAdmin: user.isAdmin }, { force: true })}
               className="btn-gold inline-block px-6 py-2.5 text-sm"
             >
               View Walkthrough
