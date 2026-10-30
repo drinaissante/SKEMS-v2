@@ -6,8 +6,10 @@ import {
   useCallback,
   type ReactNode,
 } from "react"
+import { useNavigate } from "react-router-dom"
 import { fetchMyRequests } from "../services/supabase"
 import RequestTutorialModal from "../modals/RequestTutorialModal"
+import TourOverlay, { type TourStep } from "../components/TourOverlay"
 
 /* eslint-disable react-refresh/only-export-components */
 
@@ -18,6 +20,8 @@ export interface TutorialPromptDetail {
 
 const DISMISSED_KEY = "skems-tutorial-dismissed"
 const CHECKING_DELAY_MS = 900
+const TOUR_NAVIGATE_DELAY_MS = 500
+const TOUR_GOTO_STEP = "skems-tour-goto-step"
 
 function readDismissed(): Record<string, true> {
   try {
@@ -44,10 +48,63 @@ interface TutorialContextType {
 
 const TutorialContext = createContext<TutorialContextType | null>(null)
 
+const TOUR_STEPS: TourStep[] = [
+  {
+    target: "equipment-list",
+    text: "This is the equipment list. Drag an item onto the form on the right, or simply tap one to add it.",
+  },
+  {
+    target: "equipment-row",
+    text: "Each card shows the equipment's ID, owner, and condition. Tap a card to add it to your request.",
+  },
+  {
+    target: "form-equipment",
+    text: "Your added items live here — each with an adjustable quantity. The Review & Submit flow continues down the form.",
+  },
+  {
+    action: () => window.dispatchEvent(new CustomEvent(TOUR_GOTO_STEP, { detail: 2 })),
+    target: "form-details",
+    text: "Your name, student number, and position are pre-filled automatically. Fill in your reason for borrowing plus pickup and return locations.",
+  },
+  {
+    action: () => window.dispatchEvent(new CustomEvent(TOUR_GOTO_STEP, { detail: 3 })),
+    target: "form-schedule",
+    text: "Finally, set the date & time you'll borrow the equipment and the date & time you'll return it.",
+  },
+  {
+    target: "form-next",
+    text: "Review & Submit opens a final summary — confirm it and your request will be sent to an SK officer for approval.",
+  },
+  {
+    icon: true,
+    text: "You're all set! Return equipment on time to avoid penalties. You can relaunch this walkthrough anytime from your Profile page.",
+  },
+]
+
+function buildTourSteps(): TourStep[] {
+  const isMobile = window.innerWidth < 768
+  const steps: TourStep[] = []
+
+  if (!isMobile) {
+    steps.push(TOUR_STEPS[0])
+  } else {
+    steps.push({
+      target: "mobile-add",
+      text: "Tap Add Equipment to open the equipment picker, then tap items to add them to your request.",
+    })
+  }
+
+  steps.push(...TOUR_STEPS.slice(1))
+  return steps
+}
+
 export function TutorialProvider({ children }: { children: ReactNode }) {
-  const [show, setShow] = useState(false)
+  const [welcomeOpen, setWelcomeOpen] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
+  const [tourSteps, setTourSteps] = useState<TourStep[] | null>(null)
   const [checking, setChecking] = useState(false)
   const activeUserIdRef = useRef("")
+  const navigate = useNavigate()
 
   const openTutorial = useCallback(async (detail: TutorialPromptDetail, opts?: { force?: boolean }) => {
     const force = opts?.force ?? false
@@ -55,7 +112,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     if (force) {
       activeUserIdRef.current = detail.userId
       setChecking(false)
-      setShow(true)
+      setWelcomeOpen(true)
       return
     }
 
@@ -81,15 +138,34 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
 
     setTimeout(() => {
       setChecking(false)
-      setShow(true)
+      setWelcomeOpen(true)
     }, CHECKING_DELAY_MS)
   }, [])
 
-  const handleModalClose = useCallback((dontShowAgain: boolean) => {
-    setShow(false)
+  const startTour = useCallback(
+    (dontShowAgain: boolean) => {
+      if (dontShowAgain && activeUserIdRef.current) {
+        persistDismissed(activeUserIdRef.current)
+      }
+      setWelcomeOpen(false)
+      setTourSteps(buildTourSteps())
+      navigate("/request")
+      setTimeout(() => setTourOpen(true), TOUR_NAVIGATE_DELAY_MS)
+    },
+    [navigate],
+  )
+
+  const endTour = useCallback((dontShowAgain: boolean) => {
+    setTourOpen(false)
     if (dontShowAgain && activeUserIdRef.current) {
       persistDismissed(activeUserIdRef.current)
-      activeUserIdRef.current = ""
+    }
+  }, [])
+
+  const closeWelcome = useCallback((dontShowAgain: boolean) => {
+    setWelcomeOpen(false)
+    if (dontShowAgain && activeUserIdRef.current) {
+      persistDismissed(activeUserIdRef.current)
     }
   }, [])
 
@@ -104,7 +180,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
           </div>
         </div>
       )}
-      {show && <RequestTutorialModal onClose={handleModalClose} />}
+      {welcomeOpen && (
+        <RequestTutorialModal onStart={startTour} onClose={closeWelcome} />
+      )}
+      {tourOpen && tourSteps && <TourOverlay steps={tourSteps} onFinish={endTour} />}
     </TutorialContext.Provider>
   )
 }

@@ -64,6 +64,7 @@ function EquipmentPickerList({ items, loading, search, inFormIds, onAdd }: Picke
           <div
             key={eq.id}
             draggable
+            data-tour="equipment-row"
             onDragStart={(e) => {
               e.dataTransfer.setData("text/plain", eq.id)
               e.dataTransfer.effectAllowed = "copy"
@@ -189,6 +190,15 @@ export default function RequestPage() {
     addToFormItems(eq)
     hasAutoFilled.current = true
   }, [autoEquipId, equipments, allEquipments, addToFormItems])
+
+  useEffect(() => {
+    const onTourGoto = (e: Event) => {
+      const detail = (e as CustomEvent<number>).detail
+      if (typeof detail === "number" && detail >= 1 && detail <= 3) setFormStep(detail)
+    }
+    window.addEventListener("skems-tour-goto-step", onTourGoto)
+    return () => window.removeEventListener("skems-tour-goto-step", onTourGoto)
+  }, [])
 
   const getAvailableCount = (selectedId: string): number => {
     if (!selectedId) return 999
@@ -344,7 +354,7 @@ export default function RequestPage() {
               />
             </div>
 
-            <div className="flex-1 min-h-40 max-h-80 overflow-y-auto pr-1">
+            <div className="flex-1 min-h-40 max-h-80 overflow-y-auto pr-1" data-tour="equipment-list">
               <EquipmentPickerList
                 items={pagedEquipments}
                 loading={isLoading}
@@ -359,6 +369,7 @@ export default function RequestPage() {
           <button
             type="button"
             onClick={() => setShowMobilePicker(true)}
+            data-tour="mobile-add"
             className="btn-gold w-full py-2.5 flex items-center justify-center gap-1 md:hidden"
           >
             <FiPlus size={18} />
@@ -415,7 +426,7 @@ export default function RequestPage() {
                 dragOverForm ? "ring-2 ring-[#c89116] bg-[#c89116]/5" : ""
               }`}
             >
-              <div className="flex gap-2 justify-center">
+              <div className="flex gap-2 justify-center" data-tour="form-steps">
                 {stepLabels.map((label, i) => {
                   const stepNum = i + 1
                   const active = formStep === stepNum
@@ -440,7 +451,7 @@ export default function RequestPage() {
               </div>
 
               {formStep === 1 && (
-                <>
+                <div data-tour="form-equipment" className="space-y-2">
                   {formItems.length > 0 ? (
                     <div className="space-y-2">
                       {formItems.map((item, idx) => {
@@ -476,17 +487,17 @@ export default function RequestPage() {
                       })}
                     </div>
                   ) : (
-                    <div className="border border-dashed border-white/20 rounded-lg p-6 text-center">
+                    <div className="border border-dashed border-white/20 rounded-lg p-6 text-center" data-tour="form-equipment">
                       <p className="text-sm text-[#a6a6a6]">
                         Drag equipment here from the left, or tap an item to add it.
                       </p>
                     </div>
                   )}
-                </>
+                </div>
               )}
 
               {formStep === 2 && (
-                <>
+                <div data-tour="form-details" className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Name</label>
                     <input type="text" value={user.fullName} disabled className="dark-input w-full text-base opacity-60 cursor-not-allowed" />
@@ -517,11 +528,11 @@ export default function RequestPage() {
                     <label htmlFor="returnLocation" className="block text-sm font-medium text-[#a6a6a6] mb-1">Return Location <span className="text-red-500">*</span></label>
                     <input id="returnLocation" type="text" value={returnLocation} onChange={(e) => setReturnLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="dark-input w-full text-base" />
                   </div>
-                </>
+                </div>
               )}
 
               {formStep === 3 && (
-                <>
+                <div data-tour="form-schedule" className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-sm font-medium text-[#a6a6a6]">Date & Time to be Borrowed <span className="text-red-500">*</span></label>
@@ -537,7 +548,7 @@ export default function RequestPage() {
                     </div>
                     <input type="datetime-local" value={dateDue} onChange={(e) => setDateDue(e.target.value)} className="dark-input w-full text-base" />
                   </div>
-                </>
+                </div>
               )}
 
               <div className="flex gap-3 pt-1">
@@ -554,6 +565,7 @@ export default function RequestPage() {
                   type="button"
                   onClick={handleNext}
                   disabled={submitting}
+                  data-tour="form-next"
                   className="btn-gold flex-1 py-2.5 rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {formStep < 3 ? "Next" : submitting ? "Submitting..." : "Review & Submit"}
