@@ -42,11 +42,17 @@ export default function About() {
   const { leadershipMembers, remainingMembers } = useMemo(() => {
     const leadership: Member[] = []
     const remaining: Member[] = []
+    
     for (const m of members) {
-      if (!m.status) continue
+      if (!m.status) 
+        continue
+
       const isLeadership = LEADERSHIP_GROUPS.some((g) => memberMatchesKeywords(m.status!, g))
-      if (isLeadership) leadership.push(m)
-      else remaining.push(m)
+
+      if (isLeadership) 
+        leadership.push(m)
+      else 
+        remaining.push(m)
     }
     return { leadershipMembers: leadership, remainingMembers: remaining }
   }, [members])
@@ -55,10 +61,17 @@ export default function About() {
     const groups = new Map<string, Map<string, Member[]>>()
 
     for (const m of remainingMembers) {
-      if (!m.specialization || !m.status) continue
-      if (!groups.has(m.specialization)) groups.set(m.specialization, new Map())
+      if (!m.specialization || !m.status) 
+        continue
+
+      if (!groups.has(m.specialization)) 
+        groups.set(m.specialization, new Map())
+
       const byStatus = groups.get(m.specialization)!
-      if (!byStatus.has(m.status)) byStatus.set(m.status, [])
+
+      if (!byStatus.has(m.status)) 
+        byStatus.set(m.status, [])
+
       byStatus.get(m.status)!.push(m)
     }
 
@@ -68,18 +81,25 @@ export default function About() {
       }
     }
 
-    const sortStatuses = (a: string, b: string) => {
-      const aHead = a.toLowerCase().includes("head") ? 0 : 1
-      const bHead = b.toLowerCase().includes("head") ? 0 : 1
-      if (aHead !== bHead) return aHead - bHead
-      return a.localeCompare(b)
+    const statusRank = (status: string): number => {
+      const lower = status.toLowerCase()
+      if (lower.includes("deputy")) return 1
+      if (lower.includes("dept") && lower.includes("head")) return 1
+      if (lower.includes("head")) return 0
+      if (lower.includes("member")) return 2
+      if (lower.includes("trainee")) return 3
+      return 4
     }
 
     return [...groups.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([spec, byStatus]) => [
         spec,
-        [...byStatus.entries()].sort(([a], [b]) => sortStatuses(a, b)),
+        [...byStatus.entries()].sort(([a], [b]) => {
+          const rankDiff = statusRank(a) - statusRank(b)
+          if (rankDiff !== 0) return rankDiff
+          return a.localeCompare(b)
+        }),
       ])
   }, [remainingMembers])
 
