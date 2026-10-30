@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query"
 import { fetchEquipments, type Equipment } from "../../services/api"
 import { submitRequest } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
-import { useToast } from "../../hooks/useToast"
-import { FiPlus, FiTrash2 } from "react-icons/fi"
-import QRScanner from "../scan/QRScanner"
-import { usePageTitle } from "../../hooks/usePageTitle"
-import { formatWallClock } from "../../utils/datetime"
+  import { useToast } from "../../hooks/useToast"
+  import { FiPlus, FiTrash2, FiSearch } from "react-icons/fi"
+  import QRScanner from "../scan/QRScanner"
+  import { usePageTitle } from "../../hooks/usePageTitle"
+  import { formatWallClock } from "../../utils/datetime"
 
 function todayNow(): string {
   const d = new Date()
@@ -41,11 +41,11 @@ export default function RequestPage() {
   const [dateDue, setDateDue] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [showModal, setShowModal] = useState(false)
-  const [showSelector, setShowSelector] = useState(false)
+  const [showQrScanner, setShowQrScanner] = useState(false)
   const [scanEpoch, setScanEpoch] = useState(0)
-  const [selectorSelectedId, setSelectorSelectedId] = useState("")
-  const [selectorQuantity, setSelectorQuantity] = useState(1)
   const [success, setSuccess] = useState(false)
+  const [search, setSearch] = useState("")
+  const [dragOverForm, setDragOverForm] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const autoEquipId = searchParams.get("id")
   const hasAutoFilled = useRef(false)
@@ -130,29 +130,10 @@ export default function RequestPage() {
     return equipments.filter(e => e.name === selected.name).length
   }
 
-  const handleAddClick = () => {
-    if (equipments.length === 0) {
-      showToast("No equipment available.", "error")
-      return
-    }
-    setSelectorSelectedId(equipments[0].id)
-    setSelectorQuantity(1)
-    setShowSelector(true)
-  }
-
-  const confirmAddItem = () => {
-    const eq = equipments.find(e => e.id === selectorSelectedId)
-    if (!eq) return
-    const max = getAvailableCount(eq.id)
-    setFormItems(prev => [...prev, {
-      name: eq.name,
-      equipmentId: eq.id,
-      owner: eq.owner ?? "",
-      condition: eq.condition,
-      quantity: Math.min(selectorQuantity, max),
-    }])
-    setShowSelector(false)
-  }
+  const availableEquipments = useMemo(() => {
+    const lower = search.toLowerCase()
+    return equipments.filter(e => !lower || e.name.toLowerCase().includes(lower) || e.id.toLowerCase().includes(lower))
+  }, [equipments, search])
 
   const removeItem = (idx: number) => {
     setFormItems(prev => prev.filter((_, i) => i !== idx))
@@ -235,27 +216,84 @@ export default function RequestPage() {
       minute: "2-digit",
     })
 
-  const maxQty = getAvailableCount(selectorSelectedId)
-
   return (
-    <div className="min-h-screen flex items-center justify-center px-3 py-8 bg-fixed-black">
-      <div className="w-full max-w-4xl flex flex-col md:flex-row gap-4">
+    <div className="min-h-screen flex items-center justify-center px-3 py-8 bg-fixed-black">      <div className="w-full max-w-4xl flex flex-col md:flex-row gap-4">
         <div className="md:w-2/5 flex flex-col gap-3 dark-card p-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-5">
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-1">
             Equipment Request
           </h2>
+          <p className="text-xs text-[#a6a6a6] text-center -mt-3 mb-1">
+            Drag or tap equipment to add it.
+          </p>
 
-          <div className="flex-1">
-            <QRScanner key={scanEpoch} onScan={handleQrScan} />
+          <div className="relative">
+            <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search equipment..."
+              className="dark-input w-full text-sm pl-8"
+            />
           </div>
+
+          <div className="flex-1 min-h-40 max-h-80 md:max-h-none md:overflow-y-auto overflow-y-auto space-y-2 pr-1">
+            {isLoading ? (
+              <p className="text-sm text-[#a6a6a6] text-center py-6">Loading equipment…</p>
+            ) : availableEquipments.length === 0 ? (
+              <p className="text-sm text-[#a6a6a6] text-center py-6">
+                {search ? "No equipment matches your search." : "No equipment available."}
+              </p>
+            ) : (
+              availableEquipments.map(eq => {
+                const inForm = formItems.some(i => i.equipmentId === eq.id)
+                return (
+                  <div
+                    key={eq.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", eq.id)
+                      e.dataTransfer.effectAllowed = "copy"
+                    }}
+                    onClick={() => !inForm && addToFormItems(eq)}
+                    className={`p-3 rounded-lg border transition-colors select-none ${
+                      inForm
+                        ? "border-white/10 bg-white/5 opacity-50 cursor-not-allowed"
+                        : "border-white/10 bg-white/5 hover:border-[#c89116]/50 hover:bg-white/10 cursor-grab active:cursor-grabbing"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{eq.name}</p>
+                        <p className="text-xs text-[#a6a6a6]">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
+                      </div>
+                      {!inForm && <FiPlus className="shrink-0 text-[#c89116]" size={16} />}
+                    </div>
+                    <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${
+                      eq.condition === "Working" ? "bg-green-500/15 text-green-300" :
+                      eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
+                      eq.condition === "Broken" ? "bg-red-500/15 text-red-300" :
+                      "bg-white/10 text-[#a6a6a6]"
+                    }`}>{eq.condition}</span>
+                  </div>
+                )
+              })
+            )}
+          </div>
+
           <button
             type="button"
-            onClick={handleAddClick}
-            className="btn-gold w-full py-2.5 flex items-center justify-center gap-1"
+            onClick={() => setShowQrScanner(prev => !prev)}
+            className="btn-ghost w-full py-2 text-sm flex items-center justify-center gap-2"
           >
-            <FiPlus size={18} />
-            <span>Add Equipment</span>
+            Scan QR Code
+            <span className="text-xs text-[#a6a6a6]">{showQrScanner ? "▾" : "▸"}</span>
           </button>
+          {showQrScanner && (
+            <div className="flex-1">
+              <QRScanner key={scanEpoch} onScan={handleQrScan} />
+            </div>
+          )}
         </div>
 
         <div className="md:w-3/5 dark-card p-5 sm:p-8">
@@ -276,7 +314,21 @@ export default function RequestPage() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form
+              onSubmit={handleSubmit}
+              onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDragOverForm(true) }}
+              onDragLeave={(e) => { if (e.currentTarget === e.target || !e.currentTarget.contains(e.relatedTarget as Node)) setDragOverForm(false) }}
+              onDrop={(e) => {
+                e.preventDefault()
+                setDragOverForm(false)
+                const eqId = e.dataTransfer.getData("text/plain")
+                const eq = equipments.find(x => x.id === eqId)
+                if (eq) addToFormItems(eq)
+              }}
+              className={`space-y-4 rounded-xl transition-colors ${
+                dragOverForm ? "ring-2 ring-[#c89116] bg-[#c89116]/5" : ""
+              }`}
+            >
               {formItems.length > 0 && (
                 <div className="space-y-2">
                   {formItems.map((item, idx) => {
@@ -448,79 +500,6 @@ export default function RequestPage() {
             </div>
           )}
 
-          {showSelector && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-              <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm sm:max-w-md mx-3">
-                <p className="text-base sm:text-lg font-bold text-white mb-4 text-center">
-                  Select Equipment
-                </p>
-                <p className="text-sm text-[#a6a6a6] mb-4 text-center">
-                  {equipments.length} available
-                </p>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Equipment</label>
-                    <select
-                      value={selectorSelectedId}
-                      onChange={(e) => { setSelectorSelectedId(e.target.value); setSelectorQuantity(1) }}
-                      className="dark-input w-full text-sm"
-                    >
-                      {equipments.map(eq => (
-                        <option key={eq.id} value={eq.id}>
-                          {eq.name} ({eq.id})
-                        </option>
-                      ))}
-                    </select>
-                    {(() => {
-                      const sel = equipments.find(eq => eq.id === selectorSelectedId)
-                      if (!sel) return null
-                      return (
-                        <div className="mt-2 p-2 bg-white/5 rounded-lg text-sm space-y-1">
-                          <p className="font-medium text-white">{sel.name}</p>
-                          <p className="text-xs text-[#a6a6a6]">{sel.id} — {sel.owner ?? "No owner"}</p>
-                          <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full ${sel.condition === "Working" ? "bg-green-500/15 text-green-300" : sel.condition === "Needs Repair" ? "bg-yellow-500/15 text-yellow-300" : sel.condition === "Broken" ? "bg-red-500/15 text-red-300" : sel.condition === "Not checked" ? "bg-white/10 text-[#a6a6a6]" : "bg-purple-500/15 text-purple-300"}`}>
-                            {sel.condition}
-                          </span>
-                        </div>
-                      )
-                    })()}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
-                      Quantity <span className="text-[#a6a6a6] font-normal">(max: {maxQty})</span>
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={maxQty}
-                      value={selectorQuantity}
-                      onChange={(e) => setSelectorQuantity(Math.min(maxQty, Math.max(1, Number(e.target.value))))}
-                      className="dark-input w-full text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setShowSelector(false)}
-                    className="btn-ghost flex-1 py-2 rounded-lg text-sm"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={confirmAddItem}
-                    className="btn-gold flex-1 py-2 rounded-lg text-sm"
-                  >
-                    <span className="hidden sm:inline">Add to Request</span><span className="sm:hidden">Add</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
