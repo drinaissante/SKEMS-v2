@@ -28,6 +28,70 @@ interface FormItem {
   quantity: number
 }
 
+const PAGE_SIZE = 5
+
+interface PickerListProps {
+  items: Equipment[]
+  loading: boolean
+  search: string
+  inFormIds: Set<string>
+  onAdd: (eq: Equipment) => void
+}
+
+function conditionChipClass(condition: string) {
+  return condition === "Working" ? "bg-green-500/15 text-green-300" :
+    condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
+    condition === "Broken" ? "bg-red-500/15 text-red-300" :
+    "bg-white/10 text-[#a6a6a6]"
+}
+
+function EquipmentPickerList({ items, loading, search, inFormIds, onAdd }: PickerListProps) {
+  if (loading) {
+    return <p className="text-sm text-[#a6a6a6] text-center py-6">Loading equipment…</p>
+  }
+  if (items.length === 0) {
+    return (
+      <p className="text-sm text-[#a6a6a6] text-center py-6">
+        {search ? "No equipment matches your search." : "No equipment available."}
+      </p>
+    )
+  }
+  return (
+    <div className="space-y-2">
+      {items.map(eq => {
+        const inForm = inFormIds.has(eq.id)
+        return (
+          <div
+            key={eq.id}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData("text/plain", eq.id)
+              e.dataTransfer.effectAllowed = "copy"
+            }}
+            onClick={() => !inForm && onAdd(eq)}
+            className={`p-3 rounded-lg border transition-colors select-none ${
+              inForm
+                ? "border-white/10 bg-white/5 opacity-50 cursor-not-allowed"
+                : "border-white/10 bg-white/5 hover:border-[#c89116]/50 hover:bg-white/10 cursor-grab active:cursor-grabbing"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-white truncate">{eq.name}</p>
+                <p className="text-xs text-[#a6a6a6]">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
+              </div>
+              {!inForm && <FiPlus className="shrink-0 text-[#c89116]" size={16} />}
+            </div>
+            <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${conditionChipClass(eq.condition)}`}>
+              {eq.condition}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function RequestPage() {
   usePageTitle("Request")
   const { user } = useAuth()
@@ -45,6 +109,8 @@ export default function RequestPage() {
   const [scanEpoch, setScanEpoch] = useState(0)
   const [success, setSuccess] = useState(false)
   const [search, setSearch] = useState("")
+  const [listPage, setListPage] = useState(1)
+  const [showMobilePicker, setShowMobilePicker] = useState(false)
   const [dragOverForm, setDragOverForm] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const autoEquipId = searchParams.get("id")
@@ -135,6 +201,36 @@ export default function RequestPage() {
     return equipments.filter(e => !lower || e.name.toLowerCase().includes(lower) || e.id.toLowerCase().includes(lower))
   }, [equipments, search])
 
+  const totalPages = Math.max(1, Math.ceil(availableEquipments.length / PAGE_SIZE))
+  const safePage = Math.min(listPage, totalPages)
+  const pagedEquipments = useMemo(
+    () => availableEquipments.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [availableEquipments, safePage],
+  )
+  const inFormIds = useMemo(() => new Set(formItems.map(i => i.equipmentId)), [formItems])
+
+  const paginationFooter = totalPages > 1 && (
+    <div className="flex items-center justify-between pt-1">
+      <button
+        type="button"
+        onClick={() => setListPage(Math.max(1, safePage - 1))}
+        disabled={safePage === 1}
+        className="btn-ghost px-3 py-1.5 text-xs rounded disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        Prev
+      </button>
+      <span className="text-xs text-[#a6a6a6]">{safePage} / {totalPages}</span>
+      <button
+        type="button"
+        onClick={() => setListPage(Math.min(totalPages, safePage + 1))}
+        disabled={safePage === totalPages}
+        className="btn-ghost px-3 py-1.5 text-xs rounded disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        Next
+      </button>
+    </div>
+  )
+
   const removeItem = (idx: number) => {
     setFormItems(prev => prev.filter((_, i) => i !== idx))
   }
@@ -223,63 +319,41 @@ export default function RequestPage() {
             Equipment Request
           </h2>
           <p className="text-xs text-[#a6a6a6] text-center -mt-3 mb-1">
-            Drag or tap equipment to add it.
+            Drag equipment onto the form, or tap to add it.
           </p>
 
-          <div className="relative">
-            <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search equipment..."
-              className="dark-input w-full text-sm pl-8"
-            />
+          <div className="hidden md:flex flex-col gap-3 flex-1 min-h-0">
+            <div className="relative">
+              <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setListPage(1) }}
+                placeholder="Search equipment..."
+                className="dark-input w-full text-sm pl-8"
+              />
+            </div>
+
+            <div className="flex-1 min-h-40 max-h-80 overflow-y-auto pr-1">
+              <EquipmentPickerList
+                items={pagedEquipments}
+                loading={isLoading}
+                search={search}
+                inFormIds={inFormIds}
+                onAdd={addToFormItems}
+              />
+            </div>
+            {paginationFooter}
           </div>
 
-          <div className="flex-1 min-h-40 max-h-80 md:max-h-none md:overflow-y-auto overflow-y-auto space-y-2 pr-1">
-            {isLoading ? (
-              <p className="text-sm text-[#a6a6a6] text-center py-6">Loading equipment…</p>
-            ) : availableEquipments.length === 0 ? (
-              <p className="text-sm text-[#a6a6a6] text-center py-6">
-                {search ? "No equipment matches your search." : "No equipment available."}
-              </p>
-            ) : (
-              availableEquipments.map(eq => {
-                const inForm = formItems.some(i => i.equipmentId === eq.id)
-                return (
-                  <div
-                    key={eq.id}
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData("text/plain", eq.id)
-                      e.dataTransfer.effectAllowed = "copy"
-                    }}
-                    onClick={() => !inForm && addToFormItems(eq)}
-                    className={`p-3 rounded-lg border transition-colors select-none ${
-                      inForm
-                        ? "border-white/10 bg-white/5 opacity-50 cursor-not-allowed"
-                        : "border-white/10 bg-white/5 hover:border-[#c89116]/50 hover:bg-white/10 cursor-grab active:cursor-grabbing"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{eq.name}</p>
-                        <p className="text-xs text-[#a6a6a6]">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
-                      </div>
-                      {!inForm && <FiPlus className="shrink-0 text-[#c89116]" size={16} />}
-                    </div>
-                    <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${
-                      eq.condition === "Working" ? "bg-green-500/15 text-green-300" :
-                      eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
-                      eq.condition === "Broken" ? "bg-red-500/15 text-red-300" :
-                      "bg-white/10 text-[#a6a6a6]"
-                    }`}>{eq.condition}</span>
-                  </div>
-                )
-              })
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowMobilePicker(true)}
+            className="btn-gold w-full py-2.5 flex items-center justify-center gap-1 md:hidden"
+          >
+            <FiPlus size={18} />
+            <span>Add Equipment</span>
+          </button>
 
           <button
             type="button"
@@ -500,6 +574,50 @@ export default function RequestPage() {
             </div>
           )}
 
+          {showMobilePicker && (
+            <div
+              className="fixed inset-0 bg-black/60 z-50 md:hidden"
+              onClick={() => setShowMobilePicker(false)}
+            >
+              <div
+                className="w-full bg-[#111] rounded-t-xl border-t border-white/10 p-4 max-h-[75vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-base font-bold text-white">Add Equipment</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowMobilePicker(false)}
+                    className="text-[#a6a6a6] hover:text-white cursor-pointer"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="relative mb-3">
+                  <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setListPage(1) }}
+                    placeholder="Search equipment..."
+                    className="dark-input w-full text-sm pl-8"
+                  />
+                </div>
+
+                <EquipmentPickerList
+                  items={pagedEquipments}
+                  loading={isLoading}
+                  search={search}
+                  inFormIds={inFormIds}
+                  onAdd={(eq) => { addToFormItems(eq); setShowMobilePicker(false) }}
+                />
+                {paginationFooter}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
