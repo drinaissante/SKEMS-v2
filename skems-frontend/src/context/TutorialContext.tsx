@@ -58,6 +58,7 @@ const TOUR_STEPS: TourStep[] = [
     text: "Each card shows the equipment's ID, owner, and condition. Tap a card to add it to your request.",
   },
   {
+    action: () => window.dispatchEvent(new CustomEvent(TOUR_GOTO_STEP, { detail: 1 })),
     target: "form-equipment",
     text: "Your added items live here — each with an adjustable quantity. The Review & Submit flow continues down the form.",
   },

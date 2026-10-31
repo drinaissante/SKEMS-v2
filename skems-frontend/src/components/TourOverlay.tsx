@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type CSSProperties } from "react"
+import { useState, useEffect, useCallback, useRef, type CSSProperties } from "react"
 
 export interface TourStep {
   text: string
@@ -30,6 +30,7 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
   const [stepIndex, setStepIndex] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const [dontShowAgain, setDontShowAgain] = useState(false)
+  const dirRef = useRef<1 | -1>(1)
   const isLast = stepIndex === steps.length - 1
   const step = steps[stepIndex]
 
@@ -58,6 +59,24 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
       })
     }
 
+    const settleUp = (then: () => void) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(then, 60)))
+    }
+
+    settleUp(() => {
+      // Skip invisible steps after their action had time to take effect.
+      const i = stepIndex
+      if (i < 0 || i >= steps.length) return
+      const s = steps[i]
+      if (s.target && !findTarget(s)) {
+        const dir = dirRef.current
+        if (dir === 1 && i + 1 < steps.length) setStepIndex(i + 1)
+        else if (dir === -1 && i - 1 >= 0) setStepIndex(i - 1)
+        return
+      }
+      measure()
+    })
+
     measure()
     window.addEventListener("resize", measure)
     window.addEventListener("scroll", measure, true)
@@ -67,21 +86,17 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
     }
   }, [stepIndex, steps, findTarget, step])
 
-  const advance = (dir: 1 | -1) => {
-    let i = stepIndex + dir
-    while (i >= 0 && i < steps.length) {
-      const s = steps[i]
-      if (!s.target || findTarget(s)) {
-        setStepIndex(i)
-        return
-      }
-      i += dir
-    }
-    if (dir === 1) onFinish(dontShowAgain)
+  const next = () => {
+    if (isLast) return onFinish(dontShowAgain)
+    dirRef.current = 1
+    setStepIndex(i => Math.min(steps.length - 1, i + 1))
   }
 
-  const next = () => (isLast ? onFinish(dontShowAgain) : advance(1))
-  const back = () => (stepIndex > 0 ? advance(-1) : undefined)
+  const back = () => {
+    if (stepIndex === 0) return
+    dirRef.current = -1
+    setStepIndex(i => Math.max(0, i - 1))
+  }
 
   const isCentered = !step.target || !rect
   const tooltipBelow = rect ? rect.bottom + 230 < window.innerHeight : true
