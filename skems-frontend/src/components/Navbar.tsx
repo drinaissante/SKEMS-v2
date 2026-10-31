@@ -5,6 +5,7 @@ import GradientLine from "./GradientLine"
 import NavLink from "./NavLink"
 import { requestLogout } from "../utils/logoutEvent"
 import { FiLogOut } from "react-icons/fi"
+import NotificationBell from "./NotificationBell"
 
 export default function Navbar() {
   const { isLoggedIn, isAdmin, isSuperAdmin, user } = useAuth()
@@ -70,6 +71,7 @@ export default function Navbar() {
                 >
                   Request
                 </NavLink>
+                <NotificationBell />
               </div>
 
               <div className="relative">
@@ -179,7 +181,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <img src="/sk_icon_no_bg.png" height={20} width={20} alt="SK logo" decoding="async" fetchPriority="high" />
           <span className="text-[#f7cf1ccb] text-xs uppercase font-bold">Sine Kultura</span>
-          
+
+          {isLoggedIn && (
+            <NotificationBell />
+          )}
+
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"

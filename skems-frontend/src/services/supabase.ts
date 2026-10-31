@@ -289,6 +289,18 @@ export async function submitRequest(data: {
 
   if (inserted?.id) {
     void notifyDiscordRequest(data, inserted.id);
+
+    void notifyRequestUsers({
+      requestId: inserted.id,
+      equipmentId: data.equipmentId,
+      equipmentName: data.equipmentName,
+      borrowerId: data.userId,
+      ownerId: data.owner ? await fetchRegisteredOwnerId(data.owner) : null,
+      type: "request_created",
+      bodyTitle: "New borrow request",
+      bodyText: `${data.borrowerName} requested ${data.equipmentName}.`,
+      skipSelf: true,
+    });
   }
 }
 
@@ -423,6 +435,8 @@ export async function fetchMyRequests(userId: string) {
     pickup_location: string;
     return_location: string;
     owner: string;
+    owner_status: string;
+    owner_reason: string | null;
     discord_message_id: string | null;
   }[];
 }
@@ -452,6 +466,8 @@ export async function fetchAllRequests() {
     pickup_location: string;
     return_location: string;
     owner: string;
+    owner_status: string;
+    owner_reason: string | null;
     discord_message_id: string | null;
   }[];
 }
@@ -464,6 +480,20 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
     .single();
 
   if (fetchErr || !request) throw new Error("Request not found");
+
+  // Two-step approval: if the equipment owner is a registered user,
+  // the owner's approve must come first.
+  const ownerProfile = request.owner
+    ? await fetchRegisteredOwnerId(request.owner)
+    : null;
+
+  if (ownerProfile && (request.owner_status ?? "pending") !== "approved") {
+    throw new Error(
+      (request.owner_status ?? "pending") === "rejected"
+        ? "The equipment owner has already rejected this request."
+        : "This request still needs the equipment owner's approval.",
+    );
+  }
 
   const { data: activeBorrow } = await supabase
     .from("borrow_records")
@@ -510,6 +540,17 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
 
   if (statusErr) throw statusErr;
 
+  void notifyRequestUsers({
+    requestId,
+    equipmentId: request.equipment_id ?? null,
+    equipmentName: request.equipment_name ?? "",
+    borrowerId: request.user_id ?? null,
+    ownerId: request.owner ? await fetchRegisteredOwnerId(request.owner) : null,
+    type: "admin_approved",
+    bodyTitle: "Request approved",
+    bodyText: `Your request for ${request.equipment_name} was approved by an SK officer.`,
+  });
+
   void syncDiscordStatus(request, "Approved", request.id);
 }
 
@@ -528,6 +569,20 @@ export async function updateRequestStatus(requestId: string, status: string) {
 
   if (row) {
     void syncDiscordStatus(row, status === "Denied" ? "Rejected" : status, row.id);
+
+    if (status === "Denied") {
+      void notifyRequestUsers({
+        requestId,
+        equipmentId: row.equipment_id ?? null,
+        equipmentName: row.equipment_name ?? "",
+        borrowerId: row.user_id ?? null,
+        ownerId: row.owner ? await fetchRegisteredOwnerId(row.owner) : null,
+        type: "admin_denied",
+        bodyTitle: "Request denied",
+        bodyText: `Your request for ${row.equipment_name} was denied by an SK officer.`,
+      });
+      void notifyDiscordDecision(row, "Rejected", "", false);
+    }
   }
 }
 
@@ -546,6 +601,285 @@ export async function deleteRequest(requestId: string) {
 
   if (row) {
     void syncDiscordStatus(row, "Deleted", row.id);
+  }
+}
+
+export interface NotificationRow {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  request_id: string | null;
+  equipment_id: string | null;
+  read: boolean;
+  created_at: string;
+}
+
+async function fetchRegisteredOwnerId(ownerName: string): Promise<string | null> {
+  if (!ownerName?.trim()) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .ilike("full_name", ownerName.trim())
+    .limit(1)
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
+export async function hasRegisteredOwner(ownerName: string): Promise<boolean> {
+  return (await fetchRegisteredOwnerId(ownerName)) !== null;
+}
+
+async function fetchAdminIds(): Promise<string[]> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("id")
+    .or("is_admin.eq.true,is_superadmin.eq.true");
+  return (data ?? []).map((p: { id: string }) => p.id);
+}
+
+async function fetchMyAdminFlag(): Promise<boolean> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.user) return false;
+  const { data } = await supabase
+    .from("profiles")
+    .select("is_admin, is_superadmin")
+    .eq("id", session.user.id)
+    .maybeSingle();
+  return !!data?.is_admin || !!data?.is_superadmin;
+}
+
+async function insertNotifications(rows: {
+  user_id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  request_id?: string | null;
+  equipment_id?: string | null;
+}[]) {
+  if (rows.length === 0) return;
+  const { error } = await supabase.from("notifications").insert(rows);
+  if (error) console.error("Failed to insert notifications:", error);
+}
+
+interface RequestNotificationContext {
+  requestId: string | null
+  equipmentId: string | null
+  equipmentName: string
+  borrowerId: string | null
+  ownerId: string | null
+  type: string
+  bodyTitle: string
+  bodyText: string
+  skipSelf?: boolean
+}
+
+async function notifyRequestUsers(ctx: RequestNotificationContext) {
+  try {
+    const targets = new Set<string>()
+    if (ctx.borrowerId) targets.add(ctx.borrowerId)
+    if (ctx.ownerId) targets.add(ctx.ownerId)
+
+    if (
+      ctx.type === "owner_approved" ||
+      ctx.type === "owner_rejected" ||
+      ctx.type === "request_created"
+    ) {
+      for (const adminId of await fetchAdminIds()) targets.add(adminId)
+    }
+
+    if (ctx.skipSelf) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user?.id) targets.delete(session.user.id)
+    }
+    targets.delete("")
+
+    const rows = [...targets].map((user_id) => ({
+      user_id,
+      type: ctx.type,
+      title: ctx.bodyTitle,
+      body: ctx.bodyText,
+      request_id: ctx.requestId,
+      equipment_id: ctx.equipmentId,
+    }))
+    await insertNotifications(rows)
+  } catch (err) {
+    console.error("notifyRequestUsers failed:", err)
+  }
+}
+
+async function notifyDiscordDecision(
+  request: Record<string, unknown>,
+  decision: "Approved" | "Rejected",
+  reason: string,
+  decidedByOwner: boolean,
+) {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+
+    await fetch("/api/notify-decision", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        equipmentId: String(request.equipment_id ?? ""),
+        equipmentName: String(request.equipment_name ?? request.equipment_requested ?? ""),
+        borrowerName: String(request.borrower_name ?? request.full_name ?? ""),
+        studentNumber: String(request.student_number ?? ""),
+        quantity: Number(request.quantity ?? 1),
+        reason: reason,
+        decision,
+        decidedByOwner,
+        requestId: String(request.id ?? ""),
+      }),
+    });
+  } catch {
+    // fire-and-forget; never block the decision flow
+  }
+}
+
+export async function fetchNotificationsForUser(userId: string): Promise<NotificationRow[]> {
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return data as unknown as NotificationRow[];
+}
+
+export async function fetchAdminNotifications(adminIds: string[]): Promise<NotificationRow[]> {
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .in("user_id", adminIds)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return data as unknown as NotificationRow[];
+}
+
+export async function markNotificationsRead(userId: string, ids?: string[]) {
+  const query = supabase
+    .from("notifications")
+    .update({ read: true })
+    .eq("user_id", userId);
+  if (ids && ids.length > 0) {
+    return query.in("id", ids);
+  }
+  return query.eq("read", false);
+}
+
+export async function fetchRequestsForEquipments(equipmentIds: string[]) {
+  if (equipmentIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("requests")
+    .select("*")
+    .in("equipment_id", equipmentIds)
+    .in("status", ["Pending", "Approved"])
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as {
+    id: string;
+    equipment_id: string;
+    equipment_name: string;
+    borrower_name: string;
+    student_number: string;
+    reason: string;
+    date_borrowed: string;
+    date_due: string;
+    status: string;
+    created_at: string;
+    user_id: string;
+    quantity: number;
+    returned_on: string | null;
+    position_department: string;
+    pickup_location: string;
+    return_location: string;
+    owner: string;
+    owner_status: string;
+    owner_reason: string | null;
+    discord_message_id: string | null;
+  }[];
+}
+
+export async function setOwnerDecision(
+  requestId: string,
+  decision: "approved" | "rejected",
+  reason: string,
+) {
+  const { data: request, error: fetchErr } = await supabase
+    .from("requests")
+    .select("*")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (fetchErr || !request) throw new Error("Request not found");
+
+  const isMyAdminFlag = await fetchMyAdminFlag();
+  const ownerProfile = request.owner
+    ? await fetchRegisteredOwnerId(request.owner)
+    : null;
+
+  if (!isMyAdminFlag && ownerProfile) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user || session.user.id !== ownerProfile) {
+      throw new Error("Only the equipment owner can decide on this request.");
+    }
+  }
+
+  const updates =
+    decision === "approved"
+      ? { owner_status: "approved", owner_reason: reason || null }
+      : { owner_status: "rejected", owner_reason: reason || null, status: "Denied" };
+
+  const { error } = await supabase
+    .from("requests")
+    .update(updates)
+    .eq("id", requestId);
+  if (error) throw error;
+
+  if (decision === "approved") {
+    void notifyRequestUsers({
+      requestId,
+      equipmentId: request.equipment_id ?? null,
+      equipmentName: request.equipment_name ?? "",
+      borrowerId: request.user_id ?? null,
+      ownerId: ownerProfile,
+      type: "owner_approved",
+      bodyTitle: "Owner approved a request",
+      bodyText: `The equipment owner approved the borrow request for ${request.equipment_name}. Awaiting SK officer approval.`,
+      skipSelf: true,
+    });
+  } else {
+    const rejectBody = reason
+      ? `The equipment owner rejected this request. Reason: ${reason}`
+      : "The equipment owner rejected this request.";
+
+    void notifyRequestUsers({
+      requestId,
+      equipmentId: request.equipment_id ?? null,
+      equipmentName: request.equipment_name ?? "",
+      borrowerId: request.user_id ?? null,
+      ownerId: ownerProfile,
+      type: "owner_rejected",
+      bodyTitle: "Request rejected by owner",
+      bodyText: rejectBody,
+      skipSelf: true,
+    });
+
+    void notifyDiscordDecision(request, "Rejected", reason, true);
   }
 }
 

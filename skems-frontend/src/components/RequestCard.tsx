@@ -46,6 +46,8 @@ export interface RequestLike {
   pickup_location: string
   return_location: string
   owner: string
+  owner_status?: string | null
+  owner_reason?: string | null
 }
 
 interface RequestCardProps {

@@ -40,6 +40,18 @@ export default function RequestInfoModal({ request: r, onClose, actions, formatD
           <InfoRow label="Student No.">{r.student_number || "—"}</InfoRow>
           <InfoRow label="Position">{r.position_department || "—"}</InfoRow>
           <InfoRow label="Owner">{r.owner || "—"}</InfoRow>
+          {r.owner_status === "approved" && (
+            <InfoRow label="Owner Decision">
+              <span className="text-green-300">Approved by owner</span>
+            </InfoRow>
+          )}
+          {r.owner_status === "rejected" && (
+            <InfoRow label="Owner Decision">
+              <span className="text-red-300">
+                Rejected by owner{r.owner_reason ? `, reason: ${r.owner_reason}` : ""}
+              </span>
+            </InfoRow>
+          )}
           <InfoRow label="Reason">{r.reason || "—"}</InfoRow>
           <InfoRow label="Pickup Location">{r.pickup_location || "—"}</InfoRow>
           <InfoRow label="Return Location">{r.return_location || "—"}</InfoRow>

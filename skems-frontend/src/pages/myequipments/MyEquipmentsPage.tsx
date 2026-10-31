@@ -8,12 +8,16 @@ import {
   type Equipment,
 } from "../../services/api"
 import { uploadImage, uploadQRCode, fetchProfile } from "../../services/supabase"
-import { fetchAllRequests } from "../../services/supabase"
+import {
+  fetchRequestsForEquipments,
+  setOwnerDecision,
+} from "../../services/supabase"
 
 import EquipmentFormModal from "../equipments/AddEquipmentModal"
 import EquipmentCard from "../equipments/EquipmentCard"
 import EquipmentCardPlaceholder from "../equipments/EquipmentCardPlaceholder"
 import ImageLightbox from "../../components/ImageLightbox"
+import OwnerRequestsModal, { type OwnerRequestRow } from "../../modals/OwnerRequestsModal"
 import skIconFallback from "/sk_icon.jpg"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
@@ -44,6 +48,7 @@ export default function MyEquipmentsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deletingId, setDeletingId] = useState("")
   const [expandedImage, setExpandedImage] = useState<Equipment | null>(null)
+  const [slotEquipmentId, setSlotEquipmentId] = useState<string | null>(null)
 
   const { showToast } = useToast()
 
@@ -67,21 +72,31 @@ export default function MyEquipmentsPage() {
     gcTime: 60 * 60 * 1000,
   })
 
-  const { data: requests = [] } = useQuery({
-    queryKey: ["admin-requests"],
-    queryFn: fetchAllRequests,
-    staleTime: 5 * 60 * 1000,
+  const equipmentIds = useMemo(() => equipments.map(e => e.id).join(","), [equipments])
+
+  const { data: ownerRequestsRows = [] } = useQuery({
+    queryKey: ["owner-requests", equipmentIds],
+    queryFn: () => fetchRequestsForEquipments(equipmentIds.split(",").filter(Boolean)),
+    enabled: canAccess && equipmentIds.length > 0,
+    staleTime: 30 * 1000,
   })
 
-  const requestMap = useMemo(() => {
-    const map = new Map<string, { id: string; reason: string }>()
-    for (const r of requests) {
-      if (r.equipment_id && (r.status === "Pending" || r.status === "Approved")) {
-        map.set(r.equipment_id, { id: r.id, reason: r.reason })
+  const ownerRequestMap = useMemo(() => {
+    const map = new Map<string, OwnerRequestRow[]>()
+    const badgeMap = new Map<string, { id: string; reason: string }>()
+    for (const r of ownerRequestsRows) {
+      if (!r.equipment_id) continue
+      const list = map.get(r.equipment_id) ?? []
+      list.push(r as unknown as OwnerRequestRow)
+      map.set(r.equipment_id, list)
+      if (r.status === "Pending" || r.status === "Approved") {
+        badgeMap.set(r.equipment_id, { id: r.id, reason: r.reason })
       }
     }
-    return map
-  }, [requests])
+    return { slots: map, badge: badgeMap }
+  }, [ownerRequestsRows])
+
+  const requestMap = ownerRequestMap.badge
 
   useEffect(() => {
     if (!canAccess) {
@@ -157,6 +172,28 @@ export default function MyEquipmentsPage() {
     setDeletingId(id)
     setShowDeleteConfirm(true)
   }
+
+  const decideMutation = useMutation({
+    mutationFn: ({ requestId, decision, reason }: { requestId: string; decision: "approved" | "rejected"; reason: string }) =>
+      setOwnerDecision(requestId, decision, reason),
+    onSuccess: (_result, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["owner-requests"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
+      queryClient.invalidateQueries({ queryKey: ["my-requests"] })
+      showToast(
+        variables.decision === "approved"
+          ? "Request approved. Awaiting SK officer final approval."
+          : "Request rejected.",
+        "success",
+      )
+    },
+    onError: (err) => {
+      showToast("Failed to save decision: " + (err instanceof Error ? err.message : "Unknown error"), "error")
+    },
+  })
+
+  const slotEquipment = equipments.find(e => e.id === slotEquipmentId) ?? null
+  const slotRequests = slotEquipmentId ? (ownerRequestMap.slots.get(slotEquipmentId) ?? []) : []
 
   const handleSave = async (eq: Omit<Equipment, "id">, imageFile?: File | null) => {
     await saveMutation.mutateAsync({ equipment: eq, isEdit: !!editingEquipment, equipmentId: editingEquipment?.id, imageFile })
@@ -241,6 +278,8 @@ export default function MyEquipmentsPage() {
                       onEdit={(e) => setEditingEquipment(e)}
                       onDelete={handleDelete}
                       requestMap={requestMap}
+                      onOpenRequests={canAccess ? (eq) => setSlotEquipmentId(eq.id) : undefined}
+                      requestsCount={(ownerRequestMap.slots.get(eq.id) ?? []).length}
                     />
                   ) : (
                     <EquipmentCardPlaceholder key={`ph-${i}`} />
@@ -259,6 +298,8 @@ export default function MyEquipmentsPage() {
                       onEdit={(e) => setEditingEquipment(e)}
                       onDelete={handleDelete}
                       requestMap={requestMap}
+                      onOpenRequests={canAccess ? (eq) => setSlotEquipmentId(eq.id) : undefined}
+                      requestsCount={(ownerRequestMap.slots.get(eq.id) ?? []).length}
                     />
                   ) : (
                     <EquipmentCardPlaceholder key={`ph-${i}`} />
@@ -331,6 +372,18 @@ export default function MyEquipmentsPage() {
           src={expandedImage.image || skIconFallback}
           alt={expandedImage.name}
           onClose={() => setExpandedImage(null)}
+        />
+      )}
+
+      {slotEquipment && (
+        <OwnerRequestsModal
+          equipmentName={slotEquipment.name}
+          requests={slotRequests}
+          decidingId={decideMutation.isPending ? String(decideMutation.variables?.requestId ?? "") : null}
+          onDecide={(requestId, decision, reason) =>
+            decideMutation.mutate({ requestId, decision, reason })
+          }
+          onClose={() => setSlotEquipmentId(null)}
         />
       )}
     </div>

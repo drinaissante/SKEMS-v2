@@ -10,6 +10,8 @@ export default function EquipmentCard({
   onImageClick,
   uploadingImages = {},
   requestMap,
+  onOpenRequests,
+  requestsCount = 0,
 }: {
   eq: Equipment
   onEdit?: (eq: Equipment) => void
@@ -17,6 +19,8 @@ export default function EquipmentCard({
   onImageClick?: (eq: Equipment) => void
   uploadingImages?: Record<string, boolean>
   requestMap?: Map<string, { id: string; reason: string }>
+  onOpenRequests?: (eq: Equipment) => void
+  requestsCount?: number
 }) {
   const uploading = uploadingImages[eq.id]
   const dateFormat = { month: "short" as const, day: "numeric" as const, year: "numeric" as const, hour: "2-digit" as const, minute: "2-digit" as const }
@@ -84,6 +88,15 @@ export default function EquipmentCard({
           </span>
         </div>
       </Link>
+
+      {onOpenRequests && (
+        <button
+          onClick={() => onOpenRequests(eq)}
+          className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-[#c89116]/40 text-[#c89116] hover:bg-[#c89116] hover:text-white text-xs font-bold transition-colors cursor-pointer"
+        >
+          {requestsCount > 0 ? `Requests (${requestsCount})` : "Requests"}
+        </button>
+      )}
 
       {eq.borrowerName && (
         <div className="mt-2 pt-2 border-t border-white/10 text-xs text-[#a6a6a6] space-y-0.5">

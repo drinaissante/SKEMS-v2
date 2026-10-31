@@ -6,6 +6,7 @@ import {
   updateRequestStatus,
   approveAndMoveRequest,
   deleteRequest,
+  hasRegisteredOwner,
 } from "../../services/supabase"
 import { useToast } from "../../hooks/useToast"
 import { useAuth } from "../../context/AuthContext"
@@ -93,6 +94,24 @@ export default function RequestsPage() {
     [requests],
   )
 
+  // Which equipment owners are registered users (owner pre-approval applies)?
+  const ownersKey = useMemo(
+    () => [...new Set(requests.map(r => (r.owner ?? "").trim()).filter(Boolean))].join("|"),
+    [requests],
+  )
+  const { data: ownerGateMap = new Map() } = useQuery({
+    queryKey: ["owner-gate", ownersKey],
+    queryFn: async () => {
+      const map = new Map<string, boolean>()
+      for (const name of ownersKey.split("|").filter(Boolean)) {
+        map.set(name.toLowerCase(), await hasRegisteredOwner(name))
+      }
+      return map
+    },
+    enabled: ownersKey.length > 0,
+    staleTime: 5 * 60 * 1000,
+  })
+
   const filtered = useMemo(() => {
     return requests.filter((r) => {
       const q = search.toLowerCase()
@@ -173,14 +192,32 @@ export default function RequestsPage() {
       <>
         {r.status === "Pending" && (
           <>
-            <button
-              onClick={() => handleStatus(r.id, "Approved")}
-              disabled={approveMutation.isPending}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
-            >
-              {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={14} />}
-              Approve
-            </button>
+            {(() => {
+              const ownerRequired = ownerGateMap.get((r.owner ?? "").trim().toLowerCase()) ?? false
+              const ownerApproved = (r.owner_status ?? "pending") === "approved"
+              const gated = ownerRequired && !ownerApproved
+              if (gated) {
+                return (
+                  <button
+                    disabled
+                    title="The equipment owner must approve this request first."
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-[#a6a6a6] text-xs font-bold cursor-not-allowed"
+                  >
+                    Awaiting owner approval
+                  </button>
+                )
+              }
+              return (
+                <button
+                  onClick={() => handleStatus(r.id, "Approved")}
+                  disabled={approveMutation.isPending}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
+                >
+                  {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={14} />}
+                  Approve
+                </button>
+              )
+            })()}
             <button
               onClick={() => handleStatus(r.id, "Denied")}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer"
