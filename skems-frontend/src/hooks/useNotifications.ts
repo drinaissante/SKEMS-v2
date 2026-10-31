@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { useAuth } from "../context/AuthContext"
-import { supabase, fetchNotificationsForUser, markNotificationsRead, type NotificationRow } from "../services/supabase"
+import {
+  supabase,
+  fetchNotificationsForUser,
+  markNotificationsRead,
+  type NotificationRow,
+} from "../services/supabase"
 
 export interface NotificationsState {
   notifications: NotificationRow[]
@@ -14,6 +19,64 @@ export function subscribeToNewNotifications(cb: (n: NotificationRow) => void) {
   notifyExternal = cb
   return () => {
     if (notifyExternal === cb) notifyExternal = null
+  }
+}
+
+type RowHandler = (row: NotificationRow) => void
+
+interface ChannelEntry {
+  channel: ReturnType<typeof supabase.channel>
+  subs: Set<RowHandler>
+}
+
+const channelRegistry = new Map<string, ChannelEntry>()
+
+function fanOut(entry: ChannelEntry, row: NotificationRow) {
+  for (const cb of entry.subs) {
+    try {
+      cb(row)
+    } catch (err) {
+      console.error("notification callback failed:", err)
+    }
+  }
+}
+
+function joinNotificationsChannel(userId: string, cb: RowHandler): () => void {
+  const key = `notifications-${userId}`
+  let entry = channelRegistry.get(key)
+
+  if (!entry) {
+    const channel = supabase
+      .channel(key)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const row = payload.new as NotificationRow
+          if (entry) fanOut(entry, row)
+        },
+      )
+      .subscribe()
+
+    entry = { channel, subs: new Set() }
+    channelRegistry.set(key, entry)
+  }
+
+  entry.subs.add(cb)
+
+  return () => {
+    const current = channelRegistry.get(key)
+    if (!current) return
+    current.subs.delete(cb)
+    if (current.subs.size === 0) {
+      channelRegistry.delete(key)
+      void supabase.removeChannel(current.channel)
+    }
   }
 }
 
@@ -33,31 +96,18 @@ export function useNotifications(): NotificationsState | null {
       })
       .catch((err) => console.error("notifications fetch failed:", err))
 
-    const channel = supabase
-      .channel(`notifications-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const row = payload.new as NotificationRow
-          setNotifications((prev) => {
-            if (prev.some((n) => n.id === row.id)) return prev
-            arrivalRef.current++
-            notifyExternal?.(row)
-            return [row, ...prev]
-          })
-        },
+    const leave = joinNotificationsChannel(user.id, (row) => {
+      if (!active) return
+      arrivalRef.current++
+      notifyExternal?.(row)
+      setNotifications((prev) =>
+        prev.some((n) => n.id === row.id) ? prev : [row, ...prev],
       )
-      .subscribe()
+    })
 
     return () => {
       active = false
-      void channel.unsubscribe()
+      leave()
     }
   }, [user])
 

@@ -174,7 +174,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     <TutorialContext.Provider value={{ openTutorial }}>
       {children}
       {checking && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 px-4">
           <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl py-8 px-6 w-full max-w-sm text-center">
             <div className="w-10 h-10 mx-auto border-4 border-[#c89116] border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-sm text-[#a6a6a6]">Checking your requests…</p>
