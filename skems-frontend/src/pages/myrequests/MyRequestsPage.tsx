@@ -1,5 +1,4 @@
-import { useMemo, useEffect } from "react"
-import type { ReactNode } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Link, useParams, useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { fetchMyRequests, fetchProfile } from "../../services/supabase"
@@ -7,14 +6,13 @@ import { fetchEquipments } from "../../services/api"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { formatWallClock, formatManila } from "../../utils/datetime"
+import RequestCard, { type RequestLike } from "../../components/RequestCard"
+import RequestInfoModal from "../../modals/RequestInfoModal"
+import { FiSearch } from "react-icons/fi"
 import skIconFallback from "/sk_icon.jpg"
 
-const statusColors: Record<string, string> = {
-  Pending: "bg-[#caa453] text-white",
-  Approved: "bg-green-600 text-white",
-  Denied: "bg-red-600 text-white",
-  Returned: "bg-white/10 text-[#a6a6a6]",
-}
+const MOBILE_ITEMS = 5
+const DESKTOP_ITEMS = 10
 
 const dtOpts: Intl.DateTimeFormatOptions = {
   month: "2-digit",
@@ -29,28 +27,40 @@ function formatDateTime(iso: string) {
   return formatWallClock(iso, dtOpts)
 }
 
-function formatDateTimeManila(iso: string) {
-  return formatManila(iso, dtOpts)
+const STATUS_ORDER: Record<string, number> = {
+  Pending: 0,
+  Approved: 1,
+  Returned: 2,
+  Denied: 3,
 }
 
-function toTitleCase(value: string) {
-  return value.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-}
+type SortOption = "newest" | "oldest" | "name" | "status"
 
-function InfoRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex items-start justify-between gap-3 text-xs">
-      <span className="shrink-0 w-28 sm:w-32 font-bold text-[#a6a6a6]">{label}</span>
-      <span className="text-white text-right min-w-0 wrap-break-word flex-1">{children}</span>
-    </div>
-  )
-}
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "name", label: "Equipment A-Z" },
+  { value: "status", label: "Status" },
+]
 
 export default function MyRequestsPage() {
   usePageTitle("My Requests")
   const { user, isSuperAdmin } = useAuth()
   const { uuid } = useParams<{ uuid: string }>()
   const navigate = useNavigate()
+
+  const [search, setSearch] = useState("")
+  const [sortBy, setSortBy] = useState<SortOption>("newest")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [detailId, setDetailId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)")
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
 
   const isOwn = user?.id === uuid
   const canAccess = isOwn || isSuperAdmin
@@ -85,7 +95,47 @@ export default function MyRequestsPage() {
     return map
   }, [equipments])
 
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim()
+    const base = requests.filter((r) =>
+      !q ||
+      r.equipment_name.toLowerCase().includes(q) ||
+      r.equipment_id.toLowerCase().includes(q) ||
+      r.owner.toLowerCase().includes(q) ||
+      r.reason.toLowerCase().includes(q) ||
+      r.status.toLowerCase().includes(q)
+    )
+    const sorted = [...base]
+    switch (sortBy) {
+      case "oldest":
+        sorted.sort((a, b) => a.created_at.localeCompare(b.created_at))
+        break
+      case "name":
+        sorted.sort((a, b) => a.equipment_name.localeCompare(b.equipment_name))
+        break
+      case "status":
+        sorted.sort((a, b) =>
+          (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9) ||
+          b.created_at.localeCompare(a.created_at),
+        )
+        break
+      default:
+        sorted.sort((a, b) => b.created_at.localeCompare(a.created_at))
+    }
+    return sorted
+  }, [requests, search, sortBy])
+
+  const itemsPerPage = isMobile ? MOBILE_ITEMS : DESKTOP_ITEMS
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginatedItems = useMemo(() => {
+    const start = (safePage - 1) * itemsPerPage
+    return filtered.slice(start, start + itemsPerPage)
+  }, [filtered, safePage, itemsPerPage])
+
   if (!user) return null
+
+  const detailRequest = requests.find(r => r.id === detailId) ?? null
 
   return (
     <div className="min-h-screen bg-fixed-black px-3 sm:px-4 py-4 sm:py-6">
@@ -93,6 +143,30 @@ export default function MyRequestsPage() {
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4">
           {isOwn ? "My Requests" : `${profile?.full_name ?? "User"}'s Requests`}
         </h1>
+
+        {requests.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            <div className="relative flex-1 min-w-40">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
+              <input
+                type="text"
+                placeholder="Search requests..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
+                className="dark-input w-full pl-9 pr-3 py-2 text-sm"
+              />
+            </div>
+            <select
+              value={sortBy}
+              onChange={(e) => { setSortBy(e.target.value as SortOption); setCurrentPage(1) }}
+              className="dark-input w-auto"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {isLoading ? (
           <p className="text-center text-[#a6a6a6] py-10">Loading...</p>
@@ -106,63 +180,54 @@ export default function MyRequestsPage() {
               Borrow Equipment
             </Link>
           </div>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-[#a6a6a6] py-10">No requests match your filters.</p>
         ) : (
-          <div className="space-y-3">
-            {requests.map((r) => {
-              const image = equipmentMap.get(r.equipment_id)?.image || skIconFallback
-              return (
-                <div key={r.id} className="dark-card p-4 sm:p-5">
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <span className="text-[10px] uppercase tracking-wide text-[#a6a6a6] font-bold">
-                      Requested on {formatDateTimeManila(r.created_at)}
-                    </span>
-                    <span
-                      className={`shrink-0 px-2.5 py-1 rounded text-xs font-bold ${
-                        statusColors[r.status] ?? "bg-white/10 text-[#a6a6a6]"
-                      }`}
-                    >
-                      {r.status}
-                    </span>
-                  </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              {paginatedItems.map((r) => (
+                <RequestCard
+                  key={r.id}
+                  request={r as RequestLike}
+                  onClick={() => setDetailId(r.id)}
+                  image={equipmentMap.get(r.equipment_id)?.image || skIconFallback}
+                  formatRequestDate={(iso) => formatManila(iso, dtOpts)}
+                />
+              ))}
+            </div>
 
-                  <div className="flex items-start gap-3 sm:gap-4 mb-3">
-                    <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-white/10 border border-white/10">
-                      <img
-                        src={image}
-                        alt={r.equipment_name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        decoding="async"
-                        onError={(e) => { (e.target as HTMLImageElement).src = skIconFallback }}
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-white text-base sm:text-lg leading-snug">
-                        {r.equipment_name} <span className="text-[#a6a6a6] font-normal text-sm">×{r.quantity}</span>
-                      </p>
-                      <p className="text-xs text-[#a6a6a6] mt-0.5">{r.reason}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 pt-3 border-t border-white/10">
-                    <InfoRow label="Borrower">{r.borrower_name}</InfoRow>
-                    <InfoRow label="Student No.">{r.student_number || "—"}</InfoRow>
-                    <InfoRow label="Position">{toTitleCase(r.position_department || "") || "—"}</InfoRow>
-                    <InfoRow label="Owner">{r.owner || "—"}</InfoRow>
-                    <InfoRow label="Pickup Location">{r.pickup_location || "—"}</InfoRow>
-                    <InfoRow label="Return Location">{r.return_location || "—"}</InfoRow>
-                    <InfoRow label="Borrowed">{formatDateTime(r.date_borrowed)}</InfoRow>
-                    <InfoRow label="Due">{formatDateTime(r.date_due)}</InfoRow>
-                    {r.status === "Returned" && r.returned_on && (
-                      <InfoRow label="Returned On">{formatDateTimeManila(r.returned_on)}</InfoRow>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4 py-4">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage === 1}
+                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-[#a6a6a6] font-medium">
+                  {safePage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safePage === totalPages}
+                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      {detailRequest && (
+        <RequestInfoModal
+          request={detailRequest as RequestLike}
+          onClose={() => setDetailId(null)}
+          formatDateTime={formatDateTime}
+        />
+      )}
     </div>
   )
 }

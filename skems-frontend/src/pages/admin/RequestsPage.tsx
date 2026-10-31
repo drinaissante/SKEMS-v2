@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useRef } from "react"
-import type { ReactNode } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useSearchParams } from "react-router-dom"
 import {
@@ -10,19 +9,14 @@ import {
 } from "../../services/supabase"
 import { useToast } from "../../hooks/useToast"
 import { useAuth } from "../../context/AuthContext"
-import { FiSearch, FiChevronDown, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi"
+import { FiSearch, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { formatWallClock } from "../../utils/datetime"
+import RequestCard, { type RequestLike } from "../../components/RequestCard"
+import RequestInfoModal from "../../modals/RequestInfoModal"
 
 const MOBILE_ITEMS = 5
 const DESKTOP_ITEMS = 10
-
-const statusColors: Record<string, string> = {
-  Pending: "bg-[#caa453] text-white",
-  Approved: "bg-green-600 text-white",
-  Denied: "bg-red-600 text-white",
-  Returned: "bg-white/10 text-[#a6a6a6]",
-}
 
 const dtOpts: Intl.DateTimeFormatOptions = {
   month: "2-digit",
@@ -37,15 +31,6 @@ function formatDateTime(iso: string) {
   return formatWallClock(iso, dtOpts)
 }
 
-function InfoBlock({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div>
-      <p className="text-[10px] uppercase tracking-wide text-[#a6a6a6] font-bold mb-1">{label}</p>
-      <div className="text-sm text-white">{children}</div>
-    </div>
-  )
-}
-
 export default function RequestsPage() {
   usePageTitle("Manage Requests")
   const { user } = useAuth()
@@ -55,7 +40,7 @@ export default function RequestsPage() {
   const [filterStatus, setFilterStatus] = useState("All")
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-  const [expandedRow, setExpandedRow] = useState<string | null>(null)
+  const [detailId, setDetailId] = useState<string | null>(null)
   const [confirmApproveId, setConfirmApproveId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [highlightId, setHighlightId] = useState<string | null>(null)
@@ -116,6 +101,7 @@ export default function RequestsPage() {
         r.equipment_name.toLowerCase().includes(q) ||
         r.borrower_name.toLowerCase().includes(q) ||
         r.student_number.toLowerCase().includes(q) ||
+        r.owner.toLowerCase().includes(q) ||
         r.reason.toLowerCase().includes(q)
 
       const matchesStatus = filterStatus === "All" || r.status === filterStatus
@@ -146,7 +132,7 @@ export default function RequestsPage() {
     if (!el) return
     highlighted.current = true
     const show = setTimeout(() => {
-      setExpandedRow(focusId)
+      setDetailId(focusId)
       el.scrollIntoView({ block: "center", behavior: "smooth" })
       setHighlightId(focusId)
     }, 0)
@@ -159,6 +145,7 @@ export default function RequestsPage() {
 
   const handleStatus = (id: string, status: string) => {
     if (status === "Approved") {
+      setDetailId(null)
       setConfirmApproveId(id)
     } else {
       statusMutation.mutate({ id, status })
@@ -177,9 +164,53 @@ export default function RequestsPage() {
     setConfirmDeleteId(null)
   }
 
-  const toggleRow = (id: string) => {
-    setExpandedRow(expandedRow === id ? null : id)
-  }
+  if (!user) return null
+
+  const detailRequest = requests.find(r => r.id === detailId) ?? null
+
+  const modalActions = (r: RequestLike) =>
+    r.status !== "Approved" ? (
+      <>
+        {r.status === "Pending" && (
+          <>
+            <button
+              onClick={() => handleStatus(r.id, "Approved")}
+              disabled={approveMutation.isPending}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
+            >
+              {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={14} />}
+              Approve
+            </button>
+            <button
+              onClick={() => handleStatus(r.id, "Denied")}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer"
+            >
+              <FiXCircle size={14} />
+              Deny
+            </button>
+          </>
+        )}
+        <button
+          onClick={() => { setDetailId(null); setConfirmDeleteId(r.id) }}
+          disabled={deleteMutation.isPending}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 disabled:opacity-40 text-red-400 text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
+        >
+          {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={14} />}
+          Delete
+        </button>
+      </>
+    ) : (
+      <>
+        <button
+          onClick={() => { setDetailId(null); setConfirmDeleteId(r.id) }}
+          disabled={deleteMutation.isPending}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 disabled:opacity-40 text-red-400 text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
+        >
+          {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={14} />}
+          Delete
+        </button>
+      </>
+    )
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-fixed-black px-3 sm:px-4 py-4 sm:py-6">
@@ -220,113 +251,13 @@ export default function RequestsPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start">
               {paginatedItems.map((r) => (
-                <div
+                <RequestCard
                   key={r.id}
-                  id={`request-${r.id}`}
-                  className={`dark-card rounded-xl border border-white/10 overflow-hidden ${highlightId === r.id ? "request-row-highlight" : ""}`}
-                >
-                  <button
-                    onClick={() => toggleRow(r.id)}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</p>
-                      <h3 className="text-base font-bold text-white leading-snug">{r.equipment_name}</h3>
-                    </div>
-                    <span className="shrink-0 text-[#a6a6a6] font-normal text-sm">×{r.quantity}</span>
-                    <span
-                      className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${
-                        statusColors[r.status] ?? "bg-white/10 text-[#a6a6a6]"
-                      }`}
-                    >
-                      {r.status}
-                    </span>
-                    <FiChevronDown
-                      size={16}
-                      className={`shrink-0 text-[#a6a6a6] transition-transform ${
-                        expandedRow === r.id ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {expandedRow === r.id && (
-                    <div className="px-4 pb-4 pt-1 border-t border-white/10 flex flex-col gap-4">
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <InfoBlock label="Student #">
-                          <span className="text-sm text-white">{r.student_number}</span>
-                        </InfoBlock>
-                        <InfoBlock label="Position/Dept">
-                          <span className="text-sm text-white">{r.position_department || "—"}</span>
-                        </InfoBlock>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <InfoBlock label="Owner">
-                          <span className="text-sm text-white">{r.owner || "—"}</span>
-                        </InfoBlock>
-                        <InfoBlock label="Reason">
-                          <span className="text-sm text-white">{r.reason || "—"}</span>
-                        </InfoBlock>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <InfoBlock label="Pickup Location">
-                          <span className="text-sm text-white">{r.pickup_location || "—"}</span>
-                        </InfoBlock>
-                        <InfoBlock label="Return Location">
-                          <span className="text-sm text-white">{r.return_location || "—"}</span>
-                        </InfoBlock>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                        <InfoBlock label="Borrowed">
-                          <span className="whitespace-nowrap text-xs text-white">{formatDateTime(r.date_borrowed)}</span>
-                        </InfoBlock>
-                        <InfoBlock label="Due">
-                          <span className="whitespace-nowrap text-xs text-white">{formatDateTime(r.date_due)}</span>
-                        </InfoBlock>
-                        {r.returned_on && (
-                          <InfoBlock label="Returned">
-                            <span className="whitespace-nowrap text-xs text-white">{formatDateTime(r.returned_on)}</span>
-                          </InfoBlock>
-                        )}
-                      </div>
-
-                      {r.status !== "Approved" && (
-                        <div className="flex flex-wrap gap-2 mt-auto pt-2 border-t border-white/10">
-                          {r.status === "Pending" && (
-                            <>
-                              <button
-                                onClick={() => handleStatus(r.id, "Approved")}
-                                disabled={approveMutation.isPending}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
-                              >
-                                {approveMutation.isPending && approveMutation.variables === r.id ? <span className="text-xs">...</span> : <FiCheckCircle size={14} />}
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleStatus(r.id, "Denied")}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer"
-                              >
-                                <FiXCircle size={14} />
-                                Deny
-                              </button>
-                            </>
-                          )}
-                          <button
-                            onClick={() => setConfirmDeleteId(r.id)}
-                            disabled={deleteMutation.isPending}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
-                          >
-                            {deleteMutation.isPending && deleteMutation.variables === r.id ? <span className="text-xs">...</span> : <FiTrash2 size={14} />}
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                  request={r as RequestLike}
+                  onClick={() => setDetailId(r.id)}
+                  highlighted={highlightId === r.id}
+                  formatRequestDate={formatDateTime}
+                />
               ))}
             </div>
 
@@ -408,6 +339,15 @@ export default function RequestsPage() {
           </div>
         )}
       </div>
+
+      {detailRequest && (
+        <RequestInfoModal
+          request={detailRequest as RequestLike}
+          onClose={() => setDetailId(null)}
+          formatDateTime={formatDateTime}
+          actions={modalActions(detailRequest as RequestLike)}
+        />
+      )}
     </div>
   )
 }
