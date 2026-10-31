@@ -60,7 +60,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     action: () => window.dispatchEvent(new CustomEvent(TOUR_GOTO_STEP, { detail: 1 })),
     target: "form-equipment",
-    text: "Your added items live here — each with an adjustable quantity. The Review & Submit flow continues down the form.",
+    text: "Your added items live here, each with an adjustable quantity. The Review & Submit flow continues down the form.",
   },
   {
     action: () => window.dispatchEvent(new CustomEvent(TOUR_GOTO_STEP, { detail: 2 })),
@@ -74,7 +74,7 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     target: "form-next",
-    text: "Review & Submit opens a final summary — confirm it and your request will be sent to an SK officer for approval.",
+    text: "Review & Submit opens a final summary. Confirm it and your request will be sent to an SK officer for approval.",
   },
   {
     icon: true,
@@ -87,7 +87,7 @@ function buildTourSteps(): TourStep[] {
   const steps: TourStep[] = []
 
   if (!isMobile) {
-    steps.push(TOUR_STEPS[0])
+    steps.push(TOUR_STEPS[0], TOUR_STEPS[1])
   } else {
     steps.push({
       target: "mobile-add",
@@ -95,7 +95,7 @@ function buildTourSteps(): TourStep[] {
     })
   }
 
-  steps.push(...TOUR_STEPS.slice(1))
+  steps.push(...TOUR_STEPS.slice(2))
   return steps
 }
 

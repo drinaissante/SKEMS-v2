@@ -22,7 +22,7 @@ export default function RequestTutorialModal({ onStart, onClose }: RequestTutori
 
         <div className="space-y-2 mb-5">
           <p className="text-sm text-[#a6a6a6]">
-            SKEMS is Sine Kultura's equipment management system — the official way to borrow team equipment.
+            SKEMS is Sine Kultura's equipment management system, the official way to borrow team equipment.
           </p>
           <p className="text-sm text-[#a6a6a6]">
             New here? Take a short guided walkthrough of the Request page to learn how to request equipment correctly.

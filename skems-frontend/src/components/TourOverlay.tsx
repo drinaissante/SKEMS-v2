@@ -13,6 +13,8 @@ interface TourOverlayProps {
 }
 
 const SPOTLIGHT_PAD = 8
+const TOOLTIP_GAP = 14
+const VIEWPORT_PAD = 12
 
 function isVisibleTarget(el: HTMLElement): boolean {
   if (!el.isConnected || !el.hasAttribute("data-tour")) return false
@@ -29,10 +31,13 @@ function isVisibleTarget(el: HTMLElement): boolean {
 export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
   const [stepIndex, setStepIndex] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
+  const [tooltipSize, setTooltipSize] = useState({ w: 384, h: 230 })
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const dirRef = useRef<1 | -1>(1)
+  const tooltipRef = useRef<HTMLDivElement | null>(null)
   const isLast = stepIndex === steps.length - 1
   const step = steps[stepIndex]
+  const isMobile = window.innerWidth < 768
 
   const findTarget = useCallback((s: TourStep): HTMLElement | null => {
     if (!s.target) return null
@@ -55,7 +60,9 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
       }
       el.scrollIntoView({ block: "center", behavior: "auto" })
       requestAnimationFrame(() => {
-        setRect(el.getBoundingClientRect())
+        requestAnimationFrame(() => {
+          setRect(el.getBoundingClientRect())
+        })
       })
     }
 
@@ -64,7 +71,6 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
     }
 
     settleUp(() => {
-      // Skip invisible steps after their action had time to take effect.
       const i = stepIndex
       if (i < 0 || i >= steps.length) return
       const s = steps[i]
@@ -86,6 +92,20 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
     }
   }, [stepIndex, steps, findTarget, step])
 
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      const el = tooltipRef.current
+      if (el) {
+        setTooltipSize(prev =>
+          Math.abs(prev.w - el.offsetWidth) < 2 && Math.abs(prev.h - el.offsetHeight) < 2
+            ? prev
+            : { w: el.offsetWidth, h: el.offsetHeight },
+        )
+      }
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [stepIndex, step, rect])
+
   const next = () => {
     if (isLast) return onFinish(dontShowAgain)
     dirRef.current = 1
@@ -99,15 +119,42 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
   }
 
   const isCentered = !step.target || !rect
-  const tooltipBelow = rect ? rect.bottom + 230 < window.innerHeight : true
-  const tooltipStyle: CSSProperties = isCentered
-    ? { top: "50%", left: "50%", transform: "translate(-50%, -50%)" }
-    : {
-        top: tooltipBelow ? rect.bottom + 14 : undefined,
-        bottom: tooltipBelow ? undefined : window.innerHeight - rect.top + 14,
-        left: Math.min(Math.max((rect.left + rect.width / 2), 200), Math.max(window.innerWidth - 200, 200)),
-        transform: "translateX(-50%)",
-      }
+
+  const tooltipStyle: CSSProperties = isMobile
+    ? { bottom: 16, left: 16, right: 16 }
+    : isCentered
+      ? { top: "50%", left: "50%", transform: "translate(-50%, -50%)" }
+      : (() => {
+          const vw = window.innerWidth
+          const vh = window.innerHeight
+          const halfW = Math.min(tooltipSize.w / 2 + 4, vw / 2 - VIEWPORT_PAD)
+          const clampedLeft = Math.min(
+            Math.max(rect!.left + rect!.width / 2, halfW + VIEWPORT_PAD),
+            vw - halfW - VIEWPORT_PAD,
+          )
+          const fitsBelow = rect!.bottom + tooltipSize.h + TOOLTIP_GAP <= vh - VIEWPORT_PAD
+          const fitsAbove = rect!.top - tooltipSize.h - TOOLTIP_GAP >= VIEWPORT_PAD
+
+          if (fitsBelow) {
+            return {
+              top: rect!.bottom + TOOLTIP_GAP,
+              left: clampedLeft,
+              transform: "translateX(-50%)",
+            }
+          }
+          if (fitsAbove) {
+            return {
+              bottom: vh - rect!.top + TOOLTIP_GAP,
+              left: clampedLeft,
+              transform: "translateX(-50%)",
+            }
+          }
+          return {
+            top: VIEWPORT_PAD + 4,
+            left: Math.min(Math.max(clampedLeft, halfW + VIEWPORT_PAD), vw - halfW - VIEWPORT_PAD),
+            transform: "translateX(-50%)",
+          }
+        })()
 
   return (
     <div className="fixed inset-0 z-[80]">
@@ -128,7 +175,8 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
       )}
 
       <div
-        className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl py-5 px-5 w-96 max-w-[90vw] text-center"
+        ref={tooltipRef}
+        className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl py-5 px-5 w-96 max-w-full text-center"
         style={{ position: "fixed", ...tooltipStyle }}
       >
         <p className="text-xs text-[#a6a6a6] mb-2">
@@ -143,7 +191,9 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
           />
         )}
 
-        <p className="text-sm text-white mb-5">{step.text}</p>
+        <p key={stepIndex} className="text-sm text-white mb-5 animate-tour-text">
+          {step.text}
+        </p>
 
         {isLast && (
           <label className="flex items-center justify-center gap-2 cursor-pointer mb-4">
