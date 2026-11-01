@@ -42,4 +42,13 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 1000,
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "https://skems-v2.vercel.app",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
 });
