@@ -87,14 +87,14 @@ export default function BorrowedCards({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <InfoBlock label="Borrowed">
-                <span className="whitespace-nowrap text-xs text-white">{formatDate(r.date_time_borrowing)}</span>
+                <span className="text-xs text-white wrap-anywhere">{formatDate(r.date_time_borrowing)}</span>
               </InfoBlock>
               <InfoBlock label="Due">
-                <span className="whitespace-nowrap text-xs text-white">{formatDate(r.date_time_return)}</span>
+                <span className="text-xs text-white wrap-anywhere">{formatDate(r.date_time_return)}</span>
               </InfoBlock>
               {isReturned && (
                 <InfoBlock label="Returned On">
-                  <span className="whitespace-nowrap text-xs text-green-300">{formatReturnedOn(r.returned_on as string)}</span>
+                  <span className="text-xs text-green-300 wrap-anywhere">{formatReturnedOn(r.returned_on as string)}</span>
                 </InfoBlock>
               )}
             </div>

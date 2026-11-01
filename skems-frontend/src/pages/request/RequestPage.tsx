@@ -82,6 +82,11 @@ function EquipmentPickerList({ items, loading, search, inFormIds, onAdd }: Picke
                 <p className="text-xs text-[#a6a6a6] sm:hidden">{eq.id}</p>
                 <p className="text-xs text-[#a6a6a6] sm:hidden">{eq.owner ? `Owner: ${eq.owner}` : "No owner"}</p>
                 <p className="hidden sm:block text-xs text-[#a6a6a6]">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
+                {eq.comments && (
+                  <p className="text-[11px] text-[#c89116]/80 truncate" title={eq.comments}>
+                    {eq.comments}
+                  </p>
+                )}
               </div>
               {!inForm && <FiPlus className="shrink-0 text-[#c89116]" size={16} />}
             </div>
@@ -335,12 +340,12 @@ export default function RequestPage() {
     })
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-3 py-8 bg-fixed-black">      <div className="w-full max-w-4xl flex flex-col md:flex-row gap-4">
+    <div className="min-h-screen flex items-center justify-center px-3 py-8 bg-fixed-black">      <div className="w-full max-w-4xl flex flex-col md:flex-row gap-3 md:gap-4">
         <div className="md:w-2/5 flex flex-col gap-3 dark-card p-4">
           <h2 className="text-xl sm:text-2xl font-bold text-center text-white mb-1">
             Equipment Request
           </h2>
-          <p className="text-xs text-[#a6a6a6] text-center -mt-3 mb-1">
+          <p className="hidden sm:block text-xs text-[#a6a6a6] text-center -mt-3 mb-1">
             Drag equipment onto the form, or tap to add it.
           </p>
 
@@ -428,7 +433,7 @@ export default function RequestPage() {
                 dragOverForm ? "ring-2 ring-[#c89116] bg-[#c89116]/5" : ""
               }`}
             >
-              <div className="flex gap-2 justify-center" data-tour="form-steps">
+              <div className="flex flex-wrap gap-2 justify-center" data-tour="form-steps">
                 {stepLabels.map((label, i) => {
                   const stepNum = i + 1
                   const active = formStep === stepNum
