@@ -282,7 +282,7 @@ export default function ProfilePage() {
               href="https://discord.gg/d7g9uywwrH"
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => openExternalTab(e, "https://discord.gg/hkPTHrdKQq")}
+              onClick={(e) => openExternalTab(e, "https://discord.gg/d7g9uywwrH")}
               className="btn-gold inline-block px-6 py-2.5 text-sm"
             >
               Join Server
