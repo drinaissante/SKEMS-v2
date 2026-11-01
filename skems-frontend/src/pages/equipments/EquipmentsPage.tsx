@@ -223,19 +223,40 @@ export default function EquipmentsPage() {
         </h1>
 
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 mb-4">
-          {[
-            { label: "Total Items", value: statusSummary.total, color: "bg-[#222]" },
-            { label: "Working", value: statusSummary.working, color: "bg-green-600" },
-            { label: "Needs Repair", value: statusSummary.needsRepair, color: "bg-[#caa453]" },
-            { label: "Broken", value: statusSummary.broken ?? 0, color: "bg-red-600" },
-            { label: "Not Checked", value: statusSummary.notChecked, color: "bg-[#a6a6a6]" },
-            { label: "Unavailable", value: statusSummary.unavailable, color: "bg-gray-600" },
-          ].map((s) => (
-            <div key={s.label} className={`${s.color} text-white rounded-xl p-3 sm:p-4 shadow`}>
-              <p className="text-xl sm:text-2xl font-bold">{s.value}</p>
-              <p className="text-xs sm:text-sm opacity-80">{s.label}</p>
-            </div>
-          ))}
+          {([
+            { label: "Total Items", value: statusSummary.total, condition: "All", color: "bg-[#222]" },
+            { label: "Working", value: statusSummary.working, condition: "Working", color: "bg-green-600" },
+            { label: "Needs Repair", value: statusSummary.needsRepair, condition: "Needs Repair", color: "bg-[#caa453]" },
+            { label: "Broken", value: statusSummary.broken ?? 0, condition: "Broken", color: "bg-red-600" },
+            { label: "Not Checked", value: statusSummary.notChecked, condition: "Not checked", color: "bg-[#a6a6a6]" },
+            { label: "Unavailable", value: statusSummary.unavailable, condition: "Unavailable", color: "bg-gray-600" },
+          ] as const).map((s) => {
+            const isActive =
+              filterCategory === "All" &&
+              (s.condition === "All" ? filterCondition === "All" : filterCondition === s.condition)
+            const activateStatusCard = () => {
+              if (isActive) {
+                setFilterCategory("All")
+                setFilterCondition("All")
+              } else {
+                setFilterCategory("All")
+                setFilterCondition(s.condition)
+              }
+            }
+            return (
+              <button
+                key={s.label}
+                type="button"
+                onClick={activateStatusCard}
+                className={`${s.color} text-white rounded-xl p-3 sm:p-4 shadow text-left cursor-pointer transition-transform ${
+                  isActive ? "ring-2 ring-white/70" : "hover:scale-105"
+                }`}
+              >
+                <p className="text-xl sm:text-2xl font-bold">{s.value}</p>
+                <p className="text-xs sm:text-sm opacity-80">{s.label}</p>
+              </button>
+            )
+          })}
         </div>
 
         <div className="flex flex-col md:flex-row gap-2 mb-4 relative z-10">
@@ -265,6 +286,7 @@ export default function EquipmentsPage() {
               {CONDITION_OPTIONS.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
+              <option value="Unavailable">Unavailable</option>
             </select>
             <button
               onClick={handleExport}
