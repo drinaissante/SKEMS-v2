@@ -24,6 +24,7 @@ import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
 
 import ShowDeleteModal from "../../modals/ShowDeleteModal"
+import PaginationNav from "../../components/PaginationNav"
 import { CONDITION_OPTIONS } from "../../constants/borrowedConstants"
 
 const MOBILE_ITEMS = 3
@@ -277,7 +278,7 @@ export default function MyEquipmentsPage() {
             <p className="text-center text-[#a6a6a6] py-10">No equipment found.</p>
           ) : (
             <>
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-fr gap-4">
                 {allPageItems.desktop.map((eq, i) =>
                   eq ? (
                     <EquipmentCard
@@ -317,29 +318,11 @@ export default function MyEquipmentsPage() {
                 )}
               </div>
 
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 py-3">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  <span className="text-sm text-[#a6a6a6] font-medium">
-                    {currentPage} / {totalPages}
-                  </span>
-
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <PaginationNav
+                page={currentPage}
+                totalPages={totalPages}
+                onChange={setCurrentPage}
+              />
             </>
           )}
         </div>

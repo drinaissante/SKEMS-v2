@@ -24,6 +24,7 @@ import { exportCSV } from "../../utils/exportCSV"
 import { formatGradingDate } from "../../utils/datetime"
 
 import GradingTable from "../../components/grading/GradingTable"
+import PaginationNav from "../../components/PaginationNav"
 import MobileGradingCard from "../../components/grading/MobileGradingCard"
 import EventField from "../../components/grading/EventField"
 import MemberField from "../../components/grading/MemberField"
@@ -245,29 +246,11 @@ export default function GradingPage() {
             {/* Mobile cards */}
             <MobileGradingCard paginatedItems={paginatedItems} openEdit={openEdit} setConfirmDeleteId={setConfirmDeleteId} expandedRow={expandedRow} setExpandedRow={setExpandedRow} />
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-4 py-3">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={safePage === 1}
-                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-[#a6a6a6] font-medium">
-                  {safePage} / {totalPages}
-                </span>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={safePage === totalPages}
-                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+            <PaginationNav
+              page={safePage}
+              totalPages={totalPages}
+              onChange={setCurrentPage}
+            />
           </>
         )}
       </div>

@@ -7,8 +7,9 @@ import { useAuth } from "../../context/AuthContext"
   import { useToast } from "../../hooks/useToast"
   import { FiPlus, FiTrash2, FiSearch } from "react-icons/fi"
   import QRScanner from "../scan/QRScanner"
-  import { usePageTitle } from "../../hooks/usePageTitle"
-  import { formatWallClock } from "../../utils/datetime"
+import { usePageTitle } from "../../hooks/usePageTitle"
+import { formatWallClock } from "../../utils/datetime"
+import PaginationNav from "../../components/PaginationNav"
 
 function todayNow(): string {
   const d = new Date()
@@ -83,7 +84,7 @@ function EquipmentPickerList({ items, loading, search, inFormIds, onAdd }: Picke
                 <p className="text-xs text-[#a6a6a6] sm:hidden">{eq.owner ? `Owner: ${eq.owner}` : "No owner"}</p>
                 <p className="hidden sm:block text-xs text-[#a6a6a6]">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
                 {eq.comments && (
-                  <p className="text-[11px] text-[#c89116]/80 truncate" title={eq.comments}>
+                  <p className="text-[11px] text-[#c89116]/80 wrap-anywhere leading-relaxed" title={eq.comments}>
                     {eq.comments}
                   </p>
                 )}
@@ -228,25 +229,11 @@ export default function RequestPage() {
   const inFormIds = useMemo(() => new Set(formItems.map(i => i.equipmentId)), [formItems])
 
   const paginationFooter = totalPages > 1 && (
-    <div className="flex items-center justify-between pt-1">
-      <button
-        type="button"
-        onClick={() => setListPage(Math.max(1, safePage - 1))}
-        disabled={safePage === 1}
-        className="btn-ghost px-3 py-1.5 text-xs rounded disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        Prev
-      </button>
-      <span className="text-xs text-[#a6a6a6]">{safePage} / {totalPages}</span>
-      <button
-        type="button"
-        onClick={() => setListPage(Math.min(totalPages, safePage + 1))}
-        disabled={safePage === totalPages}
-        className="btn-ghost px-3 py-1.5 text-xs rounded disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        Next
-      </button>
-    </div>
+    <PaginationNav
+      page={safePage}
+      totalPages={totalPages}
+      onChange={setListPage}
+    />
   )
 
   const stepLabels = ["Equipment", "Details", "Schedule"]

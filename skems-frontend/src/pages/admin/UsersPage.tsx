@@ -5,6 +5,7 @@ import { fetchAllProfiles, fetchAllDiscordLinks, toggleAdmin, updateProfile } fr
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { FiSearch, FiCheck, FiX } from "react-icons/fi"
+import PaginationNav from "../../components/PaginationNav"
 
 const MOBILE_ITEMS = 8
 const DESKTOP_ITEMS = 15
@@ -228,27 +229,11 @@ export default function UsersPage() {
               </table>
             </div>
 
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-4 py-3">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-[#a6a6a6] font-medium">
-                  {currentPage} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="btn-gold px-4 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+            <PaginationNav
+              page={currentPage}
+              totalPages={totalPages}
+              onChange={setCurrentPage}
+            />
           </>
         )}
       </div>
