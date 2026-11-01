@@ -69,28 +69,27 @@ export default function RequestCard({
     <button
       onClick={onClick}
       id={`request-${r.id}`}
-      className={`dark-card rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/40 transition-colors w-full ${
+      className={`dark-card rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/40 transition-colors w-full h-full flex flex-col ${
         highlighted ? "request-row-highlight" : ""
       }`}
     >
-      {image && (
-        <div className="w-full aspect-video mb-3 rounded-lg overflow-hidden bg-white/10 border border-white/10">
+      <div className="flex items-start gap-3 mb-2">
+        {image && (
           <img
             src={image}
             alt={r.equipment_name}
-            className="w-full h-full object-cover"
+            className="w-24 h-16 sm:w-28 sm:h-20 rounded-lg object-cover shrink-0 bg-white/10 border border-white/10"
             loading="lazy"
             decoding="async"
           />
-        </div>
-      )}
+        )}
 
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</p>
           <h3 className="text-base font-bold text-white leading-snug truncate">{r.equipment_name}</h3>
           <p className="text-xs text-[#a6a6a6] mt-0.5 truncate">{r.owner || "No owner"}</p>
         </div>
+
         <StatusChip status={r.status} />
       </div>
 

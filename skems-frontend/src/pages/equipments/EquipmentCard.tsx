@@ -29,22 +29,8 @@ export default function EquipmentCard({
   const requestId = requestMap?.get(eq.id)?.id
 
   return (
-    <div className="dark-card p-3 relative">
+    <div className="dark-card p-3 relative h-full flex flex-col">
       <div className="absolute top-2 right-2 z-10 flex gap-1">
-        {isBorrowed ? (
-          <span className="px-2 py-0.5 rounded-full bg-[#c89116] text-white text-[10px] font-bold shadow">
-            Borrowed
-          </span>
-        ) : (
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow ${
-            eq.condition === "Working" ? "bg-green-500/20 text-green-300" :
-            eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
-            eq.condition === "Broken" ? "bg-red-500/20 text-red-300" :
-            "bg-white/10 text-[#a6a6a6]"
-          }`}>
-            {conditionText}
-          </span>
-        )}
         {onEdit && (
           <button
             onClick={() => onEdit(eq)}
@@ -70,7 +56,7 @@ export default function EquipmentCard({
       </div>
 
       <div
-        className={`w-full h-24 bg-white/10 rounded-lg mb-2.5 overflow-hidden ${onImageClick && !uploading ? "cursor-zoom-in" : ""}`}
+        className={`w-full h-24 bg-white/10 rounded-lg mb-2.5 overflow-hidden relative ${onImageClick && !uploading ? "cursor-zoom-in" : ""}`}
         onClick={onImageClick && !uploading ? () => onImageClick(eq) : undefined}
       >
         {uploading ? (
@@ -78,69 +64,81 @@ export default function EquipmentCard({
         ) : (
           <img src={eq.image || skIconFallback} alt={eq.name} className="w-full h-full object-cover" loading="lazy" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = skIconFallback }} />
         )}
+        <span className={`absolute top-1.5 left-1.5 z-10 text-[10px] font-bold px-2 py-0.5 rounded-full shadow ${
+          isBorrowed ? "bg-[#c89116]/30 text-[#fdb125]" :
+          eq.condition === "Working" ? "bg-green-500/30 text-green-200" :
+          eq.condition === "Needs Repair" ? "bg-[#ffd870]/25 text-[#ffd870]" :
+          eq.condition === "Broken" ? "bg-red-500/30 text-red-200" :
+          "bg-white/15 text-[#a6a6a6]"
+        }`}>
+          {isBorrowed ? "Borrowed" : conditionText}
+        </span>
       </div>
 
       <Link
         to={`/equipment?id=${eq.id}`}
         className="block cursor-pointer group"
       >
-        <p className="text-[11px] text-[#a6a6a6] font-mono mb-0.5 group-hover:text-[#fdb125] transition-colors">{eq.id}</p>
-        <h3 className="font-bold text-white text-xs sm:text-sm group-hover:text-[#fdb125] transition-colors leading-snug">{eq.name}</h3>
-        <p className="text-[11px] text-[#a6a6a6] mb-1.5">{eq.category}</p>
+        <p className="font-mono text-xs text-[#c89116] font-bold mb-0.5 group-hover:text-[#fdb125] transition-colors">{eq.id}</p>
+        <h3 className="font-bold text-white text-sm group-hover:text-[#fdb125] transition-colors leading-snug">{eq.name}</h3>
+        <p className="text-xs text-[#a6a6a6] mb-1.5">{eq.category}</p>
 
-        <div className="text-[11px] text-[#a6a6a6] space-y-0.5">
-          <p><span className="font-medium">Owner:</span> {eq.owner}</p>
+        <div className="text-xs text-[#a6a6a6] space-y-0.5">
+          <p className="truncate" title={eq.owner}><span className="font-medium">Owner:</span> {eq.owner}</p>
           <p><span className="font-medium">Given to SK:</span> {eq.dateGivenToSK}</p>
         </div>
 
-        {eq.comments && (
-          <div className="mt-1.5 px-2 py-1 rounded bg-white/5 border border-white/10">
-            <p className="text-[11px] leading-relaxed text-[#a6a6a6] line-clamp-2" title={eq.comments}>
+        <div className="mt-1.5 px-2 py-1 rounded bg-white/5 border border-white/10">
+          <p className="text-[10px] uppercase tracking-wide font-bold text-[#a6a6a6] mb-0.5">Comment:</p>
+          {eq.comments ? (
+            <p className="text-xs leading-snug text-[#a6a6a6] line-clamp-2" title={eq.comments}>
               {eq.comments}
             </p>
-          </div>
-        )}
+          ) : (
+            <p className="text-xs leading-snug italic text-[#a6a6a6]/50">No comment</p>
+          )}
+        </div>
 
-        {!isBorrowed && (
-          <div className="flex items-center mt-2.5">
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              eq.condition === "Working" ? "bg-green-500/20 text-green-300" :
-              eq.condition === "Needs Repair" ? "bg-[#ffd870] text-[#222]" :
-              eq.condition === "Broken" ? "bg-red-500/20 text-red-300" :
-              "bg-white/10 text-[#a6a6a6]"
-            }`}>
-              {conditionText}
-            </span>
-          </div>
-        )}
       </Link>
 
-      {isBorrowed && eq.borrowerName && (
-        <div className="mt-2.5 pt-2 border-t border-white/10 text-[11px] text-[#a6a6a6] space-y-0.5">
-          <p><span className="font-medium">Borrower:</span> {eq.borrowerName}</p>
-          <p><span className="font-medium">Borrowed:</span> {formatManila(eq.dateBorrowed, dateFormat)}</p>
-          <p><span className="font-medium">Due:</span> {formatManila(eq.dateDue, dateFormat)}</p>
-          {(() => {
-            const req = requestMap?.get(eq.id)
-            return req?.reason ? (
-              <p><span className="font-medium">Reason:</span> {req.reason}</p>
-            ) : null
-          })()}
-          {requestId && (
-            <Link
-              to={`/dashboard/requests?id=${requestId}`}
-              className="inline-block mt-2 px-3 py-1.5 rounded-lg border border-[#c89116] text-[#c89116] hover:bg-[#c89116] hover:text-white text-[11px] font-bold transition-colors cursor-pointer"
-            >
-              View Request →
-            </Link>
-          )}
+      <div className="mt-auto pt-2 border-t border-white/10 text-xs text-[#a6a6a6]">
+        {isBorrowed && eq.borrowerName ? (
+          <>
+            <p><span className="font-medium">Borrower:</span> {eq.borrowerName}</p>
+            <p><span className="font-medium">Borrowed:</span> {formatManila(eq.dateBorrowed, dateFormat)}</p>
+            <p><span className="font-medium">Due:</span> {formatManila(eq.dateDue, dateFormat)}</p>
+            {(() => {
+              const req = requestMap?.get(eq.id)
+              return req?.reason ? (
+                <p className="truncate" title={req.reason}><span className="font-medium">Reason:</span> {req.reason}</p>
+              ) : null
+            })()}
+          </>
+        ) : (
+          <>
+          <div className="italic text-[#a6a6a6]/50">
+            <span>Not currently borrowed</span>
+            </div>
+          </>
+           
+        )}
+      </div>
+
+      {(isBorrowed && requestId) && (
+        <div className="mt-2 flex justify-end">
+          <Link
+            to={`/dashboard/requests?id=${requestId}`}
+            className="inline-block px-3 py-1.5 rounded-lg border border-[#c89116] text-[#c89116] hover:bg-[#c89116] hover:text-white text-xs font-bold transition-colors cursor-pointer"
+          >
+            View Request →
+          </Link>
         </div>
       )}
 
       {onOpenRequests && (
         <button
           onClick={() => onOpenRequests(eq)}
-          className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border border-[#c89116]/40 text-[#c89116] hover:bg-[#c89116] hover:text-white text-[11px] font-bold transition-colors cursor-pointer"
+          className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border border-[#c89116]/40 text-[#c89116] hover:bg-[#c89116] hover:text-white text-xs font-bold transition-colors cursor-pointer"
         >
           {requestsCount > 0 ? `Requests (${requestsCount})` : "Requests"}
         </button>
