@@ -42,13 +42,13 @@ export default function RequestInfoModal({ request: r, onClose, actions, formatD
           <InfoRow label="Owner">{r.owner || "—"}</InfoRow>
           {r.owner_status === "approved" && (
             <InfoRow label="Owner Decision">
-              <span className="text-green-300">Approved by owner</span>
+              <span className="text-green-300">Approved.</span>
             </InfoRow>
           )}
           {r.owner_status === "rejected" && (
             <InfoRow label="Owner Decision">
               <span className="text-red-300">
-                Rejected by owner{r.owner_reason ? `, reason: ${r.owner_reason}` : ""}
+                Rejected: {r.owner_reason ? `${r.owner_reason}` : ""}
               </span>
             </InfoRow>
           )}

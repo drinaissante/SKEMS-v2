@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { toManilaIso } from "../utils/datetime";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -273,8 +274,8 @@ export async function submitRequest(data: {
       borrower_name: data.borrowerName,
       student_number: data.studentNumber,
       reason: data.reason,
-      date_borrowed: data.dateBorrowed,
-      date_due: data.dateDue,
+      date_borrowed: toManilaIso(data.dateBorrowed),
+      date_due: toManilaIso(data.dateDue),
       user_id: data.userId,
       status: "Pending",
       quantity: data.quantity,
