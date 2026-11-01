@@ -114,15 +114,25 @@ export default function MyEquipmentsPage() {
         await updateEquipment(id, params.equipment)
       }
 
-      if (params.imageFile) {
+      if (params.imageFile && id) {
         setUploadingImages((prev) => ({ ...prev, [id!]: true }))
-        const url = await uploadImage(params.imageFile)
-        await updateEquipment(id!, { image: url })
-        setUploadingImages((prev) => ({ ...prev, [id!]: false }))
+        try {
+          const url = await uploadImage(params.imageFile)
+          await updateEquipment(id!, { image: url })
+        } catch (err) {
+          console.error("Image upload failed:", err)
+          showToast("Saved, but the image upload failed.", "error")
+        } finally {
+          setUploadingImages((prev) => ({ ...prev, [id!]: false }))
+        }
       }
 
       if (id) {
-        await uploadQRCode(id)
+        try {
+          await uploadQRCode(id)
+        } catch (err) {
+          console.error("QR upload skipped:", err)
+        }
       }
     },
     onSuccess: () => {
@@ -354,6 +364,7 @@ export default function MyEquipmentsPage() {
           onSave={handleSave}
           onClose={() => setEditingEquipment(undefined)}
           defaultOwner={user?.fullName ?? ""}
+          ownerLocked={isNonAdmin}
         />
       )}
 

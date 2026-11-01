@@ -138,12 +138,16 @@ export default function RequestsPage() {
   }, [filtered, currentPage, itemsPerPage])
 
   useEffect(() => {
-    if (!focusId || focusPageSet.current) return
+    if (!focusId || focusPageSet.current || requests.length === 0) return
     const idx = requests.findIndex((r) => r.id === focusId)
-    if (idx < 0) return
+    if (idx < 0) {
+      focusPageSet.current = true
+      showToast("Request not found. It may have been deleted.", "error")
+      return
+    }
     focusPageSet.current = true
     setTimeout(() => setCurrentPage(Math.floor(idx / itemsPerPage) + 1), 0)
-  }, [focusId, requests, itemsPerPage])
+  }, [focusId, requests, itemsPerPage, showToast])
 
   useEffect(() => {
     if (!focusId || highlighted.current) return
