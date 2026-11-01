@@ -613,6 +613,7 @@ export interface NotificationRow {
   request_id: string | null;
   equipment_id: string | null;
   read: boolean;
+  read_at: string | null;
   created_at: string;
 }
 
@@ -771,12 +772,25 @@ export async function fetchAdminNotifications(adminIds: string[]): Promise<Notif
 export async function markNotificationsRead(userId: string, ids?: string[]) {
   const query = supabase
     .from("notifications")
-    .update({ read: true })
+    .update({ read: true, read_at: new Date().toISOString() })
     .eq("user_id", userId);
   if (ids && ids.length > 0) {
     return query.in("id", ids);
   }
   return query.eq("read", false);
+}
+
+// Fallback cleanup: users clear their own read+expired rows (7 days after
+// read) even if pg_cron is not enabled. Mirrors the RLS delete policy.
+export async function sweepExpiredNotifications(userId: string) {
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { error } = await supabase
+    .from("notifications")
+    .delete()
+    .eq("user_id", userId)
+    .eq("read", true)
+    .lt("read_at", cutoff);
+  if (error) console.error("Notification sweep failed:", error);
 }
 
 export async function fetchRequestsForEquipments(equipmentIds: string[]) {

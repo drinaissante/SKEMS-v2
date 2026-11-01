@@ -8,7 +8,7 @@ interface RequestTutorialModalProps {
 export default function RequestTutorialModal({ onStart, onClose }: RequestTutorialModalProps) {
   const [dontShowAgain, setDontShowAgain] = useState(false)
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/60">
+    <div className="fixed inset-0 z-60 flex items-center justify-center px-4 bg-black/60">
       <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl py-8 px-5 sm:py-8 sm:px-6 w-full max-w-lg text-center">
         <img
           src="/sk_icon_no_bg.png"

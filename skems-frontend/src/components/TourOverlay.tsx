@@ -157,7 +157,7 @@ export default function TourOverlay({ steps, onFinish }: TourOverlayProps) {
         })()
 
   return (
-    <div className="fixed inset-0 z-[80]">
+    <div className="fixed inset-0 z-80">
       <div className="absolute inset-0 bg-black/70" />
 
       {rect && (

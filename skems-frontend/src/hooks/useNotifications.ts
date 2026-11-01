@@ -4,6 +4,7 @@ import {
   supabase,
   fetchNotificationsForUser,
   markNotificationsRead,
+  sweepExpiredNotifications,
   type NotificationRow,
 } from "../services/supabase"
 
@@ -93,6 +94,7 @@ export function useNotifications(): NotificationsState | null {
     fetchNotificationsForUser(user.id)
       .then((rows) => {
         if (active) setNotifications(rows)
+        void sweepExpiredNotifications(user.id)
       })
       .catch((err) => console.error("notifications fetch failed:", err))
 
@@ -120,6 +122,7 @@ export function useNotifications(): NotificationsState | null {
     )
     try {
       await markNotificationsRead(user.id, ids)
+      void sweepExpiredNotifications(user.id)
     } catch {
       // optimistic update stands; next load reconciles
     }
