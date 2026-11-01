@@ -99,13 +99,14 @@ export default function RequestsPage() {
     () => [...new Set(requests.map(r => (r.owner ?? "").trim()).filter(Boolean))].join("|"),
     [requests],
   )
-  const { data: ownerGateMap = new Map() } = useQuery({
+  const { data: ownerGateMap = {} } = useQuery({
     queryKey: ["owner-gate", ownersKey],
     queryFn: async () => {
-      const map = new Map<string, boolean>()
-      for (const name of ownersKey.split("|").filter(Boolean)) {
-        map.set(name.toLowerCase(), await hasRegisteredOwner(name))
-      }
+      const map: Record<string, boolean> = {}
+      const uniqueOwners = [...new Set(ownersKey.split("|").filter(Boolean))]
+      await Promise.all(uniqueOwners.map(async (name) => {
+        map[name.toLowerCase()] = await hasRegisteredOwner(name)
+      }))
       return map
     },
     enabled: ownersKey.length > 0,
@@ -197,7 +198,7 @@ export default function RequestsPage() {
         {r.status === "Pending" && (
           <>
             {(() => {
-              const ownerRequired = ownerGateMap.get((r.owner ?? "").trim().toLowerCase()) ?? false
+              const ownerRequired = ownerGateMap[(r.owner ?? "").trim().toLowerCase()] ?? false
               const ownerApproved = (r.owner_status ?? "pending") === "approved"
               const gated = ownerRequired && !ownerApproved
               if (gated) {

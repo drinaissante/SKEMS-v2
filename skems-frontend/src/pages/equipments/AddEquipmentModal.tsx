@@ -34,7 +34,7 @@ export default function EquipmentFormModal({
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const prevPreviewRef = useRef<string | null>(null)
-  const [ownerSearch, setOwnerSearch] = useState("")
+  const [ownerSearch, setOwnerSearch] = useState(equipment?.owner ?? "")
   const [showCustomOwner, setShowCustomOwner] = useState(false)
   const { data: members = [], isLoading: loadingMembers } = useMemberNames()
 
