@@ -290,17 +290,28 @@ export async function submitRequest(data: {
   if (inserted?.id) {
     void notifyDiscordRequest(data, inserted.id);
 
+    const updateOwnerProfileId = data.owner ? await fetchRegisteredOwnerId(data.owner) : null;
     void notifyRequestUsers({
       requestId: inserted.id,
       equipmentId: data.equipmentId,
       equipmentName: data.equipmentName,
       borrowerId: data.userId,
-      ownerId: data.owner ? await fetchRegisteredOwnerId(data.owner) : null,
+      ownerId: updateOwnerProfileId,
       type: "request_created",
       bodyTitle: "New borrow request",
       bodyText: `${data.borrowerName} requested ${data.equipmentName}.`,
       skipSelf: true,
     });
+
+    void notifyDiscordDms(
+      updateOwnerProfileId
+        ? [{
+            userId: updateOwnerProfileId,
+            title: "New Borrow Request",
+            bodyText: `${data.borrowerName} requested ${data.equipmentName} (quantity: ${data.quantity}). Review it under My Equipments to approve or reject.`,
+          }]
+        : [],
+    );
   }
 }
 
@@ -551,6 +562,14 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
     bodyText: `Your request for ${request.equipment_name} was approved by an SK officer.`,
   });
 
+  if (request.user_id) {
+    void notifyDiscordDms([{
+      userId: request.user_id,
+      title: "Request Approved",
+      bodyText: ` your request for ${request.equipment_name} was approved. Please return the equipment on time to avoid penalties.`,
+    }]);
+  }
+
   void syncDiscordStatus(request, "Approved", request.id);
 }
 
@@ -582,6 +601,13 @@ export async function updateRequestStatus(requestId: string, status: string) {
         bodyText: `Your request for ${row.equipment_name} was denied by an SK officer.`,
       });
       void notifyDiscordDecision(row, "Rejected", "", false);
+      if (row.user_id) {
+        void notifyDiscordDms([{
+          userId: row.user_id,
+          title: "Request Denied",
+          bodyText: `Your request for ${row.equipment_name} was denied by an SK officer.`,
+        }]);
+      }
     }
   }
 }
@@ -793,6 +819,29 @@ export async function sweepExpiredNotifications(userId: string) {
   if (error) console.error("Notification sweep failed:", error);
 }
 
+async function notifyDiscordDms(
+  targets: { userId: string; title: string; bodyText: string }[],
+) {
+  if (targets.length === 0) return;
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) return;
+
+    await fetch("/api/notify-dm", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ targets }),
+    });
+  } catch {
+    // fire-and-forget; never block the decision flow
+  }
+}
+
 export async function fetchRequestsForEquipments(equipmentIds: string[]) {
   if (equipmentIds.length === 0) return [];
   const { data, error } = await supabase
@@ -876,6 +925,16 @@ export async function setOwnerDecision(
       bodyText: `The equipment owner approved the borrow request for ${request.equipment_name}. Awaiting SK officer approval.`,
       skipSelf: true,
     });
+
+    void notifyDiscordDms(
+      request.user_id
+        ? [{
+            userId: request.user_id,
+            title: "Owner Approved Your Request",
+            bodyText: `The equipment owner approved your request for ${request.equipment_name}. An SK officer will give the final approval.`,
+          }]
+        : [],
+    );
   } else {
     const rejectBody = reason
       ? `The equipment owner rejected this request. Reason: ${reason}`
@@ -892,6 +951,16 @@ export async function setOwnerDecision(
       bodyText: rejectBody,
       skipSelf: true,
     });
+
+    if (request.user_id) {
+      void notifyDiscordDms([
+        {
+          userId: request.user_id,
+          title: "Request Rejected by Owner",
+          bodyText: rejectBody,
+        },
+      ]);
+    }
 
     void notifyDiscordDecision(request, "Rejected", reason, true);
   }
