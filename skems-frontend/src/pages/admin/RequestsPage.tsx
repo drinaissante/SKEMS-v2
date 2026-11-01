@@ -17,7 +17,7 @@ import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
 
 const MOBILE_ITEMS = 5
-const DESKTOP_ITEMS = 10
+const DESKTOP_ITEMS = 12
 
 const dtOpts: Intl.DateTimeFormatOptions = {
   month: "2-digit",
@@ -291,16 +291,23 @@ export default function RequestsPage() {
           </p>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start">
-              {paginatedItems.map((r) => (
-                <RequestCard
-                  key={r.id}
-                  request={r as RequestLike}
-                  onClick={() => setDetailId(r.id)}
-                  highlighted={highlightId === r.id}
-                  formatRequestDate={formatDateTime}
-                />
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4 items-start">
+              {(() => {
+                const slots = isMobile ? paginatedItems : Array.from({ length: DESKTOP_ITEMS }, (_, i) => paginatedItems[i] ?? null)
+                return slots.map((r, i) =>
+                  r ? (
+                    <RequestCard
+                      key={r.id}
+                      request={r as RequestLike}
+                      onClick={() => setDetailId(r.id)}
+                      highlighted={highlightId === r.id}
+                      formatRequestDate={formatDateTime}
+                    />
+                  ) : (
+                    <div key={`slot-${i}`} className="rounded-xl invisible" aria-hidden="true" />
+                  ),
+                )
+              })()}
             </div>
 
             {totalPages > 1 && (
