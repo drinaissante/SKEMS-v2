@@ -39,14 +39,15 @@ export default function BorrowedCards({
   const toggleCard = (id: string) => setExpandedId((prev) => (prev === id ? null : id))
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 items-start gap-4">
       {items.map((r) => {
+        const recordKey = `${r.equipment_id}:${r.created_at}`
         const isReturned = Boolean(r.returned_on)
         const ownerPosition = getOwnerPosition(r.owner)
         return (
-          <div key={r.equipment_id} className="dark-card rounded-xl border border-white/10 overflow-hidden">
+          <div key={recordKey} className="dark-card rounded-xl border border-white/10 overflow-hidden">
             <button
-              onClick={() => toggleCard(r.equipment_id)}
+              onClick={() => toggleCard(recordKey)}
               className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer"
             >
               <div className="flex-1 min-w-0">
@@ -64,12 +65,12 @@ export default function BorrowedCards({
               <FiChevronDown
                 size={16}
                 className={`shrink-0 text-[#a6a6a6] transition-transform ${
-                  expandedId === r.equipment_id ? "rotate-180" : ""
+                  expandedId === recordKey ? "rotate-180" : ""
                 }`}
               />
             </button>
 
-            {expandedId === r.equipment_id && (
+            {expandedId === recordKey && (
             <div className="px-4 pb-4 pt-1 border-t border-white/10 flex flex-col gap-4">
 
             <div className="grid grid-cols-2 gap-3">
