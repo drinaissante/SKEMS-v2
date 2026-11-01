@@ -279,7 +279,7 @@ export default function ProfilePage() {
               Connect with the Sine Kultura community on Discord.
             </p>
             <a
-              href="https://discord.gg/hkPTHrdKQq"
+              href="https://discord.gg/d7g9uywwrH"
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => openExternalTab(e, "https://discord.gg/hkPTHrdKQq")}
