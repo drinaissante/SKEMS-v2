@@ -164,6 +164,15 @@ export default function RequestsPage() {
     return counts
   }, [folderEntries])
 
+  // Date folders containing at least one request awaiting approval.
+  const attentionLabels = useMemo(() => {
+    const labels = new Set<string>()
+    for (const r of preFiltered) {
+      if (r.status === "Pending") labels.add(manilaDayLabel(r.created_at))
+    }
+    return [...labels]
+  }, [preFiltered])
+
   const filtered = useMemo(() => {
     if (!activeCategory || activeCategory === "__all__") return preFiltered
     return preFiltered.filter((r) => manilaDayLabel(r.created_at) === activeCategory)
@@ -355,6 +364,7 @@ export default function RequestsPage() {
             total={preFiltered.length}
             allLabel="All Requests"
             onSelect={(c) => { setActiveCategory(c); setCurrentPage(1) }}
+            attentionLabels={attentionLabels}
           />
         ) : isLoading ? (
           <p className="text-center text-[#a6a6a6] py-10">Loading requests...</p>
