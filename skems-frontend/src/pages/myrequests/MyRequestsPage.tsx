@@ -15,6 +15,8 @@ import { FiXCircle } from "react-icons/fi"
 import { FiSearch, FiArrowLeft } from "react-icons/fi"
 import CategoryFolderGrid from "../../components/CategoryFolderGrid"
 import PaginationNav from "../../components/PaginationNav"
+import ReturnProofModal from "../../modals/ReturnProofModal"
+import { fetchMyReturnProofs, type ReturnProof } from "../../services/supabase"
 import skIconFallback from "/sk_icon.jpg"
 
 const MOBILE_ITEMS = 5
@@ -63,6 +65,7 @@ export default function MyRequestsPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [proofModalRequest, setProofModalRequest] = useState<RequestLike | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -97,6 +100,21 @@ export default function MyRequestsPage() {
     queryKey: ["equipments"],
     queryFn: fetchEquipments,
   })
+
+  const { data: myProofs = [] } = useQuery({
+    queryKey: ["my-return-proofs", user?.id],
+    queryFn: () => fetchMyReturnProofs(user!.id),
+    enabled: !!user && canAccess,
+    staleTime: 30 * 1000,
+  })
+
+  const proofByRequest = useMemo(() => {
+    const map = new Map<string, ReturnProof>()
+    for (const p of myProofs) {
+      if (p.request_id && !map.has(p.request_id)) map.set(p.request_id, p)
+    }
+    return map
+  }, [myProofs])
 
   const equipmentMap = useMemo(() => {
     const map = new Map<string, { image: string }>()
@@ -295,7 +313,41 @@ export default function MyRequestsPage() {
           onClose={() => setDetailId(null)}
           formatDateTime={formatDateTime}
           actions={
-            canCancelRequest(detailRequest as RequestLike) ? (
+            detailRequest.status === "Approved" ? (
+              (() => {
+                const proof = proofByRequest.get(detailRequest.id)
+                if (proof?.status === "pending") {
+                  return (
+                    <span className="text-xs text-purple-300 font-bold self-center">
+                      Return proof pending officer review.
+                    </span>
+                  )
+                }
+                if (proof?.status === "rejected") {
+                  return (
+                    <>
+                      <span className="text-xs text-red-300 self-center flex-1">
+                        Proof rejected{proof.reject_reason ? `: ${proof.reject_reason}` : ""}. Please resubmit.
+                      </span>
+                      <button
+                        onClick={() => setProofModalRequest(detailRequest as RequestLike)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        Resubmit Proof
+                      </button>
+                    </>
+                  )
+                }
+                return (
+                  <button
+                    onClick={() => setProofModalRequest(detailRequest as RequestLike)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Return Equipment
+                  </button>
+                )
+              })()
+            ) : canCancelRequest(detailRequest as RequestLike) ? (
               <button
                 onClick={() => cancelMutation.mutate(detailRequest.id)}
                 disabled={cancelMutation.isPending}
@@ -304,12 +356,25 @@ export default function MyRequestsPage() {
                 <FiXCircle size={14} />
                 {cancelMutation.isPending ? "Canceling..." : "Cancel Request"}
               </button>
-            ) : detailRequest.status === "Approved" ? (
-              <span className="text-xs text-[#a6a6a6] self-center">
-                Borrow date has passed, this request can no longer be canceled.
-              </span>
             ) : undefined
           }
+        />
+      )}
+
+      {proofModalRequest && user && (
+        <ReturnProofModal
+          requestId={proofModalRequest.id}
+          equipmentId={proofModalRequest.equipment_id}
+          equipmentName={proofModalRequest.equipment_name}
+          userId={user.id}
+          borrowerName={user.fullName}
+          onClose={() => setProofModalRequest(null)}
+          onSubmitted={() => {
+            setProofModalRequest(null)
+            void queryClient.invalidateQueries({ queryKey: ["my-return-proofs", user.id] })
+            void queryClient.invalidateQueries({ queryKey: ["my-requests", user.id] })
+          }}
+          showToast={showToast}
         />
       )}
     </div>

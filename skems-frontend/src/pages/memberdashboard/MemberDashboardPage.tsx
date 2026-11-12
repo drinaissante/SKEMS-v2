@@ -1,15 +1,17 @@
 import { useMemo, useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { fetchMyRequests, fetchBorrowedItemsByUser } from "../../services/supabase"
 import { fetchEquipments as fetchEquipmentsList, type Equipment } from "../../services/api"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
-import { formatWallClock, formatManila, toManilaIso } from "../../utils/datetime"
+import { formatWallClock, formatManila, toManilaIso, nowMs } from "../../utils/datetime"
 import { FiSearch, FiPlus } from "react-icons/fi"
 import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
+import ReturnProofModal from "../../modals/ReturnProofModal"
+import { fetchMyReturnProofs, type ReturnProof } from "../../services/supabase"
 
 const dtOpts: Intl.DateTimeFormatOptions = {
   month: "2-digit",
@@ -40,7 +42,7 @@ function isLateReturn(r: BorrowedRecord): boolean {
 
 function isOverdue(r: BorrowedRecord): boolean {
   if (r.returned_on || !r.date_time_return) return false
-  return Date.now() > new Date(toManilaIso(r.date_time_return)).getTime()
+  return nowMs() > new Date(toManilaIso(r.date_time_return)).getTime()
 }
 
 function SectionTitle({ children }: { children: string }) {
@@ -51,7 +53,15 @@ function SectionTitle({ children }: { children: string }) {
   )
 }
 
-function BorrowCard({ r }: { r: BorrowedRecord }) {
+function BorrowCard({
+  r,
+  onReturn,
+  proofStatus,
+}: {
+  r: BorrowedRecord
+  onReturn?: () => void
+  proofStatus?: string
+}) {
   const late = isLateReturn(r)
   return (
     <div className="dark-card rounded-xl border border-white/10 p-4">
@@ -80,6 +90,30 @@ function BorrowCard({ r }: { r: BorrowedRecord }) {
           </p>
         )}
       </div>
+
+      {onReturn && !r.returned_on && (
+        <div className="mt-3 pt-2 border-t border-white/10">
+          {proofStatus === "pending" ? (
+            <p className="text-xs text-purple-300 font-bold">Return proof pending officer review.</p>
+          ) : proofStatus === "rejected" ? (
+            <button
+              type="button"
+              onClick={onReturn}
+              className="w-full px-3 py-2 rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white text-xs font-bold transition-colors cursor-pointer"
+            >
+              Resubmit Return Proof
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onReturn}
+              className="w-full px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-colors cursor-pointer"
+            >
+              Return Equipment
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -88,9 +122,11 @@ export default function MemberDashboardPage() {
   usePageTitle("Dashboard")
   const { user, isAdmin, isSuperAdmin } = useAuth()
   const { showToast } = useToast()
+  const queryClient = useQueryClient()
 
   const [search, setSearch] = useState("")
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [proofModalTarget, setProofModalTarget] = useState<{ requestId: string; equipmentId: string; equipmentName: string } | null>(null)
   const overdueToastRef = useRef(false)
 
   const { data: myRequests = [] } = useQuery({
@@ -104,6 +140,21 @@ export default function MemberDashboardPage() {
     queryFn: () => fetchBorrowedItemsByUser(user!.id),
     enabled: !!user,
   })
+
+  const { data: myProofs = [] } = useQuery({
+    queryKey: ["my-return-proofs", user?.id],
+    queryFn: () => fetchMyReturnProofs(user!.id),
+    enabled: !!user,
+    staleTime: 30 * 1000,
+  })
+
+  const proofByRequest = useMemo(() => {
+    const map = new Map<string, ReturnProof>()
+    for (const p of myProofs) {
+      if (p.request_id && !map.has(p.request_id)) map.set(p.request_id, p)
+    }
+    return map
+  }, [myProofs])
 
   const { data: equipments = [] } = useQuery({
     queryKey: ["equipments"],
@@ -122,6 +173,14 @@ export default function MemberDashboardPage() {
   )
 
   const borrows = useMemo(() => myBorrows as BorrowedRecord[], [myBorrows])
+
+  const approvedRequestByEquipment = useMemo(() => {
+    const map = new Map<string, RequestLike>()
+    for (const r of myRequests as RequestLike[]) {
+      if (r.status === "Approved") map.set(r.equipment_id, r)
+    }
+    return map
+  }, [myRequests])
 
   const activeBorrows = useMemo(() => borrows.filter((r) => !r.returned_on), [borrows])
   const returnedBorrows = useMemo(() => borrows.filter((r) => !!r.returned_on), [borrows])
@@ -195,9 +254,22 @@ export default function MemberDashboardPage() {
             <p className="text-sm text-[#a6a6a6]">No borrowed items.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              {activeBorrows.map((r) => (
-                <BorrowCard key={`${r.equipment_id}:${r.created_at}`} r={r} />
-              ))}
+              {activeBorrows.map((r) => {
+                const req = approvedRequestByEquipment.get(r.equipment_id)
+                const proof = req ? proofByRequest.get(req.id) : undefined
+                return (
+                  <BorrowCard
+                    key={`${r.equipment_id}:${r.created_at}`}
+                    r={r}
+                    onReturn={req ? () => setProofModalTarget({
+                      requestId: req.id,
+                      equipmentId: r.equipment_id,
+                      equipmentName: r.equipment_requested,
+                    }) : undefined}
+                    proofStatus={proof?.status}
+                  />
+                )
+              })}
             </div>
           )}
         </section>
@@ -263,6 +335,24 @@ export default function MemberDashboardPage() {
           request={detailRequest as RequestLike}
           onClose={() => setDetailId(null)}
           formatDateTime={(iso) => formatWallClock(iso, dtOpts)}
+        />
+      )}
+
+      {proofModalTarget && user && (
+        <ReturnProofModal
+          requestId={proofModalTarget.requestId}
+          equipmentId={proofModalTarget.equipmentId}
+          equipmentName={proofModalTarget.equipmentName}
+          userId={user.id}
+          borrowerName={user.fullName}
+          onClose={() => setProofModalTarget(null)}
+          onSubmitted={() => {
+            setProofModalTarget(null)
+            void queryClient.invalidateQueries({ queryKey: ["my-return-proofs", user.id] })
+            void queryClient.invalidateQueries({ queryKey: ["my-borrows", user.id] })
+            void queryClient.invalidateQueries({ queryKey: ["my-requests", user.id] })
+          }}
+          showToast={showToast}
         />
       )}
     </div>

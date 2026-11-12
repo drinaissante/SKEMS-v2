@@ -749,7 +749,8 @@ async function notifyRequestUsers(ctx: RequestNotificationContext) {
     if (
       ctx.type === "owner_approved" ||
       ctx.type === "owner_rejected" ||
-      ctx.type === "request_created"
+      ctx.type === "request_created" ||
+      ctx.type === "return_proof_submitted"
     ) {
       for (const adminId of await fetchAdminIds()) targets.add(adminId)
     }
@@ -1000,6 +1001,182 @@ export async function setOwnerDecision(
 
     void notifyDiscordDecision(request, "Rejected", reason, true);
   }
+}
+
+export interface ReturnProof {
+  id: string;
+  user_id: string;
+  request_id: string | null;
+  equipment_id: string;
+  storage_path: string;
+  status: string;
+  reject_reason: string | null;
+  reviewed_by: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+}
+
+export async function fetchMyReturnProofs(userId: string): Promise<ReturnProof[]> {
+  const { data, error } = await supabase
+    .from("proofs")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as unknown as ReturnProof[];
+}
+
+export async function fetchPendingReturnProofs(): Promise<ReturnProof[]> {
+  const { data, error } = await supabase
+    .from("proofs")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data as unknown as ReturnProof[];
+}
+
+export async function getReturnProofUrl(path: string): Promise<string> {
+  const { data } = await supabase.storage
+    .from("return-proofs")
+    .createSignedUrl(path, 3600);
+  return data?.signedUrl ?? "";
+}
+
+export async function uploadReturnProof(
+  blob: Blob,
+  userId: string,
+  requestId: string,
+): Promise<string> {
+  const path = `${userId}/${requestId}/${Date.now()}.jpg`;
+  const { error } = await supabase.storage
+    .from("return-proofs")
+    .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+  if (error) throw error;
+  return path;
+}
+
+export async function submitReturnProof(params: {
+  userId: string;
+  requestId: string;
+  equipmentId: string;
+  path: string;
+  equipmentName: string;
+  borrowerName: string;
+}): Promise<string> {
+  const { data, error } = await supabase
+    .from("proofs")
+    .insert({
+      user_id: params.userId,
+      request_id: params.requestId,
+      equipment_id: params.equipmentId,
+      storage_path: params.path,
+      status: "pending",
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  const proofId = (data as { id: string }).id;
+
+  await supabase
+    .from("requests")
+    .update({ returned_proof_id: proofId })
+    .eq("id", params.requestId);
+
+  void notifyRequestUsers({
+    requestId: params.requestId,
+    equipmentId: params.equipmentId,
+    equipmentName: params.equipmentName,
+    borrowerId: params.userId,
+    ownerId: params.equipmentId && null,
+    type: "return_proof_submitted",
+    bodyTitle: "Return proof submitted",
+    bodyText: `${params.borrowerName} submitted a return proof for ${params.equipmentName}. Review it on the Borrowed page.`,
+    skipSelf: true,
+  });
+
+  return proofId;
+}
+
+export async function approveReturnProof(params: {
+  proof: ReturnProof;
+  conditionAfter: string;
+  adminUserId: string;
+  equipmentName: string;
+}): Promise<void> {
+  const { error } = await supabase
+    .from("proofs")
+    .update({
+      status: "approved",
+      reviewed_by: params.adminUserId,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", params.proof.id);
+  if (error) throw error;
+
+  await returnBorrowedItem(params.proof.equipment_id, params.conditionAfter);
+
+  void notifyRequestUsers({
+    requestId: params.proof.request_id,
+    equipmentId: params.proof.equipment_id,
+    equipmentName: params.equipmentName,
+    borrowerId: params.proof.user_id,
+    ownerId: null,
+    type: "return_approved",
+    bodyTitle: "Return approved",
+    bodyText: `Your return proof for ${params.equipmentName} was approved. Thank you for returning on time.`,
+    skipSelf: true,
+  });
+
+  void notifyDiscordDms([
+    {
+      userId: params.proof.user_id,
+      title: "Return Approved",
+      bodyText: `Your return proof for ${params.equipmentName} was approved by an SK officer.`,
+    },
+  ]);
+}
+
+export async function rejectReturnProof(params: {
+  proof: ReturnProof;
+  reason: string;
+  adminUserId: string;
+  equipmentName: string;
+}): Promise<void> {
+  const { error } = await supabase
+    .from("proofs")
+    .update({
+      status: "rejected",
+      reject_reason: params.reason || null,
+      reviewed_by: params.adminUserId,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", params.proof.id);
+  if (error) throw error;
+
+  const rejectBody = params.reason
+    ? `Your return proof for ${params.equipmentName} was rejected. Reason: ${params.reason}. Please submit a new proof.`
+    : `Your return proof for ${params.equipmentName} was rejected. Please submit a new proof.`;
+
+  void notifyRequestUsers({
+    requestId: params.proof.request_id,
+    equipmentId: params.proof.equipment_id,
+    equipmentName: params.equipmentName,
+    borrowerId: params.proof.user_id,
+    ownerId: null,
+    type: "return_rejected",
+    bodyTitle: "Return proof rejected",
+    bodyText: rejectBody,
+    skipSelf: true,
+  });
+
+  void notifyDiscordDms([
+    {
+      userId: params.proof.user_id,
+      title: "Return Proof Rejected",
+      bodyText: rejectBody,
+    },
+  ]);
 }
 
 export async function returnBorrowedItem(equipmentId: string, conditionAfter: string) {

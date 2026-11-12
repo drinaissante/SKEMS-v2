@@ -12,11 +12,10 @@ function toTitleCase(value: string) {
 interface Props {
   items: BorrowRecord[]
   getOwnerPosition: (ownerName: string) => string
-  onReturn: (id: string) => void
+  hasPendingProof: (equipmentId: string) => boolean
+  onReviewProof: (equipmentId: string) => void
   onEdit: (r: BorrowRecord) => void
   onDelete: (id: string) => void
-  returnPending: boolean
-  returnVariables: { equipmentId: string; conditionAfter: string } | undefined
   deletePending: boolean
   deleteVariables: string | undefined
 }
@@ -31,8 +30,7 @@ function InfoBlock({ label, children }: { label: string; children: ReactNode }) 
 }
 
 export default function BorrowedCards({
-  items, getOwnerPosition, onReturn, onEdit, onDelete,
-  returnPending, returnVariables,
+  items, getOwnerPosition, hasPendingProof, onReviewProof, onEdit, onDelete,
   deletePending, deleteVariables,
 }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -132,14 +130,23 @@ export default function BorrowedCards({
 
             <div className="flex flex-wrap gap-2 mt-auto pt-2 border-t border-white/10">
               {!isReturned && (
-                <button
-                  onClick={() => onReturn(r.equipment_id)}
-                  disabled={returnPending && returnVariables?.equipmentId === r.equipment_id}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
-                >
-                  {returnPending && returnVariables?.equipmentId === r.equipment_id ? <span className="text-xs">...</span> : <FiCheckCircle size={14} />}
-                  Return
-                </button>
+                hasPendingProof(r.equipment_id) ? (
+                  <button
+                    onClick={() => onReviewProof(r.equipment_id)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    <FiCheckCircle size={14} />
+                    Review Proof
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    title="Waiting for the member to submit a return proof."
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-[#a6a6a6] text-xs font-bold cursor-not-allowed"
+                  >
+                    Awaiting Proof
+                  </button>
+                )
               )}
               <button
                 onClick={() => onEdit(r)}
