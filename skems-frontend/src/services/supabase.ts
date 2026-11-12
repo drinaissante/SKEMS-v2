@@ -90,7 +90,41 @@ export async function fetchProfile(userId: string) {
     email: string;
     link_code: string;
     position: string | null;
+    approval_status: string;
   };
+}
+
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+
+export async function setApprovalStatus(userId: string, status: ApprovalStatus) {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ approval_status: status })
+    .eq("id", userId);
+  if (error) throw error;
+
+  void insertNotifications([
+    {
+      user_id: userId,
+      type: status === "approved" ? "account_approved" : "account_rejected",
+      title: status === "approved" ? "Account approved" : "Account rejected",
+      body:
+        status === "approved"
+          ? "Your registration was approved. Welcome to SKEMS!"
+          : "Your registration was rejected by a Super Admin. Contact an officer if you believe this is a mistake.",
+    },
+  ]);
+
+  void notifyDiscordDms([
+    {
+      userId,
+      title: status === "approved" ? "Account Approved" : "Account Rejected",
+      bodyText:
+        status === "approved"
+          ? "Your SKEMS registration was approved. You can now sign in and borrow equipment."
+          : "Your SKEMS registration was rejected by a Super Admin. Contact an officer if you believe this is a mistake.",
+    },
+  ]);
 }
 
 export async function fetchDiscordLink(userId: string) {
@@ -185,6 +219,7 @@ export async function fetchAllProfiles() {
     is_superadmin: boolean;
     email: string;
     position: string | null;
+    approval_status: string;
   }[];
 }
 

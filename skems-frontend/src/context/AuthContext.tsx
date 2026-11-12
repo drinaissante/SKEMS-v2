@@ -89,9 +89,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(next)
   }
 
-  const resolveUser = async (authId: string) => {
+  const resolveUser = async (authId: string): Promise<string | null> => {
     try {
       const profile = await fetchProfile(authId)
+      if (profile.approval_status && profile.approval_status !== "approved") {
+        // Unapproved accounts must not keep an authenticated session.
+        try {
+          await signOut()
+        } catch {
+          // ignore sign-out failures; state is cleared regardless
+        }
+        applyUser(null)
+        return profile.approval_status === "rejected" ? "rejected" : "pending"
+      }
       const next: User = {
         id: authId,
         fullName: profile.full_name,
@@ -104,16 +114,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       cacheProfile(next)
       applyUser(next)
+      return null
     } catch (err) {
       console.error("buildUser failed:", err)
       if (!navigator.onLine) {
         const cached = getCachedProfile(authId)
         if (cached) {
           applyUser(cached)
-          return
+          return null
         }
       }
       applyUser(null)
+      return null
     }
   }
 
@@ -147,7 +159,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await signIn(identifier, password, captchaToken)
       if (data?.user) {
-        await resolveUser(data.user.id)
+        const gate = await resolveUser(data.user.id)
+        if (gate === "pending") {
+          return "Your account is still pending approval. A Super Admin will review your registration soon."
+        }
+        if (gate === "rejected") {
+          return "Your registration was rejected by a Super Admin. Contact an officer if you believe this is a mistake."
+        }
         return null
       }
       return "Invalid student number, email, or password. Please try again later."

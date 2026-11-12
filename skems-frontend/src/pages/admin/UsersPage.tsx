@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { fetchAllProfiles, fetchAllDiscordLinks, toggleAdmin, updateProfile } from "../../services/supabase"
+import { fetchAllProfiles, fetchAllDiscordLinks, toggleAdmin, updateProfile, setApprovalStatus, type ApprovalStatus } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
+import { useToast } from "../../hooks/useToast"
 import { FiSearch, FiCheck, FiX } from "react-icons/fi"
 import PaginationNav from "../../components/PaginationNav"
 
@@ -26,12 +27,14 @@ interface Profile {
   is_superadmin: boolean
   email: string
   position: string | null
+  approval_status: string
   discordLink: DiscordLink | null
 }
 
 export default function UsersPage() {
   usePageTitle("Manage Users")
   const { user, isSuperAdmin } = useAuth()
+  const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -80,10 +83,32 @@ export default function UsersPage() {
     },
   })
 
+  const approvalMutation = useMutation({
+    mutationFn: ({ profileId, status }: { profileId: string; status: ApprovalStatus }) =>
+      setApprovalStatus(profileId, status),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] })
+      showToast(
+        variables.status === "approved"
+          ? "Registration approved."
+          : "Registration rejected.",
+        "success",
+      )
+    },
+    onError: (err) => {
+      showToast("Failed to update approval: " + (err instanceof Error ? err.message : "Unknown error"), "error")
+    },
+  })
+
   const profilesWithDiscord = useMemo(() => {
     const map = new Map(discordLinks.map((l) => [l.user_id, l]))
     return profiles.map((p) => ({ ...p, discordLink: map.get(p.id) ?? null }))
   }, [profiles, discordLinks])
+
+  const pendingProfiles = useMemo(
+    () => profilesWithDiscord.filter((p) => (p.approval_status ?? "approved") === "pending"),
+    [profilesWithDiscord],
+  )
 
   const filtered = useMemo(
     () => profilesWithDiscord.filter((p) => {
@@ -121,6 +146,49 @@ export default function UsersPage() {
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4">
           User Management
         </h1>
+
+        {isSuperAdmin && pendingProfiles.length > 0 && (
+          <div className="dark-card rounded-xl border border-[#c89116]/40 p-4 mb-4">
+            <h2 className="text-sm font-bold text-[#c89116] uppercase tracking-wide mb-3">
+              Pending Registrations ({pendingProfiles.length})
+            </h2>
+            <div className="space-y-2">
+              {pendingProfiles.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg bg-white/5 border border-white/10"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{p.full_name}</p>
+                    <p className="text-xs text-[#a6a6a6] truncate">
+                      {p.student_number} · {p.email}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      type="button"
+                      disabled={approvalMutation.isPending}
+                      onClick={() => approvalMutation.mutate({ profileId: p.id, status: "approved" })}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      <FiCheck size={14} />
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      disabled={approvalMutation.isPending}
+                      onClick={() => approvalMutation.mutate({ profileId: p.id, status: "rejected" })}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      <FiX size={14} />
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="relative mb-4">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
