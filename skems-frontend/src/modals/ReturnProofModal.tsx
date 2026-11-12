@@ -3,7 +3,8 @@ import { compressImage } from "../utils/compressImage"
 import { uploadReturnProof, submitReturnProof } from "../services/supabase"
 
 interface ReturnProofModalProps {
-  requestId: string
+  requestId?: string
+  eventItemId?: string
   equipmentId: string
   equipmentName: string
   userId: string
@@ -15,6 +16,7 @@ interface ReturnProofModalProps {
 
 export default function ReturnProofModal({
   requestId,
+  eventItemId,
   equipmentId,
   equipmentName,
   userId,
@@ -96,13 +98,16 @@ export default function ReturnProofModal({
 
   const submit = async () => {
     if (!pendingBlob) return
+    const targetId = requestId ?? eventItemId
+    if (!targetId) return
     setSubmitting(true)
     try {
       const compressed = await compressImage(pendingBlob)
-      const path = await uploadReturnProof(compressed, userId, requestId)
+      const path = await uploadReturnProof(compressed, userId, targetId)
       await submitReturnProof({
         userId,
         requestId,
+        eventItemId,
         equipmentId,
         path,
         equipmentName,

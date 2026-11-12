@@ -16,6 +16,7 @@ import MyEquipmentsPage from './pages/myequipments/MyEquipmentsPage'
 import UsersPage from './pages/admin/UsersPage'
 import RequestsPage from './pages/admin/RequestsPage'
 import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
+import EventCoveragePage from './pages/admin/events/EventCoveragePage'
 import GradingPage from './pages/admin/GradingPage'
 import NotFound from './pages/NotFound'
 
@@ -185,6 +186,7 @@ function App() {
             <Route path='equipments' element={<EquipmentsPage />} />
             <Route path='requests' element={<RequestsPage />} />
             <Route path='borrowed' element={<BorrowedPage />} />
+            <Route path='events' element={<EventCoveragePage />} />
             <Route path='users' element={<SuperAdminRoute><UsersPage /></SuperAdminRoute>} />
             <Route path='grading' element={<SuperAdminRoute><GradingPage /></SuperAdminRoute>} />
           </Route>

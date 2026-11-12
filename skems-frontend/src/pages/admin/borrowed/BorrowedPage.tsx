@@ -11,9 +11,9 @@ import {
   fetchPendingReturnProofs,
   approveReturnProof,
   rejectReturnProof,
-  getReturnProofUrl,
   type ReturnProof,
 } from "../../../services/supabase"
+import ProofImage from "../../../components/ProofImage"
 import type { BorrowRecord } from "../../../constants/borrow"
 import { CONDITION_OPTIONS } from "../../../constants/borrowedConstants"
 import { FiSearch } from "react-icons/fi"
@@ -22,23 +22,6 @@ import BorrowedCards from "./BorrowedCards"
 import PaginationNav from "../../../components/PaginationNav"
 import { EditModal, DeleteModal } from "./BorrowedModals"
 import { usePageTitle } from "../../../hooks/usePageTitle"
-
-function ProofImage({ path }: { path: string }) {
-  const [url, setUrl] = useState("")
-  useEffect(() => {
-    let active = true
-    getReturnProofUrl(path).then((u) => {
-      if (active) setUrl(u)
-    })
-    return () => { active = false }
-  }, [path])
-  if (!url) return <div className="w-full h-40 bg-white/5 rounded-lg animate-pulse" />
-  return (
-    <a href={url} target="_blank" rel="noreferrer">
-      <img src={url} alt="Return proof" className="w-full h-40 object-cover rounded-lg border border-white/10" loading="lazy" />
-    </a>
-  )
-}
 
 export default function BorrowedPage() {
   usePageTitle("Borrowed")

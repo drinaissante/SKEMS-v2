@@ -11,7 +11,7 @@ import { FiSearch, FiPlus } from "react-icons/fi"
 import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
 import ReturnProofModal from "../../modals/ReturnProofModal"
-import { fetchMyReturnProofs, type ReturnProof } from "../../services/supabase"
+import { fetchMyReturnProofs, fetchMyEventItems, type ReturnProof } from "../../services/supabase"
 
 const dtOpts: Intl.DateTimeFormatOptions = {
   month: "2-digit",
@@ -126,7 +126,7 @@ export default function MemberDashboardPage() {
 
   const [search, setSearch] = useState("")
   const [detailId, setDetailId] = useState<string | null>(null)
-  const [proofModalTarget, setProofModalTarget] = useState<{ requestId: string; equipmentId: string; equipmentName: string } | null>(null)
+  const [proofModalTarget, setProofModalTarget] = useState<{ requestId?: string; eventItemId?: string; equipmentId: string; equipmentName: string } | null>(null)
   const overdueToastRef = useRef(false)
 
   const { data: myRequests = [] } = useQuery({
@@ -152,6 +152,26 @@ export default function MemberDashboardPage() {
     const map = new Map<string, ReturnProof>()
     for (const p of myProofs) {
       if (p.request_id && !map.has(p.request_id)) map.set(p.request_id, p)
+    }
+    return map
+  }, [myProofs])
+
+  const { data: myEventItems = [] } = useQuery({
+    queryKey: ["my-event-items", user?.id],
+    queryFn: () => fetchMyEventItems(user!.id),
+    enabled: !!user,
+    staleTime: 30 * 1000,
+  })
+
+  const openEventItems = useMemo(
+    () => myEventItems.filter((it) => !it.returned),
+    [myEventItems],
+  )
+
+  const proofByEventItem = useMemo(() => {
+    const map = new Map<string, ReturnProof>()
+    for (const p of myProofs) {
+      if (p.event_item_id && !map.has(p.event_item_id)) map.set(p.event_item_id, p)
     }
     return map
   }, [myProofs])
@@ -289,9 +309,71 @@ export default function MemberDashboardPage() {
           )}
         </section>
 
+        {openEventItems.length > 0 && (
+          <section className="mb-8">
+            <SectionTitle>Event Coverage</SectionTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              {openEventItems.map((it) => {
+                const proof = proofByEventItem.get(it.id)
+                return (
+                  <div key={it.id} className="dark-card rounded-xl border border-white/10 p-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="min-w-0">
+                        <p className="text-[10px] uppercase tracking-wide font-bold text-[#c89116]">{it.event_name ?? "Event"}</p>
+                        <h3 className="text-base font-bold text-white leading-snug truncate">{it.equipment_name ?? it.equipment_id}</h3>
+                        <p className="font-mono text-xs text-[#a6a6a6]">{it.equipment_id}</p>
+                      </div>
+                      <span className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-purple-500/15 text-purple-300">
+                        {it.borrow_time ? "Assigned" : ""}
+                      </span>
+                    </div>
+                    <div className="text-xs text-[#a6a6a6] space-y-0.5">
+                      <p><span className="font-medium">Borrowed:</span> {formatWallClock(it.borrow_time, dtOpts)}</p>
+                    </div>
+
+                    <div className="mt-3 pt-2 border-t border-white/10">
+                      {proof?.status === "pending" ? (
+                        <p className="text-xs text-purple-300 font-bold">Return proof pending officer review.</p>
+                      ) : proof?.status === "rejected" ? (
+                        <>
+                          <p className="text-xs text-red-300 mb-2">
+                            Proof rejected{proof.reject_reason ? `: ${proof.reject_reason}` : ""}. Please resubmit.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setProofModalTarget({
+                              eventItemId: it.id,
+                              equipmentId: it.equipment_id,
+                              equipmentName: it.equipment_name ?? it.equipment_id,
+                            })}
+                            className="w-full px-3 py-2 rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            Resubmit Return Proof
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setProofModalTarget({
+                            eventItemId: it.id,
+                            equipmentId: it.equipment_id,
+                            equipmentName: it.equipment_name ?? it.equipment_id,
+                          })}
+                          className="w-full px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Submit Return Proof
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
         <section className="mb-4">
           <SectionTitle>Borrow</SectionTitle>
-
           <div className="relative mb-3">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
             <input
@@ -341,6 +423,7 @@ export default function MemberDashboardPage() {
       {proofModalTarget && user && (
         <ReturnProofModal
           requestId={proofModalTarget.requestId}
+          eventItemId={proofModalTarget.eventItemId}
           equipmentId={proofModalTarget.equipmentId}
           equipmentName={proofModalTarget.equipmentName}
           userId={user.id}
@@ -351,6 +434,7 @@ export default function MemberDashboardPage() {
             void queryClient.invalidateQueries({ queryKey: ["my-return-proofs", user.id] })
             void queryClient.invalidateQueries({ queryKey: ["my-borrows", user.id] })
             void queryClient.invalidateQueries({ queryKey: ["my-requests", user.id] })
+            void queryClient.invalidateQueries({ queryKey: ["my-event-items", user.id] })
           }}
           showToast={showToast}
         />

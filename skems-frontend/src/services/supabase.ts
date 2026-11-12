@@ -1007,6 +1007,7 @@ export interface ReturnProof {
   id: string;
   user_id: string;
   request_id: string | null;
+  event_item_id: string | null;
   equipment_id: string;
   storage_path: string;
   status: string;
@@ -1054,48 +1055,6 @@ export async function uploadReturnProof(
     .upload(path, blob, { contentType: "image/jpeg", upsert: false });
   if (error) throw error;
   return path;
-}
-
-export async function submitReturnProof(params: {
-  userId: string;
-  requestId: string;
-  equipmentId: string;
-  path: string;
-  equipmentName: string;
-  borrowerName: string;
-}): Promise<string> {
-  const { data, error } = await supabase
-    .from("proofs")
-    .insert({
-      user_id: params.userId,
-      request_id: params.requestId,
-      equipment_id: params.equipmentId,
-      storage_path: params.path,
-      status: "pending",
-    })
-    .select("id")
-    .single();
-  if (error) throw error;
-  const proofId = (data as { id: string }).id;
-
-  await supabase
-    .from("requests")
-    .update({ returned_proof_id: proofId })
-    .eq("id", params.requestId);
-
-  void notifyRequestUsers({
-    requestId: params.requestId,
-    equipmentId: params.equipmentId,
-    equipmentName: params.equipmentName,
-    borrowerId: params.userId,
-    ownerId: params.equipmentId && null,
-    type: "return_proof_submitted",
-    bodyTitle: "Return proof submitted",
-    bodyText: `${params.borrowerName} submitted a return proof for ${params.equipmentName}. Review it on the Borrowed page.`,
-    skipSelf: true,
-  });
-
-  return proofId;
 }
 
 export async function approveReturnProof(params: {
@@ -1160,6 +1119,333 @@ export async function rejectReturnProof(params: {
 
   void notifyRequestUsers({
     requestId: params.proof.request_id,
+    equipmentId: params.proof.equipment_id,
+    equipmentName: params.equipmentName,
+    borrowerId: params.proof.user_id,
+    ownerId: null,
+    type: "return_rejected",
+    bodyTitle: "Return proof rejected",
+    bodyText: rejectBody,
+    skipSelf: true,
+  });
+
+  void notifyDiscordDms([
+    {
+      userId: params.proof.user_id,
+      title: "Return Proof Rejected",
+      bodyText: rejectBody,
+    },
+  ]);
+}
+
+export interface EventFolder {
+  id: string;
+  event_name: string;
+  status: string;
+  created_by: string | null;
+  borrow_time: string | null;
+  return_time: string | null;
+  created_at: string;
+  returned_at: string | null;
+}
+
+export interface EventItem {
+  id: string;
+  folder_id: string;
+  equipment_id: string;
+  equipment_name: string | null;
+  borrower_id: string | null;
+  borrower_name: string;
+  borrow_time: string;
+  return_time: string | null;
+  after_condition: string | null;
+  returned: boolean;
+  created_at: string;
+}
+
+export async function fetchEventFolders(): Promise<EventFolder[]> {
+  const { data, error } = await supabase
+    .from("event_folders")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as unknown as EventFolder[];
+}
+
+export async function fetchAllEventItems(): Promise<EventItem[]> {
+  const { data, error } = await supabase
+    .from("event_items")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as unknown as EventItem[];
+}
+
+export async function fetchMyEventItems(userId: string): Promise<(EventItem & { event_name: string | null })[]> {
+  const { data, error } = await supabase
+    .from("event_items")
+    .select("*, event_folders(event_name)")
+    .eq("borrower_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as unknown as (EventItem & { event_folders?: { event_name: string } | null })[]).map((row) => ({
+    ...row,
+    event_name: row.event_folders?.event_name ?? null,
+  }));
+}
+
+export async function createEventFolder(
+  eventName: string,
+  createdBy: string,
+  borrowTime: string,
+  returnTime: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("event_folders")
+    .insert({
+      event_name: eventName,
+      created_by: createdBy,
+      borrow_time: toManilaIso(borrowTime),
+      return_time: toManilaIso(returnTime),
+    });
+  if (error) throw error;
+}
+
+export async function addEventItem(params: {
+  folderId: string;
+  equipmentId: string;
+  equipmentName: string;
+  borrowerId: string | null;
+  borrowerName: string;
+}): Promise<void> {
+  // Item borrow time is the folder's event window start.
+  const { data: folder } = await supabase
+    .from("event_folders")
+    .select("borrow_time, return_time")
+    .eq("id", params.folderId)
+    .maybeSingle();
+  const folderBorrowTime = (folder as { borrow_time: string | null } | null)?.borrow_time
+    ?? new Date().toISOString();
+
+  const { error } = await supabase
+    .from("event_items")
+    .insert({
+      folder_id: params.folderId,
+      equipment_id: params.equipmentId,
+      equipment_name: params.equipmentName,
+      borrower_id: params.borrowerId,
+      borrower_name: params.borrowerName,
+      borrow_time: folderBorrowTime,
+    });
+  if (error) throw error;
+
+  // If the event window is active right now, mark the equipment
+  // unavailable immediately (the hourly sweep covers future windows).
+  const { data: activeFolder } = await supabase
+    .from("event_folders")
+    .select("borrow_time, return_time, status")
+    .eq("id", params.folderId)
+    .maybeSingle();
+  const win = activeFolder as { borrow_time: string | null; return_time: string | null; status: string } | null;
+  if (
+    win?.status === "open" &&
+    win.borrow_time &&
+    win.return_time &&
+    new Date(win.borrow_time).getTime() <= Date.now() &&
+    new Date(win.return_time).getTime() >= Date.now()
+  ) {
+    await supabase
+      .from("equipments")
+      .update({ condition: "Unavailable" })
+      .eq("equipment_id", params.equipmentId)
+      .not("condition", "in", '("Borrowed","Unavailable")');
+  }
+
+  if (params.borrowerId) {
+    void notifyRequestUsers({
+      requestId: null,
+      equipmentId: params.equipmentId,
+      equipmentName: params.equipmentName,
+      borrowerId: params.borrowerId,
+      ownerId: null,
+      type: "event_item_assigned",
+      bodyTitle: "Event equipment assigned",
+      bodyText: `You were assigned ${params.equipmentName} for an event. Submit a return proof when done.`,
+      skipSelf: true,
+    });
+    void notifyDiscordDms([
+      {
+        userId: params.borrowerId,
+        title: "Event Equipment Assigned",
+        bodyText: `${params.equipmentName} was assigned to you for an event. Please submit a proof of return after the event.`,
+      },
+    ]);
+  }
+}
+
+export async function removeEventItem(itemId: string): Promise<void> {
+  const { error } = await supabase
+    .from("event_items")
+    .delete()
+    .eq("id", itemId);
+  if (error) throw error;
+}
+
+export async function markEventItemReturned(params: {
+  itemId: string;
+  conditionAfter: string;
+}): Promise<void> {
+  const { data: item } = await supabase
+    .from("event_items")
+    .select("equipment_id")
+    .eq("id", params.itemId)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("event_items")
+    .update({
+      returned: true,
+      return_time: new Date().toISOString(),
+      after_condition: params.conditionAfter,
+    })
+    .eq("id", params.itemId);
+  if (error) throw error;
+
+  // Restore the equipment's condition from the after-condition
+  // (only while it is parked at 'Unavailable' for this event).
+  if (item?.equipment_id) {
+    await supabase
+      .from("equipments")
+      .update({ condition: params.conditionAfter })
+      .eq("equipment_id", item.equipment_id)
+      .eq("condition", "Unavailable");
+  }
+}
+
+export async function markEventFolderReturned(folderId: string): Promise<void> {
+  const { error } = await supabase
+    .from("event_folders")
+    .update({
+      status: "returned",
+      returned_at: new Date().toISOString(),
+    })
+    .eq("id", folderId);
+  if (error) throw error;
+}
+
+export async function submitReturnProof(params: {
+  userId: string;
+  requestId?: string;
+  eventItemId?: string;
+  equipmentId: string;
+  path: string;
+  equipmentName: string;
+  borrowerName: string;
+}): Promise<string> {
+  const { data, error } = await supabase
+    .from("proofs")
+    .insert({
+      user_id: params.userId,
+      request_id: params.requestId ?? null,
+      event_item_id: params.eventItemId ?? null,
+      equipment_id: params.equipmentId,
+      storage_path: params.path,
+      status: "pending",
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  const proofId = (data as { id: string }).id;
+
+  if (params.requestId) {
+    await supabase
+      .from("requests")
+      .update({ returned_proof_id: proofId })
+      .eq("id", params.requestId);
+  }
+
+  void notifyRequestUsers({
+    requestId: params.requestId ?? null,
+    equipmentId: params.equipmentId,
+    equipmentName: params.equipmentName,
+    borrowerId: params.userId,
+    ownerId: null,
+    type: "return_proof_submitted",
+    bodyTitle: "Return proof submitted",
+    bodyText: `${params.borrowerName} submitted a return proof for ${params.equipmentName}. Review it on the ${params.eventItemId ? "Event Coverage" : "Borrowed"} page.`,
+    skipSelf: true,
+  });
+
+  return proofId;
+}
+
+export async function approveEventItemProof(params: {
+  proof: ReturnProof;
+  conditionAfter: string;
+  adminUserId: string;
+  equipmentName: string;
+}): Promise<void> {
+  const { error } = await supabase
+    .from("proofs")
+    .update({
+      status: "approved",
+      reviewed_by: params.adminUserId,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", params.proof.id);
+  if (error) throw error;
+
+  if (params.proof.event_item_id) {
+    await markEventItemReturned({
+      itemId: params.proof.event_item_id,
+      conditionAfter: params.conditionAfter,
+    });
+  }
+
+  void notifyRequestUsers({
+    requestId: params.proof.request_id ?? null,
+    equipmentId: params.proof.equipment_id,
+    equipmentName: params.equipmentName,
+    borrowerId: params.proof.user_id,
+    ownerId: null,
+    type: "return_approved",
+    bodyTitle: "Return approved",
+    bodyText: `Your return proof for ${params.equipmentName} was approved. Thank you!`,
+    skipSelf: true,
+  });
+
+  void notifyDiscordDms([
+    {
+      userId: params.proof.user_id,
+      title: "Return Approved",
+      bodyText: `Your return proof for ${params.equipmentName} was approved by an SK officer.`,
+    },
+  ]);
+}
+
+export async function rejectEventItemProof(params: {
+  proof: ReturnProof;
+  reason: string;
+  adminUserId: string;
+  equipmentName: string;
+}): Promise<void> {
+  const { error } = await supabase
+    .from("proofs")
+    .update({
+      status: "rejected",
+      reject_reason: params.reason || null,
+      reviewed_by: params.adminUserId,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq("id", params.proof.id);
+  if (error) throw error;
+
+  const rejectBody = params.reason
+    ? `Your return proof for ${params.equipmentName} was rejected. Reason: ${params.reason}. Please submit a new proof.`
+    : `Your return proof for ${params.equipmentName} was rejected. Please submit a new proof.`;
+
+  void notifyRequestUsers({
+    requestId: params.proof.request_id ?? null,
     equipmentId: params.proof.equipment_id,
     equipmentName: params.equipmentName,
     borrowerId: params.proof.user_id,
