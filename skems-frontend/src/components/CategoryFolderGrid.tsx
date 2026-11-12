@@ -8,6 +8,7 @@ interface CategoryFolderGridProps {
   onSelect: (category: string) => void
   compact?: boolean
   attentionLabels?: string[]
+  onFolderContextMenu?: (e: React.MouseEvent, category: string) => void
 }
 
 export default function CategoryFolderGrid({
@@ -18,6 +19,7 @@ export default function CategoryFolderGrid({
   onSelect,
   compact = false,
   attentionLabels,
+  onFolderContextMenu,
 }: CategoryFolderGridProps) {
   const needsAttention = (label: string) => attentionLabels?.includes(label) ?? false
 
@@ -26,6 +28,7 @@ export default function CategoryFolderGrid({
       <button
         type="button"
         onClick={() => onSelect("__all__")}
+        onContextMenu={onFolderContextMenu ? (e) => onFolderContextMenu(e, "__all__") : undefined}
         className="dark-card relative rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors"
       >
         {needsAttention(allLabel) && (
@@ -40,6 +43,7 @@ export default function CategoryFolderGrid({
           key={category}
           type="button"
           onClick={() => onSelect(category)}
+          onContextMenu={onFolderContextMenu ? (e) => onFolderContextMenu(e, category) : undefined}
           className="dark-card relative rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors"
         >
           {needsAttention(category) && (

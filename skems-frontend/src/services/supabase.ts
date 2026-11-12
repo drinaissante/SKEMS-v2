@@ -1322,6 +1322,32 @@ export async function markEventItemReturned(params: {
   }
 }
 
+export async function updateEventFolder(
+  folderId: string,
+  eventName: string,
+  borrowTime: string,
+  returnTime: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("event_folders")
+    .update({
+      event_name: eventName,
+      borrow_time: toManilaIso(borrowTime),
+      return_time: toManilaIso(returnTime),
+    })
+    .eq("id", folderId);
+  if (error) throw error;
+}
+
+export async function deleteEventFolder(folderId: string): Promise<void> {
+  // event_items cascade via FK; submitted proofs are kept.
+  const { error } = await supabase
+    .from("event_folders")
+    .delete()
+    .eq("id", folderId);
+  if (error) throw error;
+}
+
 export async function markEventFolderReturned(folderId: string): Promise<void> {
   const { error } = await supabase
     .from("event_folders")

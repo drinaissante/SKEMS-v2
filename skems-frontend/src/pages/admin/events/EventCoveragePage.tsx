@@ -4,6 +4,8 @@ import {
   fetchEventFolders,
   fetchAllEventItems,
   createEventFolder,
+  updateEventFolder,
+  deleteEventFolder,
   addEventItem,
   removeEventItem,
   markEventItemReturned,
@@ -16,6 +18,7 @@ import {
   type ReturnProof,
 } from "../../../services/supabase"
 import { useEventNames } from "../../../hooks/useEventNames"
+import FolderContextMenu from "../../../components/FolderContextMenu"
 import { fetchEquipments, type Equipment } from "../../../services/api"
 import { useAuth } from "../../../context/AuthContext"
 import { usePageTitle } from "../../../hooks/usePageTitle"
@@ -51,15 +54,19 @@ export default function EventCoveragePage() {
   const [eventBorrowTime, setEventBorrowTime] = useState("")
   const [eventReturnTime, setEventReturnTime] = useState("")
   const [showAddItemModal, setShowAddItemModal] = useState(false)
-  const [selectedEquipmentId, setSelectedEquipmentId] = useState("")
+  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<Set<string>>(new Set())
   const [addSearch, setAddSearch] = useState("")
   const [addListPage, setAddListPage] = useState(1)
+  const [addPickerCategory, setAddPickerCategory] = useState<string | null>(null)
   const [selectedBorrowerId, setSelectedBorrowerId] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const isMobile = window.innerWidth < 768
   const [itemConditions, setItemConditions] = useState<Record<string, string>>({})
   const [proofConditions, setProofConditions] = useState<Record<string, string>>({})
   const [proofReasons, setProofReasons] = useState<Record<string, string>>({})
+  const [folderMenu, setFolderMenu] = useState<{ x: number; y: number; folderId: string } | null>(null)
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null)
+  const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null)
 
   const { data: folders = [] } = useQuery({
     queryKey: ["event-folders"],
@@ -145,21 +152,24 @@ export default function EventCoveragePage() {
   })
 
   const addItemMutation = useMutation({
-    mutationFn: () => {
-      const eq = (equipments as Equipment[]).find(e => e.id === selectedEquipmentId)
-      const borrower = profiles.find(p => p.id === selectedBorrowerId)
-      return addEventItem({
-        folderId: activeFolderId!,
-        equipmentId: selectedEquipmentId,
-        equipmentName: eq?.name ?? selectedEquipmentId,
-        borrowerId: selectedBorrowerId || null,
-        borrowerName: borrower?.full_name ?? "Unknown",
-      })
+    mutationFn: async () => {
+      const borrower = (profiles as { id: string; full_name: string }[]).find((p) => p.id === selectedBorrowerId)
+      for (const equipmentId of [...selectedEquipmentIds]) {
+        const eq = (equipments as Equipment[]).find((e) => e.id === equipmentId)
+        await addEventItem({
+          folderId: activeFolderId!,
+          equipmentId,
+          equipmentName: eq?.name ?? equipmentId,
+          borrowerId: selectedBorrowerId,
+          borrowerName: borrower?.full_name ?? "Unknown",
+        })
+      }
     },
     onSuccess: () => {
       invalidateAll()
       setShowAddItemModal(false)
-      showToast("Equipment added to event.", "success")
+      setSelectedEquipmentIds(new Set())
+      showToast("Equipment assigned to event.", "success")
     },
     onError: (err) => {
       showToast("Failed to add equipment: " + (err instanceof Error ? err.message : "Unknown error"), "error")
@@ -234,6 +244,35 @@ export default function EventCoveragePage() {
     },
   })
 
+  const updateFolderMutation = useMutation({
+    mutationFn: () => updateEventFolder(editingFolderId!, newEventName.trim(), eventBorrowTime, eventReturnTime),
+    onSuccess: () => {
+      invalidateAll()
+      setShowCreateModal(false)
+      setEditingFolderId(null)
+      showToast("Event folder updated.", "success")
+    },
+    onError: (err) => {
+      showToast("Failed to update folder: " + (err instanceof Error ? err.message : "Unknown error"), "error")
+    },
+  })
+
+  const deleteFolderMutation = useMutation({
+    mutationFn: (folderId: string) => deleteEventFolder(folderId),
+    onSuccess: () => {
+      invalidateAll()
+      setActiveFolderId(null)
+      setCurrentPage(1)
+      showToast("Event folder deleted.", "success")
+    },
+    onError: (err) => {
+      showToast("Failed to delete folder: " + (err instanceof Error ? err.message : "Unknown error"), "error")
+    },
+  })
+
+  const creatorName = (createdBy: string | null) =>
+    (profiles as { id: string; full_name: string }[]).find((p) => p.id === createdBy)?.full_name ?? "Unknown"
+
   const availableEquipments = (equipments as Equipment[]).filter(
     (e) => e.condition !== "Borrowed" && e.condition !== "Broken" && e.condition !== "Unavailable",
   )
@@ -242,20 +281,27 @@ export default function EventCoveragePage() {
   const addLower = addSearch.toLowerCase()
   const addPickerItems = useMemo(
     () => availableEquipments.filter(
-      (e) => !addLower || e.name.toLowerCase().includes(addLower) || e.id.toLowerCase().includes(addLower),
+      (e) => (!addLower || e.name.toLowerCase().includes(addLower) || e.id.toLowerCase().includes(addLower)) &&
+        (!addPickerCategory || addPickerCategory === "__all__" || e.category === addPickerCategory),
     ),
-    [availableEquipments, addLower],
+    [availableEquipments, addLower, addPickerCategory],
   )
+  const addPickerCategories = useMemo(
+    () => [...new Set(availableEquipments.map((e) => e.category))].sort((a, b) => a.localeCompare(b)),
+    [availableEquipments],
+  )
+  const addPickerCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const e of availableEquipments) counts[e.category] = (counts[e.category] ?? 0) + 1
+    return counts
+  }, [availableEquipments])
   const addTotalPages = Math.max(1, Math.ceil(addPickerItems.length / ADD_PAGE_SIZE))
   const addSafePage = Math.min(addListPage, addTotalPages)
   const pagedAddItems = useMemo(
     () => addPickerItems.slice((addSafePage - 1) * ADD_PAGE_SIZE, addSafePage * ADD_PAGE_SIZE),
     [addPickerItems, addSafePage],
   )
-  const selectedPickerIds = useMemo(
-    () => new Set(selectedEquipmentId ? [selectedEquipmentId] : []),
-    [selectedEquipmentId],
-  )
+  const selectedPickerIds = useMemo(() => selectedEquipmentIds, [selectedEquipmentIds])
 
   if (!user) return null
 
@@ -540,11 +586,13 @@ export default function EventCoveragePage() {
                         key={f.id}
                         type="button"
                         onClick={() => { setActiveFolderId(f.id); setCurrentPage(1) }}
+                        onContextMenu={(e) => { e.preventDefault(); setFolderMenu({ x: e.clientX, y: e.clientY, folderId: f.id }) }}
                         className="dark-card relative rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors"
                       >
                         <FiFolder className="text-[#c89116] mb-2" size={22} />
                         <h3 className="text-sm font-bold text-white truncate">{f.event_name}</h3>
                         <p className="text-xs text-[#a6a6a6] mt-0.5">{items.length} items{outCount > 0 ? ` · ${outCount} out` : ""}</p>
+                        <p className="text-[10px] text-[#a6a6a6]/70 mt-0.5 truncate">Created by {creatorName(f.created_by)}</p>
                         {f.borrow_time && f.return_time && (
                           <p className="text-[10px] text-[#a6a6a6]/80 mt-1 truncate">
                             {formatWallClock(f.borrow_time, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
@@ -571,9 +619,11 @@ export default function EventCoveragePage() {
             )}
 
             {showCreateModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setShowCreateModal(false)}>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => { setShowCreateModal(false); setEditingFolderId(null) }}>
                 <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-                  <h3 className="text-base font-bold text-white mb-4 text-center">New Event Folder</h3>
+                  <h3 className="text-base font-bold text-white mb-4 text-center">
+                    {editingFolderId ? "Edit Event Folder" : "New Event Folder"}
+                  </h3>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Event</label>
@@ -631,24 +681,71 @@ export default function EventCoveragePage() {
                       />
                     </div>
                     <div className="flex gap-3 pt-2">
-                      <button type="button" onClick={() => { setShowCreateModal(false); setNewEventName(""); setEventBorrowTime(""); setEventReturnTime("") }} className="btn-ghost flex-1 py-2 rounded-lg text-sm">
+                      <button type="button" onClick={() => { setShowCreateModal(false); setEditingFolderId(null); setNewEventName(""); setEventBorrowTime(""); setEventReturnTime("") }} className="btn-ghost flex-1 py-2 rounded-lg text-sm">
                         Cancel
                       </button>
                       <button
                         type="button"
-                        disabled={!newEventName.trim() || !eventBorrowTime || !eventReturnTime || createFolderMutation.isPending}
+                        disabled={!newEventName.trim() || !eventBorrowTime || !eventReturnTime || createFolderMutation.isPending || updateFolderMutation.isPending}
                         onClick={() => {
                           if (new Date(eventReturnTime) < new Date(eventBorrowTime)) {
                             showToast("Return date must be after the borrow date.", "error")
                             return
                           }
-                          createFolderMutation.mutate()
+                          if (editingFolderId) {
+                            updateFolderMutation.mutate()
+                          } else {
+                            createFolderMutation.mutate()
+                          }
                         }}
                         className="btn-gold flex-1 py-2 rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        {createFolderMutation.isPending ? "Creating..." : "Create Folder"}
+                        {editingFolderId
+                          ? (updateFolderMutation.isPending ? "Saving..." : "Save Changes")
+                          : (createFolderMutation.isPending ? "Creating..." : "Create Folder")}
                       </button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {folderMenu && (
+              <FolderContextMenu
+                x={folderMenu.x}
+                y={folderMenu.y}
+                onEdit={() => {
+                  const folder = folders.find((f) => f.id === folderMenu.folderId)
+                  if (!folder) return
+                  setEditingFolderId(folder.id)
+                  setNewEventName(folder.event_name)
+                  setEventBorrowTime(folder.borrow_time ? folder.borrow_time.slice(0, 16) : "")
+                  setEventReturnTime(folder.return_time ? folder.return_time.slice(0, 16) : "")
+                  setShowCreateModal(true)
+                }}
+                onDelete={() => setDeleteFolderId(folderMenu.folderId)}
+                onClose={() => setFolderMenu(null)}
+              />
+            )}
+
+            {deleteFolderId && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setDeleteFolderId(null)}>
+                <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-6 w-full max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
+                  <h2 className="text-lg font-bold text-white mb-2">Delete Event Folder</h2>
+                  <p className="text-sm text-[#a6a6a6] mb-6">
+                    This deletes the folder and ALL registered equipment inside it. Submitted proofs are kept. This cannot be undone.
+                  </p>
+                  <div className="flex gap-2">
+                    <button onClick={() => setDeleteFolderId(null)} className="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-bold">
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => { deleteFolderMutation.mutate(deleteFolderId); setDeleteFolderId(null) }}
+                      disabled={deleteFolderMutation.isPending}
+                      className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-40 text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      {deleteFolderMutation.isPending ? "Deleting…" : "Delete"}
+                    </button>
                   </div>
                 </div>
               </div>

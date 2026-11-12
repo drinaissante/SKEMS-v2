@@ -17,6 +17,7 @@ import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
 import PaginationNav from "../../components/PaginationNav"
 import CategoryFolderGrid from "../../components/CategoryFolderGrid"
+import FolderContextMenu from "../../components/FolderContextMenu"
 import { manilaDayLabel, manilaDateKey } from "../../utils/datetime"
 
 const MOBILE_ITEMS = 5
@@ -91,6 +92,27 @@ export default function RequestsPage() {
     mutationFn: (requestId: string) => deleteRequest(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
+    },
+  })
+
+  const [folderMenu, setFolderMenu] = useState<{ x: number; y: number; label: string } | null>(null)
+  const [deleteFolderLabel, setDeleteFolderLabel] = useState<string | null>(null)
+
+  const folderRequests = (label: string) =>
+    requests.filter((r) => manilaDayLabel(r.created_at) === label)
+
+  const deleteFolderMutation = useMutation({
+    mutationFn: async (label: string) => {
+      const rows = folderRequests(label)
+      for (const r of rows) await deleteRequest(r.id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
+      setDeleteFolderLabel(null)
+      showToast("Folder deleted.", "success")
+    },
+    onError: (err) => {
+      showToast("Failed to delete folder: " + (err instanceof Error ? err.message : "Unknown error"), "error")
     },
   })
 
@@ -365,6 +387,7 @@ export default function RequestsPage() {
             allLabel="All Requests"
             onSelect={(c) => { setActiveCategory(c); setCurrentPage(1) }}
             attentionLabels={attentionLabels}
+            onFolderContextMenu={(e, label) => { e.preventDefault(); setFolderMenu({ x: e.clientX, y: e.clientY, label }) }}
           />
         ) : isLoading ? (
           <p className="text-center text-[#a6a6a6] py-10">Loading requests...</p>
@@ -401,6 +424,38 @@ export default function RequestsPage() {
               />
             )}
           </>
+        )}
+
+        {folderMenu && (
+          <FolderContextMenu
+            x={folderMenu.x}
+            y={folderMenu.y}
+            onDelete={() => setDeleteFolderLabel(folderMenu.label)}
+            onClose={() => setFolderMenu(null)}
+          />
+        )}
+
+        {deleteFolderLabel && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setDeleteFolderLabel(null)}>
+            <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-6 w-full max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
+              <h2 className="text-lg font-bold text-white mb-2">Delete Folder</h2>
+              <p className="text-sm text-[#a6a6a6] mb-6">
+                This will permanently delete all {folderRequests(deleteFolderLabel).length} requests in {deleteFolderLabel}. This cannot be undone.
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => setDeleteFolderLabel(null)} className="btn-ghost flex-1 py-2.5 rounded-xl text-sm font-bold">
+                  Cancel
+                </button>
+                <button
+                  onClick={() => deleteFolderMutation.mutate(deleteFolderLabel)}
+                  disabled={deleteFolderMutation.isPending}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-40 text-sm font-bold text-white transition-colors cursor-pointer disabled:cursor-not-allowed"
+                >
+                  {deleteFolderMutation.isPending ? "Deleting…" : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {confirmApproveId && (

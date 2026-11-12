@@ -1,4 +1,4 @@
-import { FiPlus } from "react-icons/fi"
+import { FiPlus, FiCheck } from "react-icons/fi"
 import type { Equipment } from "../services/api"
 
 /* eslint-disable react-refresh/only-export-components */
@@ -9,6 +9,8 @@ interface PickerListProps {
   search: string
   inFormIds: Set<string>
   onAdd: (eq: Equipment) => void
+  /** When true, tapping a selected row deselects it (multi-select flows). */
+  allowDeselect?: boolean
 }
 
 export function conditionChipClass(condition: string) {
@@ -18,7 +20,7 @@ export function conditionChipClass(condition: string) {
     "bg-white/10 text-[#a6a6a6]"
 }
 
-export default function EquipmentPickerList({ items, loading, search, inFormIds, onAdd }: PickerListProps) {
+export default function EquipmentPickerList({ items, loading, search, inFormIds, onAdd, allowDeselect = false }: PickerListProps) {
   if (loading) {
     return <p className="text-sm text-[#a6a6a6] text-center py-6">Loading equipment…</p>
   }
@@ -42,10 +44,12 @@ export default function EquipmentPickerList({ items, loading, search, inFormIds,
               e.dataTransfer.setData("text/plain", eq.id)
               e.dataTransfer.effectAllowed = "copy"
             }}
-            onClick={() => !inForm && onAdd(eq)}
+            onClick={() => (!inForm || allowDeselect) && onAdd(eq)}
             className={`p-3 rounded-lg border transition-colors select-none ${
               inForm
-                ? "border-white/10 bg-white/5 opacity-50 cursor-not-allowed"
+                ? allowDeselect
+                  ? "border-[#c89116] bg-[#c89116]/15 cursor-pointer"
+                  : "border-white/10 bg-white/5 opacity-50 cursor-not-allowed"
                 : "border-white/10 bg-white/5 hover:border-[#c89116]/50 hover:bg-white/10 cursor-grab active:cursor-grabbing"
             }`}
           >
@@ -61,7 +65,11 @@ export default function EquipmentPickerList({ items, loading, search, inFormIds,
                   </p>
                 )}
               </div>
-              {!inForm && <FiPlus className="shrink-0 text-[#c89116]" size={16} />}
+              {inForm && allowDeselect ? (
+                <FiCheck className="shrink-0 text-[#c89116]" size={16} />
+              ) : !inForm ? (
+                <FiPlus className="shrink-0 text-[#c89116]" size={16} />
+              ) : null}
             </div>
             <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${conditionChipClass(eq.condition)}`}>
               {eq.condition}
