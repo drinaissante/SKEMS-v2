@@ -1097,6 +1097,39 @@ export async function fetchBorrowedItems() {
   }[];
 }
 
+export async function fetchBorrowedItemsByUser(userId: string) {
+  const { data, error } = await supabase
+    .from("borrow_records")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data as {
+    equipment_id: string
+    quantity: number
+    full_name: string
+    date: string
+    position_department: string
+    owner: string
+    equipment_requested: string
+    purpose_of_use: string
+    date_time_borrowing: string
+    date_time_return: string
+    pickup_location: string
+    return_location: string
+    condition_before: string
+    condition_after: string
+    returned_on: string | null
+    notes: string
+    scanned_by: string
+    user_id: string | null
+    created_at: string
+    updated_at: string
+    discord_message_id: string | null
+  }[];
+}
+
 export async function addBorrowedItem(data: NewBorrowRecord) {
   const { error } = await supabase
     .from("borrow_records")

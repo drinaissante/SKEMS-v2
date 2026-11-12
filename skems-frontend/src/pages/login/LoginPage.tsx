@@ -183,7 +183,7 @@ export default function LoginPage() {
           userName={user?.fullName}
           onClose={() => {
             setShowLoginSuccess(false)
-            navigate("/")
+            navigate(user?.isAdmin ? "/dashboard" : "/my-dashboard")
             if (user) void openTutorial({ userId: user.id, isAdmin: user.isAdmin })
           }}
         />

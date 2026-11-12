@@ -9,6 +9,7 @@ import ScanPage from './pages/scan/ScanPage'
 import EquipmentDetailPage from './pages/equipment/EquipmentDetailPage'
 import EquipmentsPage from './pages/equipments/EquipmentsPage'
 import RequestPage from './pages/request/RequestPage'
+import MemberDashboardPage from './pages/memberdashboard/MemberDashboardPage'
 import MyRequestsPage from './pages/myrequests/MyRequestsPage'
 import ProfilePage from './pages/profile/ProfilePage'
 import MyEquipmentsPage from './pages/myequipments/MyEquipmentsPage'
@@ -53,9 +54,11 @@ function UserRoute({ children }: { children: React.ReactNode }) {
 }
 
 function GuestRoute({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, isAdmin, isSuperAdmin } = useAuth()
 
-  return isLoggedIn ? <Navigate to="/" replace /> : <>{children}</>
+  if (isLoggedIn)
+    return <Navigate to={isAdmin || isSuperAdmin ? "/dashboard" : "/my-dashboard"} replace />
+  return <>{children}</>
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -121,6 +124,15 @@ function App() {
             element={
               <UserRoute>
                 <RequestPage />
+              </UserRoute>
+            }
+          />
+
+          <Route
+            path='/my-dashboard'
+            element={
+              <UserRoute>
+                <MemberDashboardPage />
               </UserRoute>
             }
           />
