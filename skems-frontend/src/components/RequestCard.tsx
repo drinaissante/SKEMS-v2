@@ -1,11 +1,32 @@
 /* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from "react"
+import { toManilaIso } from "../utils/datetime"
 
 export const requestStatusColors: Record<string, string> = {
   Pending: "bg-[#caa453] text-white",
   Approved: "bg-green-600 text-white",
   Denied: "bg-red-600 text-white",
   Returned: "bg-white/10 text-[#a6a6a6]",
+  "Returned Late": "bg-red-600 text-white",
+  Canceled: "bg-white/10 text-[#a6a6a6]",
+}
+
+/** Returned after the due date → "Returned Late" display status. */
+export function isLateRequest(r: {
+  status: string
+  returned_on: string | null
+  date_due: string
+}): boolean {
+  if (r.status !== "Returned" || !r.returned_on || !r.date_due) return false
+  return new Date(r.returned_on) > new Date(toManilaIso(r.date_due))
+}
+
+export function displayStatus(r: {
+  status: string
+  returned_on: string | null
+  date_due: string
+}): string {
+  return isLateRequest(r) ? "Returned Late" : r.status
 }
 
 export function StatusChip({ status }: { status: string }) {
@@ -90,7 +111,7 @@ export default function RequestCard({
           <p className="text-xs text-[#a6a6a6] mt-0.5 truncate">{r.owner || "No owner"}</p>
         </div>
 
-        <StatusChip status={r.status} />
+        <StatusChip status={displayStatus(r)} />
       </div>
 
       <p className="text-[10px] uppercase tracking-wide text-[#a6a6a6] font-bold">

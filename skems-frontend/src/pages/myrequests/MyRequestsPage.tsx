@@ -5,9 +5,13 @@ import { fetchMyRequests, fetchProfile } from "../../services/supabase"
 import { fetchEquipments } from "../../services/api"
 import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
-import { formatWallClock, formatManila } from "../../utils/datetime"
+import { formatWallClock, formatManila, toManilaIso, nowMs } from "../../utils/datetime"
+import { useToast } from "../../hooks/useToast"
 import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
+import { updateRequestStatus } from "../../services/supabase"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { FiXCircle } from "react-icons/fi"
 import { FiSearch } from "react-icons/fi"
 import PaginationNav from "../../components/PaginationNav"
 import skIconFallback from "/sk_icon.jpg"
@@ -49,6 +53,8 @@ export default function MyRequestsPage() {
   const { user, isSuperAdmin } = useAuth()
   const { uuid } = useParams<{ uuid: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { showToast } = useToast()
 
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState<SortOption>("newest")
@@ -134,9 +140,30 @@ export default function MyRequestsPage() {
     return filtered.slice(start, start + itemsPerPage)
   }, [filtered, safePage, itemsPerPage])
 
+  const cancelMutation = useMutation({
+    mutationFn: (requestId: string) => updateRequestStatus(requestId, "Canceled"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-requests"] })
+      queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
+      setDetailId(null)
+      showToast("Request canceled.", "success")
+    },
+    onError: (err) => {
+      showToast("Failed to cancel: " + (err instanceof Error ? err.message : "Unknown error"), "error")
+    },
+  })
+
   if (!user) return null
 
   const detailRequest = requests.find(r => r.id === detailId) ?? null
+
+  const canCancelRequest = (r: RequestLike): boolean => {
+    if (r.status === "Pending") return true
+    if (r.status === "Approved" && r.date_borrowed) {
+      return nowMs() < new Date(toManilaIso(r.date_borrowed)).getTime()
+    }
+    return false
+  }
 
   return (
     <div className="min-h-screen bg-fixed-black px-3 sm:px-4 py-4 sm:py-6">
@@ -213,6 +240,22 @@ export default function MyRequestsPage() {
           request={detailRequest as RequestLike}
           onClose={() => setDetailId(null)}
           formatDateTime={formatDateTime}
+          actions={
+            canCancelRequest(detailRequest as RequestLike) ? (
+              <button
+                onClick={() => cancelMutation.mutate(detailRequest.id)}
+                disabled={cancelMutation.isPending}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
+              >
+                <FiXCircle size={14} />
+                {cancelMutation.isPending ? "Canceling..." : "Cancel Request"}
+              </button>
+            ) : detailRequest.status === "Approved" ? (
+              <span className="text-xs text-[#a6a6a6] self-center">
+                Borrow date has passed, this request can no longer be canceled.
+              </span>
+            ) : undefined
+          }
         />
       )}
     </div>

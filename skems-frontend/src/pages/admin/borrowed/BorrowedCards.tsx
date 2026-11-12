@@ -43,6 +43,8 @@ export default function BorrowedCards({
       {items.map((r) => {
         const recordKey = `${r.equipment_id}:${r.created_at}`
         const isReturned = Boolean(r.returned_on)
+        const isLate = isReturned && r.returned_on && r.date_time_return &&
+          new Date(r.returned_on) > new Date(`${r.date_time_return}${r.date_time_return.length === 16 ? ":00" : ""}+08:00`)
         const ownerPosition = getOwnerPosition(r.owner)
         return (
           <div key={recordKey} className="dark-card rounded-xl border border-white/10 overflow-hidden">
@@ -57,10 +59,10 @@ export default function BorrowedCards({
               <span className="shrink-0 text-[#a6a6a6] font-normal text-sm">×{r.quantity}</span>
               <span
                 className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${
-                  isReturned ? "bg-green-500/15 text-green-300" : "bg-purple-500/15 text-purple-300"
+                  isLate ? "bg-red-600 text-white" : isReturned ? "bg-green-500/15 text-green-300" : "bg-purple-500/15 text-purple-300"
                 }`}
               >
-                {isReturned ? "Returned" : "Active"}
+                {isLate ? "Returned Late" : isReturned ? "Returned" : "Active"}
               </span>
               <FiChevronDown
                 size={16}

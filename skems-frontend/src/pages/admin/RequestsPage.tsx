@@ -8,9 +8,10 @@ import {
   deleteRequest,
   hasRegisteredOwner,
 } from "../../services/supabase"
+import { fetchEquipments, type Equipment } from "../../services/api"
 import { useToast } from "../../hooks/useToast"
 import { useAuth } from "../../context/AuthContext"
-import { FiSearch, FiTrash2, FiCheckCircle, FiXCircle } from "react-icons/fi"
+import { FiSearch, FiTrash2, FiCheckCircle, FiXCircle, FiFolder, FiArrowLeft } from "react-icons/fi"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { formatWallClock } from "../../utils/datetime"
 import RequestCard, { type RequestLike } from "../../components/RequestCard"
@@ -40,6 +41,8 @@ export default function RequestsPage() {
   const { showToast } = useToast()
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState("All")
+  const [filterBorrower, setFilterBorrower] = useState("All")
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [detailId, setDetailId] = useState<string | null>(null)
@@ -95,6 +98,28 @@ export default function RequestsPage() {
     [requests],
   )
 
+  const { data: equipments = [] } = useQuery({
+    queryKey: ["equipments"],
+    queryFn: fetchEquipments,
+    staleTime: 30 * 60 * 1000,
+  })
+
+  const equipmentCategoryMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const eq of equipments as Equipment[]) map.set(eq.id, eq.category)
+    return map
+  }, [equipments])
+
+  const categories = useMemo(
+    () => [...new Set((equipments as Equipment[]).map((e) => e.category))].sort((a, b) => a.localeCompare(b)),
+    [equipments],
+  )
+
+  const borrowers = useMemo(
+    () => [...new Set(requests.map((r) => r.borrower_name))].sort((a, b) => a.localeCompare(b)),
+    [requests],
+  )
+
   // Which equipment owners are registered users (owner pre-approval applies)?
   const ownersKey = useMemo(
     () => [...new Set(requests.map(r => (r.owner ?? "").trim()).filter(Boolean))].join("|"),
@@ -114,7 +139,7 @@ export default function RequestsPage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  const filtered = useMemo(() => {
+  const preFiltered = useMemo(() => {
     return requests.filter((r) => {
       const q = search.toLowerCase()
       const matchesSearch =
@@ -126,10 +151,25 @@ export default function RequestsPage() {
         r.reason.toLowerCase().includes(q)
 
       const matchesStatus = filterStatus === "All" || r.status === filterStatus
+      const matchesBorrower = filterBorrower === "All" || r.borrower_name === filterBorrower
 
-      return matchesSearch && matchesStatus
+      return matchesSearch && matchesStatus && matchesBorrower
     })
-  }, [requests, search, filterStatus])
+  }, [requests, search, filterStatus, filterBorrower])
+
+  const folderCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const r of preFiltered) {
+      const category = equipmentCategoryMap.get(r.equipment_id)
+      if (category) counts.set(category, (counts.get(category) ?? 0) + 1)
+    }
+    return counts
+  }, [preFiltered, equipmentCategoryMap])
+
+  const filtered = useMemo(() => {
+    if (!activeCategory || activeCategory === "__all__") return preFiltered
+    return preFiltered.filter((r) => equipmentCategoryMap.get(r.equipment_id) === activeCategory)
+  }, [preFiltered, activeCategory, equipmentCategoryMap])
 
   const itemsPerPage = isMobile ? MOBILE_ITEMS : DESKTOP_ITEMS
   const totalPages = Math.ceil(filtered.length / itemsPerPage)
@@ -262,6 +302,22 @@ export default function RequestsPage() {
           Borrow Requests
         </h1>
 
+        {activeCategory !== null ? (
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              type="button"
+              onClick={() => { setActiveCategory(null); setCurrentPage(1) }}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
+            >
+              <FiArrowLeft size={14} />
+              All Folders
+            </button>
+            <h2 className="text-base font-bold text-white truncate">
+              {activeCategory === "__all__" ? "All Requests" : activeCategory}
+            </h2>
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap gap-2 mb-4">
           <div className="relative flex-1 min-w-35">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
@@ -282,9 +338,43 @@ export default function RequestsPage() {
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
+          <select
+            value={filterBorrower}
+            onChange={(e) => { setFilterBorrower(e.target.value); setCurrentPage(1) }}
+            className="dark-input"
+          >
+            <option value="All">All Borrowers</option>
+            {borrowers.map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
         </div>
 
-        {isLoading ? (
+        {activeCategory === null ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            <button
+              type="button"
+              onClick={() => { setActiveCategory("__all__"); setCurrentPage(1) }}
+              className="dark-card rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors"
+            >
+              <FiFolder className="text-[#c89116] mb-2" size={22} />
+              <h3 className="text-sm font-bold text-white truncate">All Requests</h3>
+              <p className="text-xs text-[#a6a6a6] mt-0.5">{preFiltered.length} requests</p>
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => { setActiveCategory(category); setCurrentPage(1) }}
+                className="dark-card rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors"
+              >
+                <FiFolder className="text-[#c89116] mb-2" size={22} />
+                <h3 className="text-sm font-bold text-white truncate">{category}</h3>
+                <p className="text-xs text-[#a6a6a6] mt-0.5">{folderCounts.get(category) ?? 0} requests</p>
+              </button>
+            ))}
+          </div>
+        ) : isLoading ? (
           <p className="text-center text-[#a6a6a6] py-10">Loading requests...</p>
         ) : filtered.length === 0 ? (
           <p className="text-center text-[#a6a6a6] py-10">
