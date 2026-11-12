@@ -17,6 +17,7 @@ import UsersPage from './pages/admin/UsersPage'
 import RequestsPage from './pages/admin/RequestsPage'
 import BorrowedPage from './pages/admin/borrowed/BorrowedPage'
 import EventCoveragePage from './pages/admin/events/EventCoveragePage'
+import AuditLogPage from './pages/admin/audit/AuditLogPage'
 import GradingPage from './pages/admin/GradingPage'
 import NotFound from './pages/NotFound'
 
@@ -187,6 +188,7 @@ function App() {
             <Route path='requests' element={<RequestsPage />} />
             <Route path='borrowed' element={<BorrowedPage />} />
             <Route path='events' element={<EventCoveragePage />} />
+            <Route path='audit' element={<AuditLogPage />} />
             <Route path='users' element={<SuperAdminRoute><UsersPage /></SuperAdminRoute>} />
             <Route path='grading' element={<SuperAdminRoute><GradingPage /></SuperAdminRoute>} />
           </Route>

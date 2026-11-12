@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase, logAudit } from "./supabase";
 
 export interface Equipment {
   id: string;
@@ -85,6 +85,11 @@ export async function addEquipment(
   });
   if (error) throw error;
 
+  void logAudit(
+    "equipment_added",
+    `${newId} — ${equipment.name} (owner: ${equipment.owner || "none"})`,
+  )
+
   return { id: newId, ...equipment };
 }
 
@@ -107,18 +112,60 @@ export async function updateEquipment(
     updateData.date_borrowed = data.dateBorrowed || null;
   if (data.dateDue !== undefined) updateData.date_due = data.dateDue || null;
 
+  // Fetch the previous row so the audit entry can diff the changes.
+  const { data: before } = await supabase
+    .from("equipments")
+    .select("name, condition, comments, owner")
+    .eq("equipment_id", id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("equipments")
     .update(updateData)
     .eq("equipment_id", id);
   if (error) throw error;
+
+  const diffParts: string[] = []
+  const asText = (v: unknown) => (v == null || v === "" ? "—" : String(v))
+  if (data.name !== undefined && before && data.name !== (before as { name: string }).name) {
+    diffParts.push(`name: ${asText((before as { name: string }).name)} → ${data.name}`)
+  }
+  if (data.condition !== undefined && before && data.condition !== (before as { condition: string }).condition) {
+    diffParts.push(`condition: ${asText((before as { condition: string }).condition)} → ${data.condition}`)
+  }
+  if (data.comments !== undefined && before && data.comments !== (before as { comments: string }).comments) {
+    diffParts.push("comment updated")
+  }
+  if (data.owner !== undefined && before && data.owner !== (before as { owner: string }).owner) {
+    diffParts.push(`owner: ${asText((before as { owner: string }).owner)} → ${data.owner}`)
+  }
+  if (data.image !== undefined) {
+    diffParts.push("image updated")
+  }
+
+  void logAudit(
+    "equipment_updated",
+    `${id} — ${data.name ?? (before as { name: string } | null)?.name ?? id}`,
+    diffParts.length > 0 ? diffParts.join(", ") : undefined,
+  )
 }
 
 export async function deleteEquipment(id: string): Promise<void> {
+  const { data: before } = await supabase
+    .from("equipments")
+    .select("name")
+    .eq("equipment_id", id)
+    .maybeSingle();
+
   const { error } = await supabase.rpc("delete_equipment_and_renumber", {
     target_id: id,
   });
   if (error) throw error;
+
+  void logAudit(
+    "equipment_deleted",
+    `${id} — ${before?.name ?? id}`,
+  )
 }
 
 export async function exportToSheets(

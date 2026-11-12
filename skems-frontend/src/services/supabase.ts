@@ -97,11 +97,22 @@ export async function fetchProfile(userId: string) {
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 
 export async function setApprovalStatus(userId: string, status: ApprovalStatus) {
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", userId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("profiles")
     .update({ approval_status: status })
     .eq("id", userId);
   if (error) throw error;
+
+  void logAudit(
+    status === "approved" ? "account_approved" : "account_rejected",
+    `Registration of ${target?.full_name ?? userId}`,
+  )
 
   void insertNotifications([
     {
@@ -324,6 +335,12 @@ export async function submitRequest(data: {
   if (error) throw error;
 
   if (inserted?.id) {
+    void logAudit(
+      "request_submitted",
+      `${data.equipmentName} × ${data.quantity} requested by ${data.borrowerName}`,
+      `Borrow: ${data.dateBorrowed} · Due: ${data.dateDue}`,
+    )
+
     void notifyDiscordRequest(data, inserted.id);
 
     const updateOwnerProfileId = data.owner ? await fetchRegisteredOwnerId(data.owner) : null;
@@ -587,6 +604,11 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
 
   if (statusErr) throw statusErr;
 
+  void logAudit(
+    "request_approved",
+    `${request.equipment_name ?? "Equipment"} × ${request.quantity ?? 1} for ${request.borrower_name ?? "member"} — moved to borrowed items`,
+  )
+
   void notifyRequestUsers({
     requestId,
     equipmentId: request.equipment_id ?? null,
@@ -625,6 +647,11 @@ export async function updateRequestStatus(requestId: string, status: string) {
   if (row) {
     void syncDiscordStatus(row, status === "Denied" ? "Rejected" : status, row.id);
 
+    void logAudit(
+      status === "Denied" ? "request_denied" : status === "Canceled" ? "request_canceled" : "request_status_changed",
+      `${row.equipment_name ?? "Equipment"} for ${row.borrower_name ?? "member"} → ${status}`,
+    )
+
     if (status === "Denied") {
       void notifyRequestUsers({
         requestId,
@@ -662,6 +689,10 @@ export async function deleteRequest(requestId: string) {
   if (error) throw error;
 
   if (row) {
+    void logAudit(
+      "request_deleted",
+      `${row.equipment_name ?? "Equipment"} request by ${row.borrower_name ?? "member"} (${row.status})`,
+    )
     void syncDiscordStatus(row, "Deleted", row.id);
   }
 }
@@ -726,6 +757,83 @@ async function insertNotifications(rows: {
   if (rows.length === 0) return;
   const { error } = await supabase.from("notifications").insert(rows);
   if (error) console.error("Failed to insert notifications:", error);
+}
+
+export interface AuditRow {
+  id: string;
+  actor_id: string | null;
+  actor_name: string;
+  actor_role: string;
+  action: string;
+  target_summary: string;
+  details: string | null;
+  created_at: string;
+}
+
+export async function fetchAuditLogs(): Promise<AuditRow[]> {
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (error) throw error;
+  return data as unknown as AuditRow[];
+}
+
+interface AuditActor {
+  id: string
+  name: string
+  role: string
+}
+
+let cachedActor: { actor: AuditActor; expires: number } | null = null
+
+async function getActor(): Promise<AuditActor> {
+  try {
+    if (cachedActor && cachedActor.expires > Date.now()) return cachedActor.actor
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session?.user) {
+      return { id: "", name: "System", role: "system" }
+    }
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, is_admin, is_superadmin")
+      .eq("id", session.user.id)
+      .maybeSingle()
+    const actor: AuditActor = {
+      id: session.user.id,
+      name: profile?.full_name ?? "Unknown",
+      role: profile?.is_superadmin || profile?.is_admin ? "officer" : "member",
+    }
+    cachedActor = { actor, expires: Date.now() + 60_000 }
+    return actor
+  } catch {
+    return { id: "", name: "System", role: "system" }
+  }
+}
+
+export async function logAudit(
+  action: string,
+  targetSummary: string,
+  details?: string,
+  actorOverride?: Partial<AuditActor>,
+): Promise<void> {
+  try {
+    const actor = await getActor()
+    const { error } = await supabase.from("audit_logs").insert({
+      actor_id: (actorOverride?.id ?? actor.id) || null,
+      actor_name: actorOverride?.name ?? actor.name,
+      actor_role: actorOverride?.role ?? actor.role,
+      action,
+      target_summary: targetSummary,
+      details: details ?? null,
+    })
+    if (error) console.error("Audit log insert failed:", error)
+  } catch (err) {
+    console.error("Audit log failed:", err)
+  }
 }
 
 interface RequestNotificationContext {
@@ -950,6 +1058,13 @@ export async function setOwnerDecision(
     .eq("id", requestId);
   if (error) throw error;
 
+  void logAudit(
+    decision === "approved" ? "owner_approved" : "owner_rejected",
+    `${request.equipment_name ?? "Equipment"} request by ${request.borrower_name ?? "member"}`,
+    decision === "rejected" && reason ? `Reason: ${reason}` : undefined,
+    { role: "owner" },
+  )
+
   if (decision === "approved") {
     void notifyRequestUsers({
       requestId,
@@ -1075,6 +1190,12 @@ export async function approveReturnProof(params: {
 
   await returnBorrowedItem(params.proof.equipment_id, params.conditionAfter);
 
+  void logAudit(
+    "return_approved",
+    `${params.equipmentName} return proof approved`,
+    `After condition: ${params.conditionAfter}`,
+  )
+
   void notifyRequestUsers({
     requestId: params.proof.request_id,
     equipmentId: params.proof.equipment_id,
@@ -1112,6 +1233,12 @@ export async function rejectReturnProof(params: {
     })
     .eq("id", params.proof.id);
   if (error) throw error;
+
+  void logAudit(
+    "return_proof_rejected",
+    `${params.equipmentName} return proof rejected`,
+    params.reason ? `Reason: ${params.reason}` : undefined,
+  )
 
   const rejectBody = params.reason
     ? `Your return proof for ${params.equipmentName} was rejected. Reason: ${params.reason}. Please submit a new proof.`
@@ -1209,6 +1336,12 @@ export async function createEventFolder(
       return_time: toManilaIso(returnTime),
     });
   if (error) throw error;
+
+  void logAudit(
+    "event_folder_created",
+    `${eventName}`,
+    `Window: ${borrowTime} → ${returnTime}`,
+  )
 }
 
 export async function addEventItem(params: {
@@ -1238,6 +1371,11 @@ export async function addEventItem(params: {
       borrow_time: folderBorrowTime,
     });
   if (error) throw error;
+
+  void logAudit(
+    "event_item_assigned",
+    `${params.equipmentName} assigned to ${params.borrowerName}`,
+  )
 
   // If the event window is active right now, mark the equipment
   // unavailable immediately (the hourly sweep covers future windows).
@@ -1284,11 +1422,22 @@ export async function addEventItem(params: {
 }
 
 export async function removeEventItem(itemId: string): Promise<void> {
+  const { data: item } = await supabase
+    .from("event_items")
+    .select("equipment_name, borrower_name")
+    .eq("id", itemId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("event_items")
     .delete()
     .eq("id", itemId);
   if (error) throw error;
+
+  void logAudit(
+    "event_item_removed",
+    `${item?.equipment_name ?? itemId} removed from ${item?.borrower_name ?? "member"}`,
+  )
 }
 
 export async function markEventItemReturned(params: {
@@ -1297,7 +1446,7 @@ export async function markEventItemReturned(params: {
 }): Promise<void> {
   const { data: item } = await supabase
     .from("event_items")
-    .select("equipment_id")
+    .select("equipment_id, equipment_name, borrower_name")
     .eq("id", params.itemId)
     .maybeSingle();
 
@@ -1320,6 +1469,12 @@ export async function markEventItemReturned(params: {
       .eq("equipment_id", item.equipment_id)
       .eq("condition", "Unavailable");
   }
+
+  void logAudit(
+    "event_item_returned",
+    `${item?.equipment_name ?? params.itemId} returned by ${item?.borrower_name ?? "member"}`,
+    `After condition: ${params.conditionAfter}`,
+  )
 }
 
 export async function updateEventFolder(
@@ -1337,18 +1492,41 @@ export async function updateEventFolder(
     })
     .eq("id", folderId);
   if (error) throw error;
+
+  void logAudit(
+    "event_folder_updated",
+    `${eventName}`,
+    `Window: ${borrowTime} → ${returnTime}`,
+  )
 }
 
 export async function deleteEventFolder(folderId: string): Promise<void> {
   // event_items cascade via FK; submitted proofs are kept.
+  const { data: folder } = await supabase
+    .from("event_folders")
+    .select("event_name")
+    .eq("id", folderId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("event_folders")
     .delete()
     .eq("id", folderId);
   if (error) throw error;
+
+  void logAudit(
+    "event_folder_deleted",
+    `${folder?.event_name ?? folderId}`,
+  )
 }
 
 export async function markEventFolderReturned(folderId: string): Promise<void> {
+  const { data: folder } = await supabase
+    .from("event_folders")
+    .select("event_name")
+    .eq("id", folderId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("event_folders")
     .update({
@@ -1357,6 +1535,11 @@ export async function markEventFolderReturned(folderId: string): Promise<void> {
     })
     .eq("id", folderId);
   if (error) throw error;
+
+  void logAudit(
+    "event_folder_closed",
+    `${folder?.event_name ?? folderId} marked returned`,
+  )
 }
 
 export async function submitReturnProof(params: {
@@ -1384,10 +1567,16 @@ export async function submitReturnProof(params: {
   const proofId = (data as { id: string }).id;
 
   if (params.requestId) {
-    await supabase
-      .from("requests")
-      .update({ returned_proof_id: proofId })
-      .eq("id", params.requestId);
+  await supabase
+    .from("requests")
+    .update({ returned_proof_id: proofId })
+    .eq("id", params.requestId);
+
+  void logAudit(
+    "return_proof_submitted",
+    `${params.equipmentName} proof by ${params.borrowerName}`,
+  )
+
   }
 
   void notifyRequestUsers({
@@ -1466,6 +1655,12 @@ export async function rejectEventItemProof(params: {
     .eq("id", params.proof.id);
   if (error) throw error;
 
+  void logAudit(
+    "return_proof_rejected",
+    `${params.equipmentName} event return proof rejected`,
+    params.reason ? `Reason: ${params.reason}` : undefined,
+  )
+
   const rejectBody = params.reason
     ? `Your return proof for ${params.equipmentName} was rejected. Reason: ${params.reason}. Please submit a new proof.`
     : `Your return proof for ${params.equipmentName} was rejected. Please submit a new proof.`;
@@ -1531,6 +1726,11 @@ export async function returnBorrowedItem(equipmentId: string, conditionAfter: st
   if (equipErr) console.error("Failed to reset equipment:", equipErr);
 
   if (record) {
+    void logAudit(
+      "return_recorded",
+      `${record.equipment_requested ?? equipmentId} returned by ${record.full_name ?? "member"}`,
+      `After condition: ${conditionAfter}`,
+    )
     void syncDiscordStatus(record, "Returned", null);
   }
 }
