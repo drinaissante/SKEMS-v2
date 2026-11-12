@@ -8,7 +8,6 @@ import {
   deleteRequest,
   hasRegisteredOwner,
 } from "../../services/supabase"
-import { fetchEquipments, type Equipment } from "../../services/api"
 import { useToast } from "../../hooks/useToast"
 import { useAuth } from "../../context/AuthContext"
 import { FiSearch, FiTrash2, FiCheckCircle, FiXCircle, FiArrowLeft } from "react-icons/fi"
@@ -18,6 +17,7 @@ import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
 import PaginationNav from "../../components/PaginationNav"
 import CategoryFolderGrid from "../../components/CategoryFolderGrid"
+import { manilaDayLabel, manilaDateKey } from "../../utils/datetime"
 
 const MOBILE_ITEMS = 5
 const DESKTOP_ITEMS = 12
@@ -99,23 +99,6 @@ export default function RequestsPage() {
     [requests],
   )
 
-  const { data: equipments = [] } = useQuery({
-    queryKey: ["equipments"],
-    queryFn: fetchEquipments,
-    staleTime: 30 * 60 * 1000,
-  })
-
-  const equipmentCategoryMap = useMemo(() => {
-    const map = new Map<string, string>()
-    for (const eq of equipments as Equipment[]) map.set(eq.id, eq.category)
-    return map
-  }, [equipments])
-
-  const categories = useMemo(
-    () => [...new Set((equipments as Equipment[]).map((e) => e.category))].sort((a, b) => a.localeCompare(b)),
-    [equipments],
-  )
-
   const borrowers = useMemo(
     () => [...new Set(requests.map((r) => r.borrower_name))].sort((a, b) => a.localeCompare(b)),
     [requests],
@@ -158,19 +141,33 @@ export default function RequestsPage() {
     })
   }, [requests, search, filterStatus, filterBorrower])
 
-  const folderCounts = useMemo(() => {
-    const counts = new Map<string, number>()
+  const folderEntries = useMemo(() => {
+    const counts = new Map<string, { label: string; key: string; count: number }>()
     for (const r of preFiltered) {
-      const category = equipmentCategoryMap.get(r.equipment_id)
-      if (category) counts.set(category, (counts.get(category) ?? 0) + 1)
+      const key = manilaDateKey(r.created_at)
+      if (!key) continue
+      const existing = counts.get(key)
+      if (existing) {
+        existing.count++
+      } else {
+        counts.set(key, { label: manilaDayLabel(r.created_at), key, count: 1 })
+      }
     }
+    return [...counts.values()].sort((a, b) => b.key.localeCompare(a.key))
+  }, [preFiltered])
+
+  const folderLabels = useMemo(() => folderEntries.map((e) => e.label), [folderEntries])
+
+  const folderCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const e of folderEntries) counts[e.label] = e.count
     return counts
-  }, [preFiltered, equipmentCategoryMap])
+  }, [folderEntries])
 
   const filtered = useMemo(() => {
     if (!activeCategory || activeCategory === "__all__") return preFiltered
-    return preFiltered.filter((r) => equipmentCategoryMap.get(r.equipment_id) === activeCategory)
-  }, [preFiltered, activeCategory, equipmentCategoryMap])
+    return preFiltered.filter((r) => manilaDayLabel(r.created_at) === activeCategory)
+  }, [preFiltered, activeCategory])
 
   const itemsPerPage = isMobile ? MOBILE_ITEMS : DESKTOP_ITEMS
   const totalPages = Math.ceil(filtered.length / itemsPerPage)
@@ -353,8 +350,8 @@ export default function RequestsPage() {
 
         {activeCategory === null ? (
           <CategoryFolderGrid
-            categories={categories}
-            counts={Object.fromEntries(folderCounts)}
+            categories={folderLabels}
+            counts={folderCounts}
             total={preFiltered.length}
             allLabel="All Requests"
             onSelect={(c) => { setActiveCategory(c); setCurrentPage(1) }}

@@ -50,8 +50,27 @@ export function toManilaIso(value: string): string {
   return isNaN(d.getTime()) ? value : d.toISOString();
 }
 
-export function formatGradingDate(dateStr: string): string {
-  if (!dateStr) return "—";
+/** PH calendar-day label for a timestamp ("Nov 12, 2026") — folder identity. */
+export function manilaDayLabel(value: string): string {
+  if (!value) return "";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  return d.toLocaleString("en-PH", {
+    timeZone: MANILA_TZ,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+/** PH calendar-day key ("YYYY-MM-DD") — stable folder ordering. */
+export function manilaDateKey(value: string): string {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-CA", { timeZone: MANILA_TZ });
+}
+
+export function formatGradingDate(dateStr: string): string {  if (!dateStr) return "—";
   const d = new Date(dateStr + "T00:00:00");
   const months = [
     "Jan",
