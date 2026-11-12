@@ -28,6 +28,7 @@ import { FiSearch, FiFolder, FiArrowLeft, FiPlus, FiTrash2 } from "react-icons/f
 import ProofImage from "../../../components/ProofImage"
 import PaginationNav from "../../../components/PaginationNav"
 import EquipmentPickerList from "../../../components/EquipmentPickerList"
+import CategoryFolderGrid from "../../../components/CategoryFolderGrid"
 
 const dtOpts: Intl.DateTimeFormatOptions = {
   month: "2-digit",
@@ -336,7 +337,13 @@ export default function EventCoveragePage() {
               {activeFolder.status !== "returned" && (
               <button
                 type="button"
-                onClick={() => { setShowAddItemModal(true); setAddSearch(""); setAddListPage(1); setSelectedEquipmentId("") }}
+                onClick={() => {
+                  setShowAddItemModal(true)
+                  setAddSearch("")
+                  setAddListPage(1)
+                  setAddPickerCategory(null)
+                  setSelectedEquipmentIds(new Set())
+                }}
                 className="btn-gold px-4 py-2 text-sm flex items-center gap-1.5"
               >
                   <FiPlus size={16} />
@@ -467,77 +474,158 @@ export default function EventCoveragePage() {
 
             {showAddItemModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setShowAddItemModal(false)}>
-                <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-                  <h3 className="text-base font-bold text-white mb-4 text-center">Add Equipment to Event</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Equipment <span className="text-xs font-normal">(tap to select)</span></label>
-                      <div className="relative mb-2">
-                        <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
-                        <input
-                          type="text"
-                          value={addSearch}
-                          onChange={(e) => { setAddSearch(e.target.value); setAddListPage(1) }}
-                          placeholder="Search equipment..."
-                          className="dark-input w-full text-sm pl-8"
-                        />
-                      </div>
-                      <div className="max-h-60 overflow-y-auto pr-1">
-                        <EquipmentPickerList
-                          items={pagedAddItems}
-                          loading={false}
-                          search={addSearch}
-                          inFormIds={selectedPickerIds}
-                          onAdd={(eq) => setSelectedEquipmentId(eq.id)}
-                        />
-                      </div>
-                      {addTotalPages > 1 && (
-                        <div className="flex items-center justify-between pt-2">
-                          <button
-                            type="button"
-                            onClick={() => setAddListPage(Math.max(1, addSafePage - 1))}
-                            disabled={addSafePage === 1}
-                            className="btn-ghost px-3 py-1.5 text-xs rounded disabled:opacity-40"
-                          >
-                            Prev
-                          </button>
-                          <span className="text-xs text-[#a6a6a6]">{addSafePage} / {addTotalPages}</span>
-                          <button
-                            type="button"
-                            onClick={() => setAddListPage(Math.min(addTotalPages, addSafePage + 1))}
-                            disabled={addSafePage === addTotalPages}
-                            className="btn-ghost px-3 py-1.5 text-xs rounded disabled:opacity-40"
-                          >
-                            Next
-                          </button>
+                <div
+                  className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-5 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="text-base font-bold text-white mb-4 text-center">Assign Equipment to Event</h3>
+
+                  <div className="flex flex-col md:flex-row gap-4">
+                    {/* Left: equipment picker with category folders */}
+                    <div className="md:w-3/5 flex flex-col gap-3 dark-card p-3">
+                      {addPickerCategory !== null && (
+                        <button
+                          type="button"
+                          onClick={() => { setAddPickerCategory(null); setAddListPage(1) }}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <FiArrowLeft size={12} />
+                          All Folders
+                        </button>
+                      )}
+
+                      {addPickerCategory === null ? (
+                        <div className="max-h-72 overflow-y-auto pr-1">
+                          <CategoryFolderGrid
+                            categories={addPickerCategories}
+                            counts={addPickerCounts}
+                            total={availableEquipments.length}
+                            allLabel="All Equipment"
+                            onSelect={(c) => { setAddPickerCategory(c); setAddListPage(1) }}
+                            compact
+                          />
                         </div>
+                      ) : (
+                        <>
+                          <div className="relative">
+                            <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
+                            <input
+                              type="text"
+                              value={addSearch}
+                              onChange={(e) => { setAddSearch(e.target.value); setAddListPage(1) }}
+                              placeholder="Search equipment..."
+                              className="dark-input w-full text-sm pl-8"
+                            />
+                          </div>
+                          <div className="max-h-60 overflow-y-auto pr-1">
+                            <EquipmentPickerList
+                              items={pagedAddItems}
+                              loading={false}
+                              search={addSearch}
+                              inFormIds={selectedPickerIds}
+                              onAdd={(eq) => {
+                                setSelectedEquipmentIds(prev => {
+                                  const next = new Set(prev)
+                                  if (next.has(eq.id)) next.delete(eq.id)
+                                  else next.add(eq.id)
+                                  return next
+                                })
+                              }}
+                              allowDeselect
+                            />
+                          </div>
+                          {addTotalPages > 1 && (
+                            <div className="flex items-center justify-between pt-1">
+                              <button
+                                type="button"
+                                onClick={() => setAddListPage(Math.max(1, addSafePage - 1))}
+                                disabled={addSafePage === 1}
+                                className="btn-ghost px-3 py-1.5 text-xs rounded disabled:opacity-40"
+                              >
+                                Prev
+                              </button>
+                              <span className="text-xs text-[#a6a6a6]">{addSafePage} / {addTotalPages}</span>
+                              <button
+                                type="button"
+                                onClick={() => setAddListPage(Math.min(addTotalPages, addSafePage + 1))}
+                                disabled={addSafePage === addTotalPages}
+                                className="btn-ghost px-3 py-1.5 text-xs rounded disabled:opacity-40"
+                              >
+                                Next
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Borrower (member)</label>
-                      <select
-                        value={selectedBorrowerId}
-                        onChange={(e) => setSelectedBorrowerId(e.target.value)}
-                        className="dark-input w-full text-sm"
-                      >
-                        <option value="" disabled>Select member…</option>
-                        {profiles.map((p) => (
-                          <option key={p.id} value={p.id}>{p.full_name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex gap-3 pt-2">
-                      <button type="button" onClick={() => setShowAddItemModal(false)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!selectedEquipmentId || !selectedBorrowerId || addItemMutation.isPending}
-                        onClick={() => addItemMutation.mutate()}
-                        className="btn-gold flex-1 py-2 rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {addItemMutation.isPending ? "Adding..." : "Add to Event"}
-                      </button>
+
+                    {/* Right: assignment */}
+                    <div className="md:w-2/5 flex flex-col gap-3 dark-card p-3">
+                      <div>
+                        <label className="block text-sm font-medium text-[#a6a6a6] mb-1">Borrower (member)</label>
+                        <select
+                          value={selectedBorrowerId}
+                          onChange={(e) => setSelectedBorrowerId(e.target.value)}
+                          className="dark-input w-full text-sm"
+                        >
+                          <option value="" disabled>Select member…</option>
+                          {(profiles as { id: string; full_name: string }[]).map((p) => (
+                            <option key={p.id} value={p.id}>{p.full_name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex-1 min-h-24">
+                        <label className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                          Selected ({selectedEquipmentIds.size})
+                        </label>
+                        {selectedEquipmentIds.size === 0 ? (
+                          <p className="text-xs text-[#a6a6a6] italic">No equipment selected yet.</p>
+                        ) : (
+                          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                            {[...selectedEquipmentIds].map((id) => {
+                              const eq = (equipments as Equipment[]).find((e) => e.id === id)
+                              return (
+                                <div key={id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white/5 border border-white/10">
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-bold text-white truncate">{eq?.name ?? id}</p>
+                                    <p className="font-mono text-[10px] text-[#a6a6a6]">{id}</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedEquipmentIds(prev => {
+                                      const next = new Set(prev)
+                                      next.delete(id)
+                                      return next
+                                    })}
+                                    className="text-red-400 hover:text-red-300 cursor-pointer shrink-0"
+                                  >
+                                    <FiTrash2 size={13} />
+                                  </button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex gap-3 pt-2 mt-auto">
+                        <button type="button" onClick={() => setShowAddItemModal(false)} className="btn-ghost flex-1 py-2 rounded-lg text-sm">
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          disabled={selectedEquipmentIds.size === 0 || !selectedBorrowerId || addItemMutation.isPending}
+                          onClick={() => addItemMutation.mutate()}
+                          className="btn-gold flex-1 py-2 rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {addItemMutation.isPending
+                            ? "Assigning..."
+                            : selectedEquipmentIds.size > 1
+                              ? `Assign ${selectedEquipmentIds.size} Equipment`
+                              : "Assign Equipment"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
