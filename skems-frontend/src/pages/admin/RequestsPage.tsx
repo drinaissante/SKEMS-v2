@@ -11,12 +11,13 @@ import {
 import { fetchEquipments, type Equipment } from "../../services/api"
 import { useToast } from "../../hooks/useToast"
 import { useAuth } from "../../context/AuthContext"
-import { FiSearch, FiTrash2, FiCheckCircle, FiXCircle, FiFolder, FiArrowLeft } from "react-icons/fi"
+import { FiSearch, FiTrash2, FiCheckCircle, FiXCircle, FiArrowLeft } from "react-icons/fi"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { formatWallClock } from "../../utils/datetime"
 import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
 import PaginationNav from "../../components/PaginationNav"
+import CategoryFolderGrid from "../../components/CategoryFolderGrid"
 
 const MOBILE_ITEMS = 5
 const DESKTOP_ITEMS = 12
@@ -351,29 +352,13 @@ export default function RequestsPage() {
         </div>
 
         {activeCategory === null ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-            <button
-              type="button"
-              onClick={() => { setActiveCategory("__all__"); setCurrentPage(1) }}
-              className="dark-card rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors"
-            >
-              <FiFolder className="text-[#c89116] mb-2" size={22} />
-              <h3 className="text-sm font-bold text-white truncate">All Requests</h3>
-              <p className="text-xs text-[#a6a6a6] mt-0.5">{preFiltered.length} requests</p>
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                onClick={() => { setActiveCategory(category); setCurrentPage(1) }}
-                className="dark-card rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors"
-              >
-                <FiFolder className="text-[#c89116] mb-2" size={22} />
-                <h3 className="text-sm font-bold text-white truncate">{category}</h3>
-                <p className="text-xs text-[#a6a6a6] mt-0.5">{folderCounts.get(category) ?? 0} requests</p>
-              </button>
-            ))}
-          </div>
+          <CategoryFolderGrid
+            categories={categories}
+            counts={Object.fromEntries(folderCounts)}
+            total={preFiltered.length}
+            allLabel="All Requests"
+            onSelect={(c) => { setActiveCategory(c); setCurrentPage(1) }}
+          />
         ) : isLoading ? (
           <p className="text-center text-[#a6a6a6] py-10">Loading requests...</p>
         ) : filtered.length === 0 ? (

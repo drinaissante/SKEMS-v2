@@ -12,7 +12,8 @@ import RequestInfoModal from "../../modals/RequestInfoModal"
 import { updateRequestStatus } from "../../services/supabase"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { FiXCircle } from "react-icons/fi"
-import { FiSearch } from "react-icons/fi"
+import { FiSearch, FiArrowLeft } from "react-icons/fi"
+import CategoryFolderGrid from "../../components/CategoryFolderGrid"
 import PaginationNav from "../../components/PaginationNav"
 import skIconFallback from "/sk_icon.jpg"
 
@@ -61,6 +62,7 @@ export default function MyRequestsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -132,13 +134,38 @@ export default function MyRequestsPage() {
     return sorted
   }, [requests, search, sortBy])
 
+  const equipmentCategoryMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const eq of equipments) map.set(eq.id, eq.category)
+    return map
+  }, [equipments])
+
+  const myCategories = useMemo(
+    () => [...new Set(requests.map(r => equipmentCategoryMap.get(r.equipment_id)).filter((c): c is string => !!c))].sort((a, b) => a.localeCompare(b)),
+    [requests, equipmentCategoryMap],
+  )
+
+  const myCategoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const r of requests) {
+      const category = equipmentCategoryMap.get(r.equipment_id)
+      if (category) counts[category] = (counts[category] ?? 0) + 1
+    }
+    return counts
+  }, [requests, equipmentCategoryMap])
+
+  const folderFiltered = useMemo(() => {
+    if (!activeCategory || activeCategory === "__all__") return filtered
+    return filtered.filter(r => equipmentCategoryMap.get(r.equipment_id) === activeCategory)
+  }, [filtered, activeCategory, equipmentCategoryMap])
+
   const itemsPerPage = isMobile ? MOBILE_ITEMS : DESKTOP_ITEMS
-  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
+  const totalPages = Math.max(1, Math.ceil(folderFiltered.length / itemsPerPage))
   const safePage = Math.min(currentPage, totalPages)
   const paginatedItems = useMemo(() => {
     const start = (safePage - 1) * itemsPerPage
-    return filtered.slice(start, start + itemsPerPage)
-  }, [filtered, safePage, itemsPerPage])
+    return folderFiltered.slice(start, start + itemsPerPage)
+  }, [folderFiltered, safePage, itemsPerPage])
 
   const cancelMutation = useMutation({
     mutationFn: (requestId: string) => updateRequestStatus(requestId, "Canceled"),
@@ -172,30 +199,6 @@ export default function MyRequestsPage() {
           {isOwn ? "My Requests" : `${profile?.full_name ?? "User"}'s Requests`}
         </h1>
 
-        {requests.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            <div className="relative flex-1 min-w-40">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
-              <input
-                type="text"
-                placeholder="Search requests..."
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
-                className="dark-input w-full pl-9 pr-3 py-2 text-sm"
-              />
-            </div>
-            <select
-              value={sortBy}
-              onChange={(e) => { setSortBy(e.target.value as SortOption); setCurrentPage(1) }}
-              className="dark-input w-auto"
-            >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
         {isLoading ? (
           <p className="text-center text-[#a6a6a6] py-10">Loading...</p>
         ) : requests.length === 0 ? (
@@ -208,28 +211,76 @@ export default function MyRequestsPage() {
               Borrow Equipment
             </Link>
           </div>
-        ) : filtered.length === 0 ? (
-          <p className="text-center text-[#a6a6a6] py-10">No requests match your filters.</p>
+        ) : activeCategory === null ? (
+          <CategoryFolderGrid
+            categories={myCategories}
+            counts={myCategoryCounts}
+            total={requests.length}
+            allLabel="All Requests"
+            onSelect={(c) => { setActiveCategory(c); setCurrentPage(1) }}
+          />
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              {paginatedItems.map((r) => (
-                <RequestCard
-                  key={r.id}
-                  request={r as RequestLike}
-                  onClick={() => setDetailId(r.id)}
-                  image={equipmentMap.get(r.equipment_id)?.image || skIconFallback}
-                  formatRequestDate={(iso) => formatManila(iso, dtOpts)}
+            {activeCategory !== "__all__" && (
+              <div className="flex items-center gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={() => { setActiveCategory(null); setCurrentPage(1) }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  <FiArrowLeft size={14} />
+                  All Folders
+                </button>
+                <h2 className="text-base font-bold text-white truncate">{activeCategory}</h2>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              <div className="relative flex-1 min-w-40">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
+                <input
+                  type="text"
+                  placeholder="Search requests..."
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
+                  className="dark-input w-full pl-9 pr-3 py-2 text-sm"
                 />
-              ))}
+              </div>
+              <select
+                value={sortBy}
+                onChange={(e) => { setSortBy(e.target.value as SortOption); setCurrentPage(1) }}
+                className="dark-input w-auto"
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
             </div>
 
-            {totalPages > 1 && (
-              <PaginationNav
-                page={safePage}
-                totalPages={totalPages}
-                onChange={setCurrentPage}
-              />
+            {folderFiltered.length === 0 ? (
+              <p className="text-center text-[#a6a6a6] py-10">No requests match your filters.</p>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                  {paginatedItems.map((r) => (
+                    <RequestCard
+                      key={r.id}
+                      request={r as RequestLike}
+                      onClick={() => setDetailId(r.id)}
+                      image={equipmentMap.get(r.equipment_id)?.image || skIconFallback}
+                      formatRequestDate={(iso) => formatManila(iso, dtOpts)}
+                    />
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <PaginationNav
+                    page={safePage}
+                    totalPages={totalPages}
+                    onChange={setCurrentPage}
+                  />
+                )}
+              </>
             )}
           </>
         )}

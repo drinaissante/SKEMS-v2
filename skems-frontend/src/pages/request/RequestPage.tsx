@@ -10,6 +10,8 @@ import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { formatWallClock } from "../../utils/datetime"
 import PaginationNav from "../../components/PaginationNav"
+import CategoryFolderGrid from "../../components/CategoryFolderGrid"
+import { FiArrowLeft } from "react-icons/fi"
 
 function todayNow(): string {
   const d = new Date()
@@ -121,6 +123,7 @@ export default function RequestPage() {
   const [search, setSearch] = useState("")
   const [listPage, setListPage] = useState(1)
   const [showMobilePicker, setShowMobilePicker] = useState(false)
+  const [pickerCategory, setPickerCategory] = useState<string | null>(null)
   const [dragOverForm, setDragOverForm] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const autoEquipId = searchParams.get("id")
@@ -220,11 +223,27 @@ export default function RequestPage() {
     return equipments.filter(e => !lower || e.name.toLowerCase().includes(lower) || e.id.toLowerCase().includes(lower))
   }, [equipments, search])
 
-  const totalPages = Math.max(1, Math.ceil(availableEquipments.length / PAGE_SIZE))
+  const pickerCategories = useMemo(
+    () => [...new Set(equipments.map(e => e.category))].sort((a, b) => a.localeCompare(b)),
+    [equipments],
+  )
+
+  const pickerCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const e of equipments) counts[e.category] = (counts[e.category] ?? 0) + 1
+    return counts
+  }, [equipments])
+
+  const folderEquipments = useMemo(() => {
+    if (!pickerCategory || pickerCategory === "__all__") return availableEquipments
+    return availableEquipments.filter(e => e.category === pickerCategory)
+  }, [availableEquipments, pickerCategory])
+
+  const totalPages = Math.max(1, Math.ceil(folderEquipments.length / PAGE_SIZE))
   const safePage = Math.min(listPage, totalPages)
   const pagedEquipments = useMemo(
-    () => availableEquipments.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
-    [availableEquipments, safePage],
+    () => folderEquipments.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [folderEquipments, safePage],
   )
   const inFormIds = useMemo(() => new Set(formItems.map(i => i.equipmentId)), [formItems])
 
@@ -337,27 +356,53 @@ export default function RequestPage() {
           </p>
 
           <div className="hidden md:flex flex-col gap-3 flex-1 min-h-0">
-            <div className="relative">
-              <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setListPage(1) }}
-                placeholder="Search equipment..."
-                className="dark-input w-full text-sm pl-8"
-              />
-            </div>
+            {pickerCategory !== null && (
+              <button
+                type="button"
+                onClick={() => { setPickerCategory(null); setListPage(1) }}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
+              >
+                <FiArrowLeft size={12} />
+                All Folders
+              </button>
+            )}
 
-            <div className="flex-1 min-h-40 max-h-80 overflow-y-auto pr-1" data-tour="equipment-list">
-              <EquipmentPickerList
-                items={pagedEquipments}
-                loading={isLoading}
-                search={search}
-                inFormIds={inFormIds}
-                onAdd={addToFormItems}
-              />
-            </div>
-            {paginationFooter}
+            {pickerCategory === null ? (
+              <div className="flex-1 min-h-40 max-h-80 overflow-y-auto pr-1" data-tour="equipment-list">
+                <CategoryFolderGrid
+                  categories={pickerCategories}
+                  counts={pickerCounts}
+                  total={equipments.length}
+                  allLabel="All Equipment"
+                  onSelect={(c) => { setPickerCategory(c); setListPage(1) }}
+                  compact
+                />
+              </div>
+            ) : (
+              <>
+                <div className="relative">
+                  <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setListPage(1) }}
+                    placeholder="Search equipment..."
+                    className="dark-input w-full text-sm pl-8"
+                  />
+                </div>
+
+                <div className="flex-1 min-h-40 max-h-80 overflow-y-auto pr-1" data-tour="equipment-list">
+                  <EquipmentPickerList
+                    items={pagedEquipments}
+                    loading={isLoading}
+                    search={search}
+                    inFormIds={inFormIds}
+                    onAdd={addToFormItems}
+                  />
+                </div>
+                {paginationFooter}
+              </>
+            )}
           </div>
 
           <button
@@ -667,25 +712,49 @@ export default function RequestPage() {
                   </button>
                 </div>
 
-                <div className="relative mb-3">
-                  <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => { setSearch(e.target.value); setListPage(1) }}
-                    placeholder="Search equipment..."
-                    className="dark-input w-full text-sm pl-8"
-                  />
-                </div>
+                {pickerCategory !== null && (
+                  <button
+                    type="button"
+                    onClick={() => { setPickerCategory(null); setListPage(1) }}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer mb-3"
+                  >
+                    <FiArrowLeft size={12} />
+                    All Folders
+                  </button>
+                )}
 
-                <EquipmentPickerList
-                  items={pagedEquipments}
-                  loading={isLoading}
-                  search={search}
-                  inFormIds={inFormIds}
-                  onAdd={(eq) => { addToFormItems(eq); setShowMobilePicker(false) }}
-                />
-                {paginationFooter}
+                {pickerCategory === null ? (
+                  <CategoryFolderGrid
+                    categories={pickerCategories}
+                    counts={pickerCounts}
+                    total={equipments.length}
+                    allLabel="All Equipment"
+                    onSelect={(c) => { setPickerCategory(c); setListPage(1) }}
+                    compact
+                  />
+                ) : (
+                  <>
+                    <div className="relative mb-3">
+                      <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#a6a6a6] pointer-events-none" size={14} />
+                      <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => { setSearch(e.target.value); setListPage(1) }}
+                        placeholder="Search equipment..."
+                        className="dark-input w-full text-sm pl-8"
+                      />
+                    </div>
+
+                    <EquipmentPickerList
+                      items={pagedEquipments}
+                      loading={isLoading}
+                      search={search}
+                      inFormIds={inFormIds}
+                      onAdd={(eq) => { addToFormItems(eq); setShowMobilePicker(false) }}
+                    />
+                    {paginationFooter}
+                  </>
+                )}
               </div>
             </div>
           )}
