@@ -35,6 +35,7 @@ import { useEquipmentsRealtime } from './hooks/useEquipmentsRealtime'
 import { useRequestsRealtime } from './hooks/useRequestsRealtime'
 import { useBorrowedRealtime } from './hooks/useBorrowedRealtime'
 import { useGradingRealtime } from './hooks/useGradingRealtime'
+import { useReturnProofsRealtime } from './hooks/useReturnProofsRealtime'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
 import OfflineBanner from './components/OfflineBanner'
 import PWAUpdatePrompt from './components/PWAUpdatePrompt'
@@ -92,6 +93,7 @@ function App() {
   useRequestsRealtime()
   useBorrowedRealtime()
   useGradingRealtime()
+  useReturnProofsRealtime()
   const online = useOnlineStatus()
   return (
     <>
