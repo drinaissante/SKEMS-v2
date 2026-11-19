@@ -7,7 +7,7 @@ import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
 import { formatWallClock, formatManila, toManilaIso, nowMs } from "../../utils/datetime"
-import { FiSearch, FiPlus } from "react-icons/fi"
+import { FiSearch, FiPlus, FiChevronLeft, FiChevronRight } from "react-icons/fi"
 import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
 import ReturnProofModal from "../../modals/ReturnProofModal"
@@ -50,6 +50,14 @@ function SectionTitle({ children }: { children: string }) {
     <h2 className="text-sm font-bold text-[#c89116] uppercase tracking-wide mb-3">
       {children}
     </h2>
+  )
+}
+
+function EmptyBlock({ children }: { children: string }) {
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-xl p-6 text-center italic text-[#a6a6a6]/70 text-sm">
+      {children}
+    </div>
   )
 }
 
@@ -127,8 +135,10 @@ export default function MemberDashboardPage() {
 
   const [search, setSearch] = useState("")
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [borrowPage, setBorrowPage] = useState(1)
   const [proofModalTarget, setProofModalTarget] = useState<{ requestId?: string; eventItemId?: string; equipmentId: string; equipmentName: string } | null>(null)
   const overdueToastRef = useRef(false)
+  const isMobile = window.innerWidth < 768
 
   const { data: myRequests = [] } = useQuery({
     queryKey: ["my-requests", user?.id],
@@ -189,7 +199,12 @@ export default function MemberDashboardPage() {
   }, [equipments])
 
   const pendingRequests = useMemo(
-    () => myRequests.filter((r) => r.status === "Pending" || r.status === "Approved"),
+    () => myRequests.filter((r) => r.status === "Pending"),
+    [myRequests],
+  )
+
+  const archives = useMemo(
+    () => myRequests.filter((r) => r.status === "Denied" || r.status === "Canceled"),
     [myRequests],
   )
 
@@ -228,6 +243,14 @@ export default function MemberDashboardPage() {
     })
   }, [equipments, search])
 
+  const BORROW_PAGE_SIZE = isMobile ? 1 : 3
+  const borrowTotalPages = Math.max(1, Math.ceil(availableEquipments.length / BORROW_PAGE_SIZE))
+  const borrowSafePage = Math.min(borrowPage, borrowTotalPages)
+  const pagedBorrowEquipments = useMemo(
+    () => availableEquipments.slice((borrowSafePage - 1) * BORROW_PAGE_SIZE, borrowSafePage * BORROW_PAGE_SIZE),
+    [availableEquipments, borrowSafePage, BORROW_PAGE_SIZE],
+  )
+
   if (!user) return null
 
   const detailRequest = myRequests.find(r => r.id === detailId) ?? null
@@ -264,7 +287,7 @@ export default function MemberDashboardPage() {
         <section className="mb-8">
           <SectionTitle>Pending</SectionTitle>
           {pendingRequests.length === 0 ? (
-            <p className="text-sm text-[#a6a6a6]">No pending requests.</p>
+            <EmptyBlock>Your pending requests show here.</EmptyBlock>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               {pendingRequests.map((r) => (
@@ -281,9 +304,9 @@ export default function MemberDashboardPage() {
         </section>
 
         <section className="mb-8">
-          <SectionTitle>Currently Borrowed Items</SectionTitle>
+          <SectionTitle>Active</SectionTitle>
           {activeBorrows.length === 0 ? (
-            <p className="text-sm text-[#a6a6a6]">No borrowed items.</p>
+            <EmptyBlock>Your borrowed items show here.</EmptyBlock>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               {activeBorrows.map((r) => {
@@ -309,9 +332,7 @@ export default function MemberDashboardPage() {
         <section className="mb-8">
           <SectionTitle>Returned</SectionTitle>
           {returnedBorrows.length === 0 ? (
-            <p className="text-sm text-[#a6a6a6]">
-              No returned equipment yet. All borrowed items returned on time keep this clear.
-            </p>
+            <EmptyBlock>No returned equipment yet. All borrowed items returned on time keep this clear.</EmptyBlock>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               {returnedBorrows.map((r) => (
@@ -384,7 +405,20 @@ export default function MemberDashboardPage() {
           </section>
         )}
 
-        <section className="mb-4">
+        <section className="mb-8">
+          <div className="bg-linear-to-r from-[#c89116] to-[#caa453] text-white rounded-xl p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-sm sm:text-base font-bold">Want to borrow equipment?</p>
+            <button
+              type="button"
+              onClick={() => navigate("/request")}
+              className="shrink-0 px-5 py-2 rounded-lg bg-white text-[#8a5d00] hover:bg-white/90 text-sm font-bold transition-colors cursor-pointer"
+            >
+              Borrow
+            </button>
+          </div>
+        </section>
+
+        <section className="mb-8">
           <SectionTitle>Borrow</SectionTitle>
           <div className="relative mb-3">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
@@ -392,32 +426,79 @@ export default function MemberDashboardPage() {
               type="text"
               placeholder="Search available equipment..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setBorrowPage(1) }}
               className="dark-input w-full pl-9 pr-3 py-2 text-sm"
             />
           </div>
 
           {availableEquipments.length === 0 ? (
-            <p className="text-sm text-[#a6a6a6] text-center py-6">
+            <EmptyBlock>
               {search ? "No available equipment matches your search." : "No equipment available to borrow."}
-            </p>
+            </EmptyBlock>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {availableEquipments.map((eq) => (
-                <Link
-                  key={eq.id}
-                  to={`/request?id=${eq.id}`}
-                  className="dark-card rounded-xl border border-white/10 p-3 flex items-center justify-between gap-2 hover:border-[#c89116]/50 transition-colors cursor-pointer"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{eq.name}</p>
-                    <p className="text-xs text-[#a6a6a6] truncate">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setBorrowPage(Math.max(1, borrowSafePage - 1))}
+                disabled={borrowSafePage === 1}
+                aria-label="Previous page"
+                className="p-2 rounded-full border border-white/15 text-[#a6a6a6] hover:border-[#c89116] hover:text-[#c89116] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-white/15 disabled:hover:text-[#a6a6a6] shrink-0"
+              >
+                <FiChevronLeft size={20} />
+              </button>
+
+              <div className="flex-1 min-w-0">
+                {pagedBorrowEquipments.length === 0 ? (
+                  <EmptyBlock>No equipment on this page.</EmptyBlock>
+                ) : (
+                  <div className={`grid gap-3 ${isMobile ? "grid-cols-1" : "grid-cols-3"}`}>
+                    {pagedBorrowEquipments.map((eq) => (
+                      <Link
+                        key={eq.id}
+                        to={`/request?id=${eq.id}`}
+                        className="dark-card rounded-xl border border-white/10 p-3 flex flex-col justify-between gap-2 hover:border-[#c89116]/50 transition-colors cursor-pointer"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-white truncate">{eq.name}</p>
+                          <p className="text-xs text-[#a6a6a6] truncate">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs text-[#a6a6a6]">{eq.condition}</span>
+                          <FiPlus className="text-[#c89116] shrink-0" size={16} />
+                        </div>
+                      </Link>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs text-[#a6a6a6]">{eq.condition}</span>
-                    <FiPlus className="text-[#c89116]" size={16} />
-                  </div>
-                </Link>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setBorrowPage(Math.min(borrowTotalPages, borrowSafePage + 1))}
+                disabled={borrowSafePage === borrowTotalPages}
+                aria-label="Next page"
+                className="p-2 rounded-full border border-white/15 text-[#a6a6a6] hover:border-[#c89116] hover:text-[#c89116] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-white/15 disabled:hover:text-[#a6a6a6] shrink-0"
+              >
+                <FiChevronRight size={20} />
+              </button>
+            </div>
+          )}
+        </section>
+
+        <section className="mb-4">
+          <SectionTitle>Archives</SectionTitle>
+          {archives.length === 0 ? (
+            <EmptyBlock>Previous borrow requests show here.</EmptyBlock>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              {archives.map((r) => (
+                <RequestCard
+                  key={r.id}
+                  request={r as RequestLike}
+                  onClick={() => setDetailId(r.id)}
+                  image={equipmentMap.get(r.equipment_id)?.image}
+                  formatRequestDate={(iso) => formatManila(iso, dtOpts)}
+                />
               ))}
             </div>
           )}
