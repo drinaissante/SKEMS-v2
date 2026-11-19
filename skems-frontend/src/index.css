@@ -242,3 +242,127 @@ body.offline [role="button"] {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+body.offline button,
+body.offline input[type="submit"],
+body.offline input[type="button"],
+body.offline [role="button"] {
+  pointer-events: none;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Rose theme (data-theme="rose" on <html>)
+   Palette: white base, yellow/pink/gold accents, near-black text.
+   ============================================================ */
+
+[data-theme="rose"] .bg-fixed-black {
+  background-color: #fff5fa;
+  background-image: radial-gradient(85% 55% at 50% 60%, rgba(236, 72, 153, 0.10), transparent 75%);
+  background-attachment: fixed;
+  background-size: 100% 100vh;
+  background-repeat: no-repeat;
+}
+
+[data-theme="rose"] .dark-card {
+  background-color: #ffffff;
+  border-color: rgba(200, 120, 160, 0.30);
+  box-shadow: 0 2px 10px rgba(236, 72, 153, 0.06);
+  color: #241733;
+}
+
+[data-theme="rose"] .dark-input {
+  background-color: #ffffff;
+  color: #241733;
+  border-color: rgba(200, 120, 160, 0.38);
+}
+
+[data-theme="rose"] .dark-input::placeholder {
+  color: #b98aa5;
+}
+
+[data-theme="rose"] .dark-input:focus {
+  border-color: #ec4899;
+}
+
+[data-theme="rose"] .btn-ghost {
+  border-color: rgba(200, 120, 160, 0.40);
+  color: #6b5570;
+}
+
+[data-theme="rose"] .btn-ghost:hover {
+  background-color: rgba(236, 72, 153, 0.08);
+}
+
+[data-theme="rose"] .text-white {
+  color: #241733;
+}
+
+[data-theme="rose"] .hover\:text-white:hover {
+  color: #241733;
+}
+
+[data-theme="rose"] .text-\[\#a6a6a6\] {
+  color: #6b5570;
+}
+
+[data-theme="rose"] .text-\[\#a6a6a6\]\/50 {
+  color: rgba(107, 85, 112, 0.55);
+}
+
+[data-theme="rose"] .text-\[\#a6a6a6\]\/70 {
+  color: rgba(107, 85, 112, 0.75);
+}
+
+[data-theme="rose"] .border-white\/10 {
+  border-color: rgba(200, 120, 160, 0.25);
+}
+
+[data-theme="rose"] .bg-white\/5 {
+  background-color: rgba(236, 72, 153, 0.05);
+}
+
+[data-theme="rose"] .bg-white\/10 {
+  background-color: rgba(236, 72, 153, 0.09);
+}
+
+[data-theme="rose"] .hover\:bg-white\/10:hover {
+  background-color: rgba(236, 72, 153, 0.12);
+}
+
+[data-theme="rose"] .hover\:bg-white\/20:hover {
+  background-color: rgba(236, 72, 153, 0.16);
+}
+
+[data-theme="rose"] .hover\:bg-white\/5:hover {
+  background-color: rgba(236, 72, 153, 0.07);
+}
+
+[data-theme="rose"] .bg-\[\#080808a8\] {
+  background-color: rgba(255, 250, 253, 0.92);
+}
+
+[data-theme="rose"] .bg-\[\#111\] {
+  background-color: #ffffff;
+}
+
+[data-theme="rose"] .border-\[\#5f5c5c93\] {
+  border-color: rgba(200, 120, 160, 0.38);
+}
+
+[data-theme="rose"] .bg-\[\#222\] {
+  background-color: #ffffff;
+}
+
+[data-theme="rose"] .bg-\[\#0c0c0c\] {
+  background-color: #fdf2f8;
+}
+
+[data-theme="rose"] .hover\:bg-\[\#c89116\]:hover {
+  color: #241733;
+}
+
+[data-theme="rose"] .hover\:bg-\[white\]\/90:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}

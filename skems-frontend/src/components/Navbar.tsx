@@ -6,6 +6,7 @@ import NavLink from "./NavLink"
 import { requestLogout } from "../utils/logoutEvent"
 import { FiLogOut } from "react-icons/fi"
 import NotificationBell from "./NotificationBell"
+import ThemeToggle from "./ThemeToggle"
 
 export default function Navbar() {
   const { isLoggedIn, isAdmin, isSuperAdmin, user } = useAuth()
@@ -72,6 +73,7 @@ export default function Navbar() {
                   Request
                 </NavLink>
                 <NotificationBell />
+                <ThemeToggle compact />
               </div>
 
               <div className="relative">
@@ -434,10 +436,11 @@ export default function Navbar() {
         )}
 
         {isLoggedIn ? (
-          <div className="p-3 border-t border-white/10">
+          <div className="p-3 border-t border-white/10 space-y-2">
+            <ThemeToggle full />
             <button
-              onClick={() => { 
-                requestLogout(); 
+              onClick={() => {
+                requestLogout();
                 setSidebarOpen(false);
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
