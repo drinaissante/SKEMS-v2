@@ -8,6 +8,7 @@ import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
 import { formatWallClock, formatManila, toManilaIso, nowMs } from "../../utils/datetime"
 import { FiSearch, FiPlus, FiChevronLeft, FiChevronRight } from "react-icons/fi"
+import PaginationNav from "../../components/PaginationNav"
 import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
 import ReturnProofModal from "../../modals/ReturnProofModal"
@@ -21,6 +22,8 @@ const dtOpts: Intl.DateTimeFormatOptions = {
   minute: "2-digit",
   hour12: true,
 }
+
+const SECTION_PAGE_SIZE = 4
 
 interface BorrowedRecord {
   equipment_id: string
@@ -136,6 +139,11 @@ export default function MemberDashboardPage() {
   const [search, setSearch] = useState("")
   const [detailId, setDetailId] = useState<string | null>(null)
   const [borrowPage, setBorrowPage] = useState(1)
+  const [pendingPage, setPendingPage] = useState(1)
+  const [activePage, setActivePage] = useState(1)
+  const [returnedPage, setReturnedPage] = useState(1)
+  const [eventPage, setEventPage] = useState(1)
+  const [archivesPage, setArchivesPage] = useState(1)
   const [proofModalTarget, setProofModalTarget] = useState<{ requestId?: string; eventItemId?: string; equipmentId: string; equipmentName: string } | null>(null)
   const overdueToastRef = useRef(false)
   const isMobile = window.innerWidth < 768
@@ -222,6 +230,21 @@ export default function MemberDashboardPage() {
   const returnedBorrows = useMemo(() => borrows.filter((r) => !!r.returned_on), [borrows])
   const overdueBorrows = useMemo(() => activeBorrows.filter(isOverdue), [activeBorrows])
 
+  const sectionSlices = useMemo(() => {
+    const slice = (items: unknown[], page: number) => {
+      const totalPages = Math.max(1, Math.ceil(items.length / SECTION_PAGE_SIZE))
+      const safePage = Math.min(page, totalPages)
+      return { totalPages, safePage, items: items.slice((safePage - 1) * SECTION_PAGE_SIZE, safePage * SECTION_PAGE_SIZE) }
+    }
+    return {
+      pending: slice(pendingRequests, pendingPage),
+      active: slice(activeBorrows, activePage),
+      returned: slice(returnedBorrows, returnedPage),
+      event: slice(openEventItems, eventPage),
+      archives: slice(archives, archivesPage),
+    }
+  }, [pendingRequests, pendingPage, activeBorrows, activePage, returnedBorrows, returnedPage, openEventItems, eventPage, archives, archivesPage])
+
   useEffect(() => {
     if (overdueBorrows.length === 0 || overdueToastRef.current) return
     overdueToastRef.current = true
@@ -289,17 +312,24 @@ export default function MemberDashboardPage() {
           {pendingRequests.length === 0 ? (
             <EmptyBlock>Your pending requests show here.</EmptyBlock>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              {pendingRequests.map((r) => (
-                <RequestCard
-                  key={r.id}
-                  request={r as RequestLike}
-                  onClick={() => setDetailId(r.id)}
-                  image={equipmentMap.get(r.equipment_id)?.image}
-                  formatRequestDate={(iso) => formatManila(iso, dtOpts)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                {sectionSlices.pending.items.map((r) => (
+                  <RequestCard
+                    key={(r as RequestLike).id}
+                    request={r as RequestLike}
+                    onClick={() => setDetailId((r as RequestLike).id)}
+                    image={equipmentMap.get((r as RequestLike).equipment_id)?.image}
+                    formatRequestDate={(iso) => formatManila(iso, dtOpts)}
+                  />
+                ))}
+              </div>
+              <PaginationNav
+                page={sectionSlices.pending.safePage}
+                totalPages={sectionSlices.pending.totalPages}
+                onChange={setPendingPage}
+              />
+            </>
           )}
         </section>
 
@@ -308,24 +338,31 @@ export default function MemberDashboardPage() {
           {activeBorrows.length === 0 ? (
             <EmptyBlock>Your borrowed items show here.</EmptyBlock>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              {activeBorrows.map((r) => {
-                const req = approvedRequestByEquipment.get(r.equipment_id)
-                const proof = req ? proofByRequest.get(req.id) : undefined
-                return (
-                  <BorrowCard
-                    key={`${r.equipment_id}:${r.created_at}`}
-                    r={r}
-                    onReturn={req ? () => setProofModalTarget({
-                      requestId: req.id,
-                      equipmentId: r.equipment_id,
-                      equipmentName: r.equipment_requested,
-                    }) : undefined}
-                    proofStatus={proof?.status}
-                  />
-                )
-              })}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                {(sectionSlices.active.items as BorrowedRecord[]).map((r) => {
+                  const req = approvedRequestByEquipment.get(r.equipment_id)
+                  const proof = req ? proofByRequest.get(req.id) : undefined
+                  return (
+                    <BorrowCard
+                      key={`${r.equipment_id}:${r.created_at}`}
+                      r={r}
+                      onReturn={req ? () => setProofModalTarget({
+                        requestId: req.id,
+                        equipmentId: r.equipment_id,
+                        equipmentName: r.equipment_requested,
+                      }) : undefined}
+                      proofStatus={proof?.status}
+                    />
+                  )
+                })}
+              </div>
+              <PaginationNav
+                page={sectionSlices.active.safePage}
+                totalPages={sectionSlices.active.totalPages}
+                onChange={setActivePage}
+              />
+            </>
           )}
         </section>
 
@@ -334,20 +371,28 @@ export default function MemberDashboardPage() {
           {returnedBorrows.length === 0 ? (
             <EmptyBlock>No returned equipment yet. All borrowed items returned on time keep this clear.</EmptyBlock>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              {returnedBorrows.map((r) => (
-                <BorrowCard key={`${r.equipment_id}:${r.created_at}`} r={r} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                {(sectionSlices.returned.items as BorrowedRecord[]).map((r) => (
+                  <BorrowCard key={`${r.equipment_id}:${r.created_at}`} r={r} />
+                ))}
+              </div>
+              <PaginationNav
+                page={sectionSlices.returned.safePage}
+                totalPages={sectionSlices.returned.totalPages}
+                onChange={setReturnedPage}
+              />
+            </>
           )}
         </section>
 
         {openEventItems.length > 0 && (
           <section className="mb-8">
             <SectionTitle>Event Coverage</SectionTitle>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              {openEventItems.map((it) => {
-                const proof = proofByEventItem.get(it.id)
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                {(sectionSlices.event.items as (typeof myEventItems)[number][]).map((it) => {
+                  const proof = proofByEventItem.get(it.id)
                 return (
                   <div key={it.id} className="dark-card rounded-xl border border-white/10 p-4">
                     <div className="flex items-start justify-between gap-2 mb-2">
@@ -397,11 +442,17 @@ export default function MemberDashboardPage() {
                           Submit Return Proof
                         </button>
                       )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+                     </div>
+                   </div>
+                 )
+               })}
+              </div>
+              <PaginationNav
+                page={sectionSlices.event.safePage}
+                totalPages={sectionSlices.event.totalPages}
+                onChange={setEventPage}
+              />
+            </>
           </section>
         )}
 
@@ -490,17 +541,24 @@ export default function MemberDashboardPage() {
           {archives.length === 0 ? (
             <EmptyBlock>Previous borrow requests show here.</EmptyBlock>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              {archives.map((r) => (
-                <RequestCard
-                  key={r.id}
-                  request={r as RequestLike}
-                  onClick={() => setDetailId(r.id)}
-                  image={equipmentMap.get(r.equipment_id)?.image}
-                  formatRequestDate={(iso) => formatManila(iso, dtOpts)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                {(sectionSlices.archives.items as RequestLike[]).map((r) => (
+                  <RequestCard
+                    key={r.id}
+                    request={r}
+                    onClick={() => setDetailId(r.id)}
+                    image={equipmentMap.get(r.equipment_id)?.image}
+                    formatRequestDate={(iso) => formatManila(iso, dtOpts)}
+                  />
+                ))}
+              </div>
+              <PaginationNav
+                page={sectionSlices.archives.safePage}
+                totalPages={sectionSlices.archives.totalPages}
+                onChange={setArchivesPage}
+              />
+            </>
           )}
         </section>
       </div>
