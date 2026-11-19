@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { fetchMyRequests, fetchBorrowedItemsByUser } from "../../services/supabase"
 import { fetchEquipments as fetchEquipmentsList, type Equipment } from "../../services/api"
@@ -121,6 +121,7 @@ function BorrowCard({
 export default function MemberDashboardPage() {
   usePageTitle("Dashboard")
   const { user, isAdmin, isSuperAdmin } = useAuth()
+  const navigate = useNavigate()
   const { showToast } = useToast()
   const queryClient = useQueryClient()
 
@@ -227,16 +228,27 @@ export default function MemberDashboardPage() {
     })
   }, [equipments, search])
 
-  if (!user || isAdmin || isSuperAdmin) return null
+  if (!user) return null
 
   const detailRequest = myRequests.find(r => r.id === detailId) ?? null
 
   return (
     <div className="min-h-screen bg-fixed-black px-3 sm:px-4 py-4 sm:py-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-4">
-          Dashboard
-        </h1>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
+            Dashboard
+          </h1>
+          {(isAdmin || isSuperAdmin) && (
+            <button
+              type="button"
+              onClick={() => navigate("/dashboard")}
+              className="shrink-0 px-3 py-2 text-xs bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white font-bold transition-colors cursor-pointer"
+            >
+              Officer Dashboard
+            </button>
+          )}
+        </div>
 
         {overdueBorrows.length > 0 && (
           <div className="bg-red-600 text-white rounded-xl p-4 mb-5 shadow-lg">
