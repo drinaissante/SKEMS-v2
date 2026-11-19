@@ -13,6 +13,8 @@ export function useBorrowedRealtime() {
         { event: "*", schema: "public", table: "borrow_records" },
         () => {
           queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
+          queryClient.invalidateQueries({ queryKey: ["my-borrows"] })
+          queryClient.invalidateQueries({ queryKey: ["my-requests"] })
         },
       )
       .subscribe()

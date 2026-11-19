@@ -1178,6 +1178,18 @@ export async function approveReturnProof(params: {
   adminUserId: string;
   equipmentName: string;
 }): Promise<void> {
+  // Guard: the linked request must still be awaiting a return.
+  if (params.proof.request_id) {
+    const { data: request } = await supabase
+      .from("requests")
+      .select("status")
+      .eq("id", params.proof.request_id)
+      .maybeSingle();
+    if (!request || (request as { status: string }).status !== "Approved") {
+      throw new Error("This return was already processed.");
+    }
+  }
+
   const { error } = await supabase
     .from("proofs")
     .update({
@@ -1551,6 +1563,30 @@ export async function submitReturnProof(params: {
   equipmentName: string;
   borrowerName: string;
 }): Promise<string> {
+  if (params.requestId) {
+    // Guard: the request must still be awaiting a return.
+    const { data: request } = await supabase
+      .from("requests")
+      .select("status")
+      .eq("id", params.requestId)
+      .maybeSingle();
+    if (!request || (request as { status: string }).status !== "Approved") {
+      throw new Error("This request is no longer awaiting a return.");
+    }
+
+    // Guard: no duplicate pending proof for the same request.
+    const { data: existingPending } = await supabase
+      .from("proofs")
+      .select("id")
+      .eq("request_id", params.requestId)
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle();
+    if (existingPending) {
+      throw new Error("A return proof is already pending review.");
+    }
+  }
+
   const { data, error } = await supabase
     .from("proofs")
     .insert({
