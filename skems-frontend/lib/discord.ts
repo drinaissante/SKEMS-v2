@@ -25,9 +25,46 @@ const MONTHS = [
   "December",
 ];
 
+function hasTimezoneIndicator(value: string): boolean {
+  return /(Z|[+-]\d{2}:\d{2})$/.test(value.trim());
+}
+
+/**
+ * Timezone-aware Discord date formatter.
+ * - Naive strings ("YYYY-MM-DDTHH:mm") represent PH wall time and are
+ *   formatted literally (legacy borrow_records text values).
+ * - TZ-tagged values (canonical UTC ISO from timestamptz columns) are
+ *   converted to Asia/Manila before formatting.
+ */
 export function formatDiscordDate(value?: string): string {
   if (!value) return "—";
-  const m = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2}))?/);
+  const trimmed = value.trim();
+
+  if (hasTimezoneIndicator(trimmed)) {
+    const d = new Date(trimmed);
+    if (isNaN(d.getTime())) return value;
+    const parts = new Intl.DateTimeFormat("en-PH", {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).formatToParts(d);
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+    const month = get("month");
+    const day = get("day");
+    const year = get("year");
+    const hour12 = get("hour");
+    const minute = get("minute");
+    const dayPeriod = get("dayPeriod").toUpperCase();
+    const hour = parseInt(hour12, 10) % 12 || 12;
+    const paddedHour = String(hour).padStart(2, "0");
+    return `${month} ${parseInt(day, 10)}, ${year} ${paddedHour}:${minute}${dayPeriod}`;
+  }
+
+  const m = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2}))?/);
   if (!m) return value;
   const month = MONTHS[parseInt(m[2], 10) - 1];
   if (!month) return value;

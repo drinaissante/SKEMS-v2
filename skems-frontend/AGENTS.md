@@ -29,8 +29,9 @@ serverless functions in `api/`, Tauri desktop shell in `src-tauri/`.
 - Display: `formatManila()` = always Asia/Manila; `formatWallClock()` =
   literal for naive strings, Manila for tz-tagged. Never render tagged
   timestamps as UTC; leave Borrowed/Due (naive) as literal wall times.
-- Discord embeds: `formatDiscordDate` reads hours from the string (UTC) —
-  pending fix for ISO-with-offset values.
+- Discord embeds: `formatDiscordDate` (lib/discord.ts) is timezone-aware —
+  naive strings format literally, TZ-tagged ISO converts to Asia/Manila.
+  Keep new embed paths using it rather than parsing date strings directly.
 
 ## Database & SQL
 - Migrations: plain `.sql` under `sql/`, run manually in the Supabase SQL
