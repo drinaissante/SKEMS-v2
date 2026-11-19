@@ -1,4 +1,5 @@
 import { useMemo, useCallback, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   fetchEquipments,
@@ -36,6 +37,7 @@ export default function DashboardHome() {
   usePageTitle("Dashboard")
 
   const { user } = useAuth()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { showToast } = useToast()
 
@@ -153,10 +155,21 @@ export default function DashboardHome() {
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-fixed-black">
       <div className="flex flex-col flex-1 min-h-0 max-w-6xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
-          Welcome, {user?.fullName ?? "Admin"}!
-        </h1>
-        <p className="text-sm sm:text-base text-[#a6a6a6] mb-4">What do you want to do today?</p>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
+              Welcome, {user?.fullName ?? "Admin"}!
+            </h1>
+            <p className="text-sm sm:text-base text-[#a6a6a6] mb-4">What do you want to do today?</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/my-dashboard")}
+            className="shrink-0 px-3 py-2 text-xs bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white font-bold transition-colors cursor-pointer"
+          >
+            Member Dashboard
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           {[
