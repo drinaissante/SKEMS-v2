@@ -10,7 +10,7 @@ import {
   FiGrid,
   FiInbox,
   FiList,
-  FiMoreHorizontal,
+  FiMoreVertical,
   FiPlus,
   FiUser,
   FiUsers,
@@ -157,8 +157,8 @@ export default function MobileTabBar() {
         </div>
       )}
 
-      <nav className="fixed bottom-0 inset-x-0 z-40 md:hidden border-t border-white/10 bg-[#0c0c0c]/95 backdrop-blur px-1 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-end justify-around">
+      <nav className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-40 md:hidden w-[min(28rem,calc(100%-1.5rem))] rounded-2xl border border-white/10 bg-[#0c0c0c]/95 backdrop-blur shadow-xl px-3 pb-1 pt-1">
+        <div className="relative flex items-end">
           {leftTabs.map((item) => (
             <TabButton
               key={item.to}
@@ -168,17 +168,7 @@ export default function MobileTabBar() {
             />
           ))}
 
-          <div className="relative -mt-7 flex flex-col items-center">
-            <button
-              type="button"
-              onClick={() => { setCenterOpen((o) => !o); setMoreOpen(false) }}
-              aria-label="Borrow equipment"
-              className="w-14 h-14 rounded-full bg-[#c89116] hover:bg-[#caa453] text-white shadow-lg border-4 border-[#0c0c0c] flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <FiPlus size={26} />
-            </button>
-            <span className="text-[10px] text-[#a6a6a6] mt-0.5">Borrow</span>
-          </div>
+          <div className="w-16 shrink-0" />
 
           {rightTabs.map((item) => (
             <TabButton
@@ -191,11 +181,23 @@ export default function MobileTabBar() {
 
           {isAdmin && (
             <TabButton
-              item={{ to: "#more", label: "More", icon: FiMoreHorizontal, match: () => moreActive }}
+              item={{ to: "#more", label: "More", icon: FiMoreVertical, match: () => moreActive }}
               active={moreActive}
               onClick={() => { setMoreOpen((o) => !o); setCenterOpen(false) }}
             />
           )}
+
+          <div className="absolute left-1/2 bottom-1.5 -translate-x-1/2 flex flex-col items-center">
+            <button
+              type="button"
+              onClick={() => { setCenterOpen((o) => !o); setMoreOpen(false) }}
+              aria-label="Borrow equipment"
+              className="w-14 h-14 rounded-full bg-[#c89116] hover:bg-[#caa453] text-white border-4 border-gray-400/50 shadow-[0_0_14px_rgba(200,200,200,0.25)] flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <FiPlus size={26} />
+            </button>
+            <span className="text-[10px] text-[#a6a6a6] mt-0.5">Borrow</span>
+          </div>
         </div>
       </nav>
     </>
