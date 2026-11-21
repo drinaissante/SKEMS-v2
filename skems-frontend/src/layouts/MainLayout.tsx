@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import Footer from "../components/Footer"
 import LogoutModalManager from "../components/LogoutModalManager"
+import MobileTabBar from "../components/MobileTabBar"
 
 export default function MainLayout() {
   const { pathname } = useLocation()
@@ -15,6 +16,8 @@ export default function MainLayout() {
       </main>
       {!isDashboard && <Footer />}
       <LogoutModalManager />
+      <div className="h-20 md:hidden shrink-0" />
+      <MobileTabBar />
     </div>
   )
 }
