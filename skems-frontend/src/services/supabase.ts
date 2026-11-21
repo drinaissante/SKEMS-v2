@@ -37,6 +37,22 @@ export async function signUp(
     },
   });
   if (error) throw error;
+
+  void logAudit(
+    "account_approval_requested",
+    `${fullName} (${studentNumber})`,
+    `Email: ${email}`,
+    { id: data.user?.id ?? "", name: fullName, role: "member" },
+  )
+
+  void fetch("/api/notify-registration", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fullName, studentNumber, email }),
+  }).catch(() => {
+    // fire-and-forget; never block the signup flow
+  })
+
   return data;
 }
 
@@ -99,7 +115,7 @@ export type ApprovalStatus = "pending" | "approved" | "rejected";
 export async function setApprovalStatus(userId: string, status: ApprovalStatus) {
   const { data: target } = await supabase
     .from("profiles")
-    .select("full_name")
+    .select("full_name, student_number")
     .eq("id", userId)
     .maybeSingle();
 
@@ -122,7 +138,7 @@ export async function setApprovalStatus(userId: string, status: ApprovalStatus) 
       body:
         status === "approved"
           ? "Your registration was approved. Welcome to SKEMS!"
-          : "Your registration was rejected by a Super Admin. Contact an officer if you believe this is a mistake.",
+          : "Your registration was rejected by an officer. Contact an officer if you believe this is a mistake.",
     },
   ]);
 
@@ -133,9 +149,32 @@ export async function setApprovalStatus(userId: string, status: ApprovalStatus) 
       bodyText:
         status === "approved"
           ? "Your SKEMS registration was approved. You can now sign in and borrow equipment."
-          : "Your SKEMS registration was rejected by a Super Admin. Contact an officer if you believe this is a mistake.",
+          : "Your SKEMS registration was rejected by an officer. Contact an officer if you believe this is a mistake.",
     },
   ]);
+
+  void (async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      await fetch("/api/notify-account-decision", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          decision: status,
+          fullName: target?.full_name ?? "",
+          studentNumber: target?.student_number ?? "",
+        }),
+      });
+    } catch {
+      // fire-and-forget
+    }
+  })();
 }
 
 export async function fetchDiscordLink(userId: string) {
@@ -774,6 +813,17 @@ export async function fetchAuditLogs(): Promise<AuditRow[]> {
   const { data, error } = await supabase
     .from("audit_logs")
     .select("*")
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (error) throw error;
+  return data as unknown as AuditRow[];
+}
+
+export async function fetchMyAuditLogs(userId: string): Promise<AuditRow[]> {
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .select("*")
+    .eq("actor_id", userId)
     .order("created_at", { ascending: false })
     .limit(500);
   if (error) throw error;

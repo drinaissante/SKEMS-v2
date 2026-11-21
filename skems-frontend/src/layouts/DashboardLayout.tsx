@@ -25,20 +25,38 @@ export default function DashboardLayout() {
     }
   }, [collapsed])
 
-  const items = [
+  const managementItems = [
     { to: "/dashboard", label: "Dashboard", icon: FiGrid, active: pathname === "/dashboard" },
     { to: "/dashboard/equipments", label: "Equipment", icon: FiBox, active: pathname.startsWith("/dashboard/equipments") },
     { to: "/dashboard/requests", label: "Requests", icon: FiInbox, active: pathname.startsWith("/dashboard/requests") },
     { to: "/dashboard/borrowed", label: "Borrowed", icon: FiClock, active: pathname.startsWith("/dashboard/borrowed") },
     { to: "/dashboard/events", label: "Events", icon: FiFilm, active: pathname.startsWith("/dashboard/events") },
     { to: "/dashboard/audit", label: "Audit Log", icon: FiList, active: pathname.startsWith("/dashboard/audit") },
-    ...(isSuperAdmin
-      ? [
-          { to: "/dashboard/users", label: "Users", icon: FiUsers, active: pathname.startsWith("/dashboard/users") },
-          { to: "/dashboard/grading", label: "Grading", icon: FiAward, active: pathname.startsWith("/dashboard/grading") },
-        ]
-      : []),
   ]
+
+  const superAdminItems = [
+    { to: "/dashboard/users", label: "Users", icon: FiUsers, active: pathname.startsWith("/dashboard/users") },
+    { to: "/dashboard/grading", label: "Grading", icon: FiAward, active: pathname.startsWith("/dashboard/grading") },
+  ]
+
+  const renderNavItem = (item: { to: string; label: string; icon: typeof FiGrid; active: boolean }) => (
+    <Link
+      key={item.to}
+      to={item.to}
+      title={item.label}
+      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+        collapsed ? "justify-center" : ""
+      } ${
+        item.active ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+      }`}
+    >
+      <item.icon size={16} />
+      {!collapsed && item.label}
+      {item.active && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />
+      )}
+    </Link>
+  )
 
   return (
     <div className="flex flex-1 min-h-0">
@@ -60,24 +78,24 @@ export default function DashboardLayout() {
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {items.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              title={item.label}
-              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                collapsed ? "justify-center" : ""
-              } ${
-                item.active ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <item.icon size={16} />
-              {!collapsed && item.label}
-              {item.active && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />
+          {!collapsed && (
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#a6a6a6]/60 text-center pb-1 pt-2">
+              Management
+            </p>
+          )}
+          {managementItems.map(renderNavItem)}
+
+          {isSuperAdmin && (
+            <>
+              <div className="h-px bg-white/10 my-2" />
+              {!collapsed && (
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#a6a6a6]/60 text-center pb-1">
+                  Super Admin
+                </p>
               )}
-            </Link>
-          ))}
+              {superAdminItems.map(renderNavItem)}
+            </>
+          )}
         </nav>
 
         <div className="p-3 border-t border-white/10">

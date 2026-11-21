@@ -38,9 +38,9 @@ const dtOpts: Intl.DateTimeFormatOptions = {
   minute: "2-digit",
   hour12: true,
 }
+const MOBILE_ITEMS = 4
 
-const MOBILE_ITEMS = 6
-const DESKTOP_ITEMS = 9
+const DESKTOP_ITEMS = 8
 
 export default function EventCoveragePage() {
   usePageTitle("Event Coverage")
@@ -665,7 +665,7 @@ export default function EventCoveragePage() {
               </p>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
                   {pagedFolders.map((f) => {
                     const items = itemsByFolder.get(f.id) ?? []
                     const outCount = items.filter((it) => !it.returned).length

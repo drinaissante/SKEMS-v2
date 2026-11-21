@@ -161,10 +161,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data?.user) {
         const gate = await resolveUser(data.user.id)
         if (gate === "pending") {
-          return "Your account is still pending approval. A Super Admin will review your registration soon."
+          return "Your account is still pending approval. An officer will review your registration soon."
         }
         if (gate === "rejected") {
-          return "Your registration was rejected by a Super Admin. Contact an officer if you believe this is a mistake."
+          return "Your registration was rejected. Contact an officer if you believe this is a mistake."
         }
         return null
       }
