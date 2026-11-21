@@ -16,12 +16,50 @@ import {
 import ProofImage from "../../../components/ProofImage"
 import type { BorrowRecord } from "../../../constants/borrow"
 import { CONDITION_OPTIONS } from "../../../constants/borrowedConstants"
-import { FiSearch } from "react-icons/fi"
+import { FiSearch, FiArrowLeft } from "react-icons/fi"
 import { MOBILE_ITEMS, DESKTOP_ITEMS } from "../../../constants/borrowedConstants"
 import BorrowedCards from "./BorrowedCards"
 import PaginationNav from "../../../components/PaginationNav"
+import CategoryFolderGrid from "../../../components/CategoryFolderGrid"
+import RequestInfoModal from "../../../modals/RequestInfoModal"
+import type { RequestLike } from "../../../components/RequestCard"
+import ProofReviewModal from "./ProofReviewModal"
 import { EditModal, DeleteModal } from "./BorrowedModals"
+import { manilaDayLabel, manilaDateKey, formatManila } from "../../../utils/datetime"
 import { usePageTitle } from "../../../hooks/usePageTitle"
+
+const dtOpts: Intl.DateTimeFormatOptions = {
+  month: "2-digit",
+  day: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+}
+
+function borrowRecordToRequestLike(r: BorrowRecord): RequestLike {
+  const isReturned = Boolean(r.returned_on)
+  const late = isReturned && r.returned_on && r.date_time_return &&
+    new Date(r.returned_on) > new Date(`${r.date_time_return}${r.date_time_return.length === 16 ? ":00" : ""}+08:00`)
+  return {
+    id: `${r.equipment_id}:${r.created_at}`,
+    equipment_id: r.equipment_id,
+    equipment_name: r.equipment_requested,
+    borrower_name: r.full_name,
+    student_number: "",
+    reason: r.purpose_of_use ?? "",
+    date_borrowed: r.date_time_borrowing,
+    date_due: r.date_time_return,
+    status: isReturned ? (late ? "Returned Late" : "Returned") : "Active",
+    created_at: r.created_at,
+    quantity: r.quantity,
+    returned_on: r.returned_on,
+    position_department: r.position_department ?? "",
+    pickup_location: r.pickup_location ?? "",
+    return_location: r.return_location ?? "",
+    owner: r.owner ?? "",
+  }
+}
 
 export default function BorrowedPage() {
   usePageTitle("Borrowed")
@@ -40,6 +78,9 @@ export default function BorrowedPage() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [proofConditions, setProofConditions] = useState<Record<string, string>>({})
   const [proofReasons, setProofReasons] = useState<Record<string, string>>({})
+  const [activeFolder, setActiveFolder] = useState<string | null>(null)
+  const [detailRecord, setDetailRecord] = useState<BorrowRecord | null>(null)
+  const [proofReviewTarget, setProofReviewTarget] = useState<ReturnProof | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -94,13 +135,38 @@ export default function BorrowedPage() {
     )
   }, [records, search])
 
+  const folderEntries = useMemo(() => {
+    const counts = new Map<string, { label: string; key: string; count: number }>()
+    for (const r of filtered) {
+      const key = manilaDateKey(r.date_time_borrowing)
+      if (!key) continue
+      const existing = counts.get(key)
+      if (existing) existing.count++
+      else counts.set(key, { label: manilaDayLabel(r.date_time_borrowing), key, count: 1 })
+    }
+    return [...counts.values()].sort((a, b) => b.key.localeCompare(a.key))
+  }, [filtered])
+
+  const folderLabels = useMemo(() => folderEntries.map((e) => e.label), [folderEntries])
+
+  const folderCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const e of folderEntries) counts[e.label] = e.count
+    return counts
+  }, [folderEntries])
+
+  const folderFiltered = useMemo(() => {
+    if (!activeFolder || activeFolder === "__all__") return filtered
+    return filtered.filter((r) => manilaDayLabel(r.date_time_borrowing) === activeFolder)
+  }, [filtered, activeFolder])
+
   const itemsPerPage = isMobile ? MOBILE_ITEMS : DESKTOP_ITEMS
-  const totalPages = Math.ceil(filtered.length / itemsPerPage)
+  const totalPages = Math.ceil(folderFiltered.length / itemsPerPage)
 
   const paginatedItems = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage
-    return filtered.slice(start, start + itemsPerPage)
-  }, [filtered, currentPage, itemsPerPage])
+    return folderFiltered.slice(start, start + itemsPerPage)
+  }, [folderFiltered, currentPage, itemsPerPage])
 
   const updateMutation = useMutation({
     mutationFn: ({
@@ -159,6 +225,7 @@ export default function BorrowedPage() {
       queryClient.invalidateQueries({ queryKey: ["borrowed-items"] })
       queryClient.invalidateQueries({ queryKey: ["equipments"] })
       queryClient.invalidateQueries({ queryKey: ["pending-return-proofs"] })
+      setProofReviewTarget(null)
       showToast("Return approved!", "success")
       setTimeout(handleSync, 3500)
     },
@@ -177,17 +244,13 @@ export default function BorrowedPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-return-proofs"] })
+      setProofReviewTarget(null)
       showToast("Proof rejected. The member has been notified.", "success")
     },
     onError: (err) => {
       showToast("Failed to reject proof: " + (err instanceof Error ? err.message : "Unknown error"), "error")
     },
   })
-
-  const handleReviewProof = (equipmentId: string) => {
-    const el = document.getElementById(`proof-${equipmentId}`)
-    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" })
-  }
 
   const handleEdit = (r: BorrowRecord) => {
     setEditing(r)
@@ -311,6 +374,22 @@ export default function BorrowedPage() {
           </section>
         )}
 
+        {activeFolder !== null && (
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              type="button"
+              onClick={() => { setActiveFolder(null); setCurrentPage(1) }}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
+            >
+              <FiArrowLeft size={14} />
+              All Folders
+            </button>
+            <h2 className="text-base font-bold text-white truncate">
+              {activeFolder === "__all__" ? "All Borrowed Items" : activeFolder}
+            </h2>
+          </div>
+        )}
+
         <div className="relative mb-4">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a6a6a6]" size={16} />
           <input
@@ -324,17 +403,25 @@ export default function BorrowedPage() {
 
         {isLoading ? (
           <p className="text-center text-[#a6a6a6] py-10">Loading borrowed items...</p>
-        ) : filtered.length === 0 ? (
-          <p className="text-center text-[#a6a6a6] py-10">
-            {search ? "No items match your search." : "No borrowed items found."}
-          </p>
+        ) : records.length === 0 ? (
+          <p className="text-center text-[#a6a6a6] py-10">No borrowed items found.</p>
+        ) : activeFolder === null ? (
+          <CategoryFolderGrid
+            categories={folderLabels}
+            counts={folderCounts}
+            total={filtered.length}
+            allLabel="All Borrowed Items"
+            onSelect={(c) => { setActiveFolder(c); setCurrentPage(1) }}
+          />
+        ) : folderFiltered.length === 0 ? (
+          <p className="text-center text-[#a6a6a6] py-10">No items match your search.</p>
         ) : (
           <>
             <BorrowedCards
               items={paginatedItems}
               getOwnerPosition={(name) => ownerPositionMap.get(name.trim().toLowerCase()) ?? ""}
               hasPendingProof={(equipmentId) => pendingProofIds.has(equipmentId)}
-              onReviewProof={handleReviewProof}
+              onOpenInfo={(r) => setDetailRecord(r)}
               onEdit={handleEdit}
               onDelete={(id) => setShowDeleteConfirm(id)}
               deletePending={deleteMutation.isPending}
@@ -371,6 +458,59 @@ export default function BorrowedPage() {
         onDelete={() => showDeleteConfirm && handleDelete(showDeleteConfirm)}
         deletePending={deleteMutation.isPending}
       />
+
+      {detailRecord && (
+        <RequestInfoModal
+          request={borrowRecordToRequestLike(detailRecord)}
+          onClose={() => setDetailRecord(null)}
+          formatDateTime={(iso) => formatManila(iso, dtOpts)}
+          actions={
+            <>
+              <button
+                onClick={() => { const rec = detailRecord; setDetailRecord(null); handleEdit(rec) }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#c89116] hover:bg-[#caa453] text-white text-xs font-bold transition-colors cursor-pointer"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => { setDetailRecord(null); setShowDeleteConfirm(detailRecord.equipment_id) }}
+                disabled={deleteMutation.isPending}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
+              >
+                Delete
+              </button>
+              {pendingProofIds.has(detailRecord.equipment_id) && (
+                <button
+                  onClick={() => {
+                    const proof = (pendingProofs as ReturnProof[]).find((p) => p.equipment_id === detailRecord.equipment_id)
+                    if (proof) setProofReviewTarget(proof)
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Proof
+                </button>
+              )}
+            </>
+          }
+        />
+      )}
+
+      {proofReviewTarget && (
+        <ProofReviewModal
+          proof={proofReviewTarget}
+          equipmentName={recordNameMap.get(proofReviewTarget.equipment_id)?.name ?? proofReviewTarget.equipment_id}
+          borrowerName={recordNameMap.get(proofReviewTarget.equipment_id)?.borrower ?? "Member"}
+          conditionAfter={proofConditions[proofReviewTarget.id] ?? ""}
+          rejectReason={proofReasons[proofReviewTarget.id] ?? ""}
+          onConditionChange={(v) => setProofConditions(prev => ({ ...prev, [proofReviewTarget.id]: v }))}
+          onReasonChange={(v) => setProofReasons(prev => ({ ...prev, [proofReviewTarget.id]: v }))}
+          onApprove={() => approveProofMutation.mutate({ proof: proofReviewTarget, conditionAfter: proofConditions[proofReviewTarget.id] ?? "" })}
+          onReject={() => rejectProofMutation.mutate({ proof: proofReviewTarget, reason: proofReasons[proofReviewTarget.id] ?? "" })}
+          approvePending={approveProofMutation.isPending && approveProofMutation.variables?.proof.id === proofReviewTarget.id}
+          rejectPending={rejectProofMutation.isPending && rejectProofMutation.variables?.proof.id === proofReviewTarget.id}
+          onClose={() => setProofReviewTarget(null)}
+        />
+      )}
     </div>
   )
 }
