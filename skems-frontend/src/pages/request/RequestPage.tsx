@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { fetchEquipments, type Equipment } from "../../services/api"
 import { submitRequest } from "../../services/supabase"
+import { fetchEventFolders } from "../../services/supabase"
 import { useAuth } from "../../context/AuthContext"
   import { useToast } from "../../hooks/useToast"
   import { FiPlus, FiTrash2, FiSearch } from "react-icons/fi"
@@ -69,6 +70,19 @@ export default function RequestPage() {
       (e) => e.condition !== "Borrowed" && e.condition !== "Broken" && e.condition !== "Unavailable"
     ),
     [allEquipments],
+  )
+
+  const [selectedEventId, setSelectedEventId] = useState("")
+
+  const { data: eventFolders = [] } = useQuery({
+    queryKey: ["event-folders"],
+    queryFn: fetchEventFolders,
+  })
+  const openEvents = useMemo(
+    () => (eventFolders as { id: string; event_name: string; status: string; borrow_time: string | null }[])
+      .filter((f) => f.status === "open")
+      .sort((a, b) => (a.borrow_time ?? "").localeCompare(b.borrow_time ?? "")),
+    [eventFolders],
   )
 
   const addToFormItems = useCallback((eq: Equipment) => {
@@ -245,6 +259,7 @@ export default function RequestPage() {
           pickupLocation,
           returnLocation,
           owner: item.owner,
+          eventId: selectedEventId || null,
         })
       }
 
@@ -255,6 +270,7 @@ export default function RequestPage() {
       setReturnLocation("")
       setDateBorrowed("")
       setDateDue("")
+      setSelectedEventId("")
       setFormStep(1)
     } catch {
       showToast("Failed to submit request. Please try again.", "error")
@@ -499,6 +515,28 @@ export default function RequestPage() {
                   <div>
                     <label htmlFor="returnLocation" className="block text-sm font-medium text-[#a6a6a6] mb-1">Return Location <span className="text-red-500">*</span></label>
                     <input id="returnLocation" type="text" value={returnLocation} onChange={(e) => setReturnLocation(e.target.value)} maxLength={200} placeholder="e.g. SK Office" className="dark-input w-full text-base" />
+                  </div>
+
+                  <div>
+                    <label htmlFor="eventTag" className="block text-sm font-medium text-[#a6a6a6] mb-1">
+                      Event <span className="text-[#a6a6a6] font-normal">(optional)</span>
+                    </label>
+                    <select
+                      id="eventTag"
+                      value={selectedEventId}
+                      onChange={(e) => setSelectedEventId(e.target.value)}
+                      className="dark-input w-full text-base"
+                    >
+                      <option value="">No event</option>
+                      {openEvents.map((ev) => (
+                        <option key={ev.id} value={ev.id}>
+                          {ev.event_name}{ev.borrow_time ? ` · ${formatWallClock(ev.borrow_time, { month: "short", day: "numeric" })}` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-[#a6a6a6] mt-1">
+                      Tag this request with an event you're covering — an SK officer will assign the equipment to it after approval.
+                    </p>
                   </div>
                 </div>
               )}

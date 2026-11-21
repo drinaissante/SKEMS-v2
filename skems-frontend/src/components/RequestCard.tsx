@@ -67,6 +67,8 @@ export interface RequestLike {
   pickup_location: string
   return_location: string
   owner: string
+  event_id?: string | null
+  event_name?: string | null
   owner_status?: string | null
   owner_reason?: string | null
 }
@@ -109,6 +111,11 @@ export default function RequestCard({
           <p className="font-mono text-xs text-[#c89116] font-bold">{r.equipment_id}</p>
           <h3 className="text-base font-bold text-white leading-snug truncate">{r.equipment_name}</h3>
           <p className="text-xs text-[#a6a6a6] mt-0.5 truncate">{r.owner || "No owner"}</p>
+          {r.event_name && (
+            <p className="text-[10px] font-bold text-purple-300 mt-0.5 truncate" title={`Event: ${r.event_name}`}>
+              🎫 {r.event_name}
+            </p>
+          )}
         </div>
 
         <StatusChip status={displayStatus(r)} />

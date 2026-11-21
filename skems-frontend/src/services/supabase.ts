@@ -350,7 +350,21 @@ export async function submitRequest(data: {
   pickupLocation: string;
   returnLocation: string;
   owner: string;
+  eventId?: string | null;
 }) {
+  // Optional event tag: resolve the folder and snapshot its name.
+  let eventFolder: { id: string; event_name: string } | null = null;
+  if (data.eventId) {
+    const { data: folder } = await supabase
+      .from("event_folders")
+      .select("id, event_name, status")
+      .eq("id", data.eventId)
+      .maybeSingle();
+    if (folder && (folder as { status: string }).status === "open") {
+      eventFolder = folder as { id: string; event_name: string };
+    }
+  }
+
   const { data: inserted, error } = await supabase
     .from("requests")
     .insert({
@@ -368,6 +382,8 @@ export async function submitRequest(data: {
       pickup_location: data.pickupLocation,
       return_location: data.returnLocation,
       owner: data.owner,
+      event_id: eventFolder?.id ?? null,
+      event_name: eventFolder?.event_name ?? null,
     })
     .select("id")
     .single();
@@ -377,7 +393,7 @@ export async function submitRequest(data: {
     void logAudit(
       "request_submitted",
       `${data.equipmentName} × ${data.quantity} requested by ${data.borrowerName}`,
-      `Borrow: ${data.dateBorrowed} · Due: ${data.dateDue}`,
+      `Borrow: ${data.dateBorrowed} · Due: ${data.dateDue}${eventFolder ? ` · Event: ${eventFolder.event_name}` : ""}`,
     )
 
     void notifyDiscordRequest(data, inserted.id);
@@ -538,6 +554,8 @@ export async function fetchMyRequests(userId: string) {
     pickup_location: string;
     return_location: string;
     owner: string;
+    event_id: string | null;
+    event_name: string | null;
     owner_status: string;
     owner_reason: string | null;
     discord_message_id: string | null;
@@ -569,6 +587,8 @@ export async function fetchAllRequests() {
     pickup_location: string;
     return_location: string;
     owner: string;
+    event_id: string | null;
+    event_name: string | null;
     owner_status: string;
     owner_reason: string | null;
     discord_message_id: string | null;
@@ -1064,6 +1084,8 @@ export async function fetchRequestsForEquipments(equipmentIds: string[]) {
     pickup_location: string;
     return_location: string;
     owner: string;
+    event_id: string | null;
+    event_name: string | null;
     owner_status: string;
     owner_reason: string | null;
     discord_message_id: string | null;

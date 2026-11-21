@@ -40,6 +40,9 @@ export default function RequestInfoModal({ request: r, onClose, actions, formatD
           <InfoRow label="Student No.">{r.student_number || "—"}</InfoRow>
           <InfoRow label="Position">{r.position_department || "—"}</InfoRow>
           <InfoRow label="Owner">{r.owner || "—"}</InfoRow>
+          {r.event_name && (
+            <InfoRow label="Event">{r.event_name}</InfoRow>
+          )}
           {r.owner_status === "approved" && (
             <InfoRow label="Owner Decision">
               <span className="text-green-300">Approved.</span>
