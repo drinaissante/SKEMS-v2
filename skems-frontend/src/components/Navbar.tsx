@@ -147,6 +147,14 @@ export default function Navbar() {
                         My Equipments
                       </NavLink>
 
+                      <NavLink
+                        to="/my-logs"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                      >
+                        Logs
+                      </NavLink>
+
                       <hr className="border-[#a6a6a6]/30" />
 
                       <button
@@ -263,6 +271,8 @@ export default function Navbar() {
             <>
               <div className="h-px bg-white/10 my-2" />
 
+              <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#a6a6a6]/60 text-center">Member</p>
+
               {!isAdmin ? (
                 <NavLink
                   to="/my-dashboard"
@@ -287,8 +297,45 @@ export default function Navbar() {
                 </NavLink>
               )}
 
+              <NavLink
+                to="/my-logs"
+                onClick={() => setSidebarOpen(false)}
+                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  pathname === "/my-logs" ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+                }`}
+              >
+                Logs
+                {pathname === "/my-logs" && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+              </NavLink>
+
+              <NavLink
+                to={`/profiles/${user?.id}/requests`}
+                onClick={() => setSidebarOpen(false)}
+                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  pathname.endsWith("/requests") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+                }`}
+              >
+                My Requests
+                {pathname.endsWith("/requests") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+              </NavLink>
+
+              <NavLink
+                to={`/profiles/${user?.id}/equipments`}
+                onClick={() => setSidebarOpen(false)}
+                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  pathname.endsWith("/equipments") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
+                }`}
+              >
+                My Equipments
+                {pathname.endsWith("/equipments") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
+              </NavLink>
+
               {isAdmin && (
                 <>
+                  <div className="h-px bg-white/10 my-2" />
+
+                  <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#a6a6a6]/60 text-center">Management</p>
+
                   <NavLink
                     to="/dashboard"
                     onClick={() => setSidebarOpen(false)}
@@ -349,8 +396,13 @@ export default function Navbar() {
                     Audit Log
                     {pathname.startsWith("/dashboard/audit") && <span className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
                   </NavLink>
+
                   {isSuperAdmin && (
                     <>
+                      <div className="h-px bg-white/10 my-2" />
+
+                      <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#a6a6a6]/60 text-center">Super Admin</p>
+
                       <NavLink
                         to="/dashboard/users"
                         onClick={() => setSidebarOpen(false)}
@@ -375,28 +427,6 @@ export default function Navbar() {
                   )}
                 </>
               )}
-
-              <NavLink
-                to={`/profiles/${user?.id}/requests`}
-                onClick={() => setSidebarOpen(false)}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  pathname.endsWith("/requests") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
-                }`}
-              >
-                My Requests
-                {pathname.endsWith("/requests") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
-              </NavLink>
-
-              <NavLink
-                to={`/profiles/${user?.id}/equipments`}
-                onClick={() => setSidebarOpen(false)}
-                className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  pathname.endsWith("/equipments") ? "bg-white/10 text-[#fdb125]" : "text-[#a6a6a6] hover:text-white hover:bg-white/5"
-                }`}
-              >
-                My Equipments
-                {pathname.endsWith("/equipments") && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 bg-[#fdb125] rounded-full" />}
-              </NavLink>
 
               <NavLink
                 to="/profile"
