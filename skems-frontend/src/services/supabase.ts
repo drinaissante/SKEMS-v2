@@ -663,9 +663,40 @@ export async function approveAndMoveRequest(requestId: string, adminUserId: stri
 
   if (statusErr) throw statusErr;
 
+  // Auto-insert into the tagged event folder (if the request carries one
+  // and the folder is still open).
+  if (request.event_id) {
+    const { data: folder } = await supabase
+      .from("event_folders")
+      .select("status")
+      .eq("id", request.event_id)
+      .maybeSingle();
+
+    if (folder && (folder as { status: string }).status === "open") {
+      const { data: existingItem } = await supabase
+        .from("event_items")
+        .select("id")
+        .eq("folder_id", request.event_id)
+        .eq("equipment_id", request.equipment_id)
+        .eq("returned", false)
+        .limit(1)
+        .maybeSingle();
+
+      if (!existingItem) {
+        await addEventItem({
+          folderId: request.event_id,
+          equipmentId: request.equipment_id,
+          equipmentName: request.event_name ?? request.equipment_name ?? request.equipment_id,
+          borrowerId: request.user_id ?? null,
+          borrowerName: request.borrower_name ?? "Member",
+        });
+      }
+    }
+  }
+
   void logAudit(
     "request_approved",
-    `${request.equipment_name ?? "Equipment"} × ${request.quantity ?? 1} for ${request.borrower_name ?? "member"} — moved to borrowed items`,
+    `${request.equipment_name ?? "Equipment"} × ${request.quantity ?? 1} for ${request.borrower_name ?? "member"} — moved to borrowed items${request.event_name ? ` · Added to event: ${request.event_name}` : ""}`,
   )
 
   void notifyRequestUsers({
@@ -1220,6 +1251,16 @@ export async function fetchPendingReturnProofs(): Promise<ReturnProof[]> {
     .select("*")
     .eq("status", "pending")
     .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data as unknown as ReturnProof[];
+}
+
+export async function fetchProofsByEquipment(equipmentId: string): Promise<ReturnProof[]> {
+  const { data, error } = await supabase
+    .from("proofs")
+    .select("*")
+    .eq("equipment_id", equipmentId)
+    .order("created_at", { ascending: false });
   if (error) throw error;
   return data as unknown as ReturnProof[];
 }

@@ -9,6 +9,7 @@ import {
   deleteBorrowedItem,
   fetchAllProfiles,
   fetchPendingReturnProofs,
+  fetchProofsByEquipment,
   approveReturnProof,
   rejectReturnProof,
   type ReturnProof,
@@ -198,6 +199,12 @@ export default function BorrowedPage() {
     queryFn: fetchPendingReturnProofs,
   })
 
+  const { data: detailProofs = [] } = useQuery({
+    queryKey: ["equipment-proofs", detailRecord?.equipment_id],
+    queryFn: () => fetchProofsByEquipment(detailRecord!.equipment_id),
+    enabled: !!detailRecord,
+  })
+
   const pendingProofIds = useMemo(
     () => new Set((pendingProofs as ReturnProof[]).map((p) => p.equipment_id)),
     [pendingProofs],
@@ -290,6 +297,47 @@ export default function BorrowedPage() {
     const r = records.find((r) => r.equipment_id === showDeleteConfirm)
     return r ? r.equipment_requested : showDeleteConfirm
   }
+
+  const profileNameById = useMemo(
+    () => new Map((profiles as { id: string; full_name: string }[]).map((p) => [p.id, p.full_name])),
+    [profiles],
+  )
+
+  const proofSectionNode = detailRecord
+    ? (detailProofs as ReturnProof[]).length === 0
+      ? <p className="text-xs text-[#a6a6a6] italic">No return proof submitted yet.</p>
+      : (
+        <div className="space-y-4">
+          {(detailProofs as ReturnProof[]).map((proof) => (
+            <div key={proof.id} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  proof.status === "approved" ? "bg-green-600 text-white" :
+                  proof.status === "rejected" ? "bg-red-600 text-white" :
+                  "bg-purple-500/20 text-purple-300"
+                }`}>
+                  {proof.status}
+                </span>
+                <span className="text-[10px] text-[#a6a6a6]">
+                  {formatManila(proof.created_at, dtOpts)}
+                </span>
+              </div>
+              <ProofImage path={proof.storage_path} className="w-full h-44" />
+              {proof.reviewed_by && (
+                <p className="text-xs text-[#a6a6a6]">
+                  {proof.status === "approved" ? "Reviewed by" : "Rejected by"}{" "}
+                  <span className="text-white font-medium">{profileNameById.get(proof.reviewed_by) ?? "an officer"}</span>
+                  {proof.reviewed_at ? ` · ${formatManila(proof.reviewed_at, dtOpts)}` : ""}
+                </p>
+              )}
+              {proof.status === "rejected" && proof.reject_reason && (
+                <p className="text-xs text-red-300">Reason: {proof.reject_reason}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    : undefined
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-fixed-black px-3 sm:px-4 py-4 sm:py-6">
@@ -464,6 +512,7 @@ export default function BorrowedPage() {
           request={borrowRecordToRequestLike(detailRecord)}
           onClose={() => setDetailRecord(null)}
           formatDateTime={(iso) => formatManila(iso, dtOpts)}
+          proofSection={proofSectionNode}
           actions={
             <>
               <button

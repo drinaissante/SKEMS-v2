@@ -5,10 +5,11 @@ interface RequestInfoModalProps {
   request: RequestLike
   onClose: () => void
   actions?: ReactNode
+  proofSection?: ReactNode
   formatDateTime: (iso: string) => string
 }
 
-export default function RequestInfoModal({ request: r, onClose, actions, formatDateTime }: RequestInfoModalProps) {
+export default function RequestInfoModal({ request: r, onClose, actions, proofSection, formatDateTime }: RequestInfoModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
@@ -67,6 +68,13 @@ export default function RequestInfoModal({ request: r, onClose, actions, formatD
             </InfoRow>
           )}
         </div>
+
+        {proofSection && (
+          <div className="mt-4 pt-3 border-t border-white/10">
+            <p className="text-[10px] uppercase tracking-wide font-bold text-[#a6a6a6] mb-2">Return Proof</p>
+            {proofSection}
+          </div>
+        )}
 
         {actions && (
           <div className="flex flex-wrap gap-2 pt-4 mt-2 border-t border-white/10">
