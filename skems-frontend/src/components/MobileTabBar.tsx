@@ -69,6 +69,8 @@ export default function MobileTabBar() {
 
   const uid = user?.id ?? ""
 
+  const borrowItem: TabItem = { to: "/request", label: "Borrow", icon: FiPlus, match: () => false }
+
   const leftTabs: TabItem[] = isAdmin
     ? ([
         { to: "/dashboard", label: "Dashboard", icon: FiGrid, match: (p: string) => p === "/dashboard" },
@@ -88,6 +90,8 @@ export default function MobileTabBar() {
         { to: `/profiles/${uid}/requests`, label: "My Requests", icon: FiInbox, match: (p: string) => p === `/profiles/${uid}/requests` },
         { to: `/profiles/${uid}/equipments`, label: "Equipment", icon: FiBox, match: (p: string) => p === `/profiles/${uid}/equipments` },
       ] as TabItem[])
+
+  const tabs: TabItem[] = [...leftTabs, borrowItem, ...rightTabs]
 
   const moreItems: TabItem[] = [
     ...(isAdmin
@@ -163,26 +167,24 @@ export default function MobileTabBar() {
       )}
 
       <nav className="sk-tabbar fixed bottom-0 inset-x-0 z-40 md:hidden border-t border-white/10 bg-[#0c0c0c]/95 backdrop-blur px-1 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
-        <div className="relative flex items-end">
-          {leftTabs.map((item) => (
-            <TabButton
-              key={item.to}
-              item={item}
-              active={item.match(pathname)}
-              onClick={() => go(item.to)}
-            />
-          ))}
-
-          <div className="w-16 shrink-0" />
-
-          {rightTabs.map((item) => (
-            <TabButton
-              key={item.to}
-              item={item}
-              active={item.match(pathname)}
-              onClick={() => go(item.to)}
-            />
-          ))}
+        <div className="flex items-end">
+          {tabs.map((item) =>
+            item.to === "/request" ? (
+              <TabButton
+                key="borrow"
+                item={borrowItem}
+                active={false}
+                onClick={() => { setCenterOpen((o) => !o); setMoreOpen(false) }}
+              />
+            ) : (
+              <TabButton
+                key={item.to}
+                item={item}
+                active={item.match(pathname)}
+                onClick={() => go(item.to)}
+              />
+            ),
+          )}
 
           {isAdmin && (
             <TabButton
@@ -191,18 +193,6 @@ export default function MobileTabBar() {
               onClick={() => { setMoreOpen((o) => !o); setCenterOpen(false) }}
             />
           )}
-
-          <div className="absolute left-1/2 bottom-1.5 -translate-x-1/2 flex flex-col items-center">
-            <button
-              type="button"
-              onClick={() => { setCenterOpen((o) => !o); setMoreOpen(false) }}
-              aria-label="Borrow equipment"
-              className="w-14 h-14 rounded-full bg-[#c89116] hover:bg-[#caa453] text-white border-4 border-gray-400/50 shadow-[0_0_14px_rgba(200,200,200,0.25)] flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <FiPlus size={26} />
-            </button>
-            <span className="text-[10px] text-[#a6a6a6] mt-0.5">Borrow</span>
-          </div>
         </div>
       </nav>
     </>
