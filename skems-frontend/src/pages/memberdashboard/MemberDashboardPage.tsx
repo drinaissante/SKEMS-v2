@@ -7,12 +7,13 @@ import { useAuth } from "../../context/AuthContext"
 import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
 import { formatWallClock, formatManila, toManilaIso, nowMs } from "../../utils/datetime"
-import { FiSearch, FiPlus, FiChevronLeft, FiChevronRight } from "react-icons/fi"
-import PaginationNav from "../../components/PaginationNav"
+import { FiSearch, FiPlus, FiChevronLeft, FiChevronRight, FiXCircle } from "react-icons/fi"
 import RequestCard, { type RequestLike } from "../../components/RequestCard"
 import RequestInfoModal from "../../modals/RequestInfoModal"
 import ReturnProofModal from "../../modals/ReturnProofModal"
-import { fetchMyReturnProofs, fetchMyEventItems, type ReturnProof } from "../../services/supabase"
+import PaginationNav from "../../components/PaginationNav"
+import { fetchMyReturnProofs, fetchMyEventItems, updateRequestStatus, type ReturnProof } from "../../services/supabase"
+import { useMutation } from "@tanstack/react-query"
 
 const dtOpts: Intl.DateTimeFormatOptions = {
   month: "2-digit",
@@ -273,6 +274,19 @@ export default function MemberDashboardPage() {
     () => availableEquipments.slice((borrowSafePage - 1) * BORROW_PAGE_SIZE, borrowSafePage * BORROW_PAGE_SIZE),
     [availableEquipments, borrowSafePage, BORROW_PAGE_SIZE],
   )
+
+  const cancelMutation = useMutation({
+    mutationFn: (requestId: string) => updateRequestStatus(requestId, "Canceled"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-requests", user?.id] })
+      queryClient.invalidateQueries({ queryKey: ["admin-requests"] })
+      setDetailId(null)
+      showToast("Request canceled.", "success")
+    },
+    onError: (err) => {
+      showToast("Failed to cancel: " + (err instanceof Error ? err.message : "Unknown error"), "error")
+    },
+  })
 
   if (!user) return null
 
@@ -568,6 +582,18 @@ export default function MemberDashboardPage() {
           request={detailRequest as RequestLike}
           onClose={() => setDetailId(null)}
           formatDateTime={(iso) => formatWallClock(iso, dtOpts)}
+          actions={
+            detailRequest.status === "Pending" ? (
+              <button
+                onClick={() => cancelMutation.mutate(detailRequest.id)}
+                disabled={cancelMutation.isPending}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
+              >
+                <FiXCircle size={14} />
+                {cancelMutation.isPending ? "Canceling..." : "Cancel Request"}
+              </button>
+            ) : undefined
+          }
         />
       )}
 
