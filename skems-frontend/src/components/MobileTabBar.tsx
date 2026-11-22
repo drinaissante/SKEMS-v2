@@ -83,7 +83,6 @@ export default function MobileTabBar() {
   const rightTabs: TabItem[] = isAdmin
     ? ([
         { to: "/dashboard/borrowed", label: "Borrowed", icon: FiClock, match: (p: string) => p.startsWith("/dashboard/borrowed") },
-        { to: "/dashboard/events", label: "Events", icon: FiFilm, match: (p: string) => p.startsWith("/dashboard/events") },
       ] as TabItem[])
     : ([
         { to: `/profiles/${uid}/requests`, label: "My Requests", icon: FiInbox, match: (p: string) => p === `/profiles/${uid}/requests` },
@@ -91,6 +90,11 @@ export default function MobileTabBar() {
       ] as TabItem[])
 
   const moreItems: TabItem[] = [
+    ...(isAdmin
+      ? ([
+          { to: "/dashboard/events", label: "Events", icon: FiFilm, match: (p: string) => p.startsWith("/dashboard/events") },
+        ] as TabItem[])
+      : []),
     { to: "/profile", label: "Profile", icon: FiUser, match: (p: string) => p === "/profile" },
     ...(isAdmin
       ? ([
