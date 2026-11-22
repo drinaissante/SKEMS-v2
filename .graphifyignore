@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.next/
+.vite/
+coverage/
+*.min.js
+*.min.css
+*.map
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+graphify-out/
