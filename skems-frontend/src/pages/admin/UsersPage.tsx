@@ -7,6 +7,7 @@ import { usePageTitle } from "../../hooks/usePageTitle"
 import { useToast } from "../../hooks/useToast"
 import { FiSearch, FiCheck, FiX } from "react-icons/fi"
 import PaginationNav from "../../components/PaginationNav"
+import { STATUS_OPTIONS } from "../../constants/gradingConstants"
 
 const MOBILE_ITEMS = 8
 const DESKTOP_ITEMS = 15
@@ -311,13 +312,19 @@ export default function UsersPage() {
           <div className="bg-[#111] border border-[#5f5c5c93] rounded-xl shadow-xl p-5 sm:p-6 w-full max-w-sm">
             <h3 className="text-lg font-bold text-white mb-4">Edit Position</h3>
             <p className="text-sm text-[#a6a6a6] mb-3">{editingProfile.full_name}</p>
-            <input
-              type="text"
+            <select
               value={positionDraft}
               onChange={(e) => setPositionDraft(e.target.value)}
-              placeholder="e.g. President, Trainee..."
               className="dark-input w-full text-sm"
-            />
+            >
+              <option value="" disabled>Select position…</option>
+              {!positionDraft || (STATUS_OPTIONS as readonly string[]).includes(positionDraft) ? null : (
+                <option value={positionDraft}>{positionDraft} (current)</option>
+              )}
+              {(STATUS_OPTIONS as readonly string[]).map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
             <div className="flex gap-3 mt-5">
               <button
                 onClick={() => setEditingProfile(null)}
