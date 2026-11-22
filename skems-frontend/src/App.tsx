@@ -39,7 +39,6 @@ import { useGradingRealtime } from './hooks/useGradingRealtime'
 import { useReturnProofsRealtime } from './hooks/useReturnProofsRealtime'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
 import OfflineBanner from './components/OfflineBanner'
-import PWAUpdatePrompt from './components/PWAUpdatePrompt'
 import About from './pages/about/About'
 import Portfolio from './pages/portfolio/Portfolio'
 import Restricted from './pages/restricted/Restricted'
@@ -100,7 +99,6 @@ function App() {
     <>
       <DiscordRpcTracker />
       {!online && <OfflineBanner />}
-      <PWAUpdatePrompt />
       <ToastProvider>
       <TutorialProvider>
       <Routes>

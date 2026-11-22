@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       strategies: "injectManifest",
       srcDir: "sw",
       filename: "sw.ts",
@@ -41,6 +41,15 @@ export default defineConfig({
   ],
   build: {
     chunkSizeWarningLimit: 1000,
+  },
+  // Per-deploy cache buster: Vercel injects VERCEL_GIT_COMMIT_SHA at build
+  // time, so every deploy invalidates persisted React Query caches.
+  define: {
+    __APP_BUSTER__: JSON.stringify(
+      process.env.VERCEL_GIT_COMMIT_SHA ??
+        process.env.VITE_VERCEL_GIT_COMMIT_SHA ??
+        "local-dev",
+    ),
   },
   server: {
     proxy: {

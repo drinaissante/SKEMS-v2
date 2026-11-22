@@ -14,21 +14,29 @@ self.addEventListener("message", (event) => {
 })
 
 cleanupOutdatedCaches()
-precacheAndRoute(self.__WB_MANIFEST)
 
+// Navigation route is registered FIRST (workbox is first-match-wins) so
+// navigations always try the network before any precached shell. A deploy
+// makes old hashed chunks 404 — serving stale precached HTML here would
+// black-screen the app, so non-OK network responses fall back to the
+// cached shell only when the network answer is unusable.
 registerRoute(
   ({ request, url }) =>
     request.mode === "navigate" && !url.pathname.startsWith("/api/"),
   async ({ event }) => {
     try {
-      return await fetch(event.request)
+      const response = await fetch(event.request)
+      if (response.ok) return response
     } catch {
-      const fallback = await matchPrecache("index.html")
-      if (fallback) return fallback
-      return Response.error()
+      // network failed - fall through to the cached shell
     }
+    const fallback = await matchPrecache("index.html")
+    if (fallback) return fallback
+    return Response.error()
   },
 )
+
+precacheAndRoute(self.__WB_MANIFEST)
 
 registerRoute(
   ({ url }) =>
