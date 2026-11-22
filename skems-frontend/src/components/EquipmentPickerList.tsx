@@ -45,7 +45,7 @@ export default function EquipmentPickerList({ items, loading, search, inFormIds,
               e.dataTransfer.effectAllowed = "copy"
             }}
             onClick={() => (!inForm || allowDeselect) && onAdd(eq)}
-            className={`p-3 rounded-lg border transition-colors select-none ${
+            className={`rounded-lg border transition-colors select-none p-3 sm:p-4 ${
               inForm
                 ? allowDeselect
                   ? "border-[#c89116] bg-[#c89116]/15 cursor-pointer"
@@ -55,21 +55,18 @@ export default function EquipmentPickerList({ items, loading, search, inFormIds,
           >
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-white truncate">{eq.name}</p>
-                <p className="text-xs text-[#a6a6a6] sm:hidden">{eq.id}</p>
-                <p className="text-xs text-[#a6a6a6] sm:hidden">{eq.owner ? `Owner: ${eq.owner}` : "No owner"}</p>
+                <p className="text-sm sm:text-base font-medium text-white truncate">{eq.name}</p>
+                <p className="text-[11px] sm:text-xs text-[#a6a6a6] sm:hidden">{eq.id}</p>
+                <p className="text-[11px] sm:text-xs text-[#a6a6a6] sm:hidden">{eq.owner ? `Owner: ${eq.owner}` : "No owner"}</p>
                 <p className="hidden sm:block text-xs text-[#a6a6a6]">{eq.id}{eq.owner ? ` — ${eq.owner}` : ""}</p>
                 {eq.comments && (
-                  <p className="text-[11px] text-[#c89116]/80 wrap-anywhere leading-relaxed" title={eq.comments}>
+                  <p className="text-[11px] sm:text-xs text-[#c89116]/80 wrap-anywhere leading-relaxed" title={eq.comments}>
                     {eq.comments}
                   </p>
                 )}
               </div>
-              {inForm && allowDeselect ? (
-                <FiCheck className="shrink-0 text-[#c89116]" size={16} />
-              ) : !inForm ? (
-                <FiPlus className="shrink-0 text-[#c89116]" size={16} />
-              ) : null}
+              {!inForm && <FiPlus className="shrink-0 text-[#c89116] sm:block" size={16} />}
+              {inForm && allowDeselect && <FiCheck className="shrink-0 text-[#c89116]" size={16} />}
             </div>
             <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1 ${conditionChipClass(eq.condition)}`}>
               {eq.condition}

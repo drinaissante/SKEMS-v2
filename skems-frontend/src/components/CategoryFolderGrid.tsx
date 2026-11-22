@@ -24,18 +24,20 @@ export default function CategoryFolderGrid({
   const needsAttention = (label: string) => attentionLabels?.includes(label) ?? false
 
   return (
-    <div className={`grid gap-4 ${compact ? "grid-cols-2" : "grid-cols-2 md:grid-cols-3 xl:grid-cols-4"}`}>
+    <div className={`grid gap-2.5 ${compact ? "grid-cols-1 w-full min-w-0" : "grid-cols-2 md:grid-cols-3 xl:grid-cols-4"}`}>
       <button
         type="button"
         onClick={() => onSelect("__all__")}
         onContextMenu={onFolderContextMenu ? (e) => onFolderContextMenu(e, "__all__") : undefined}
-        className="dark-card relative rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors"
+        className={`dark-card relative rounded-xl border border-white/10 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors ${
+          compact ? "p-3 w-full min-w-0" : "p-4"
+        }`}
       >
         {needsAttention(allLabel) && (
           <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-purple-500" title="Has requests pending approval" />
         )}
-        <FiFolder className="text-[#c89116] mb-2" size={22} />
-        <h3 className="text-sm font-bold text-white truncate">{allLabel}</h3>
+        <FiFolder className="text-[#c89116] mb-1.5" size={compact ? 18 : 22} />
+        <h3 className={`text-sm font-bold text-white ${compact ? "wrap-anywhere" : "truncate"}`}>{allLabel}</h3>
         <p className="text-xs text-[#a6a6a6] mt-0.5">{total} total</p>
       </button>
       {categories.map((category) => (
@@ -44,13 +46,15 @@ export default function CategoryFolderGrid({
           type="button"
           onClick={() => onSelect(category)}
           onContextMenu={onFolderContextMenu ? (e) => onFolderContextMenu(e, category) : undefined}
-          className="dark-card relative rounded-xl border border-white/10 p-4 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors"
+          className={`dark-card relative rounded-xl border border-white/10 text-left cursor-pointer hover:border-[#c89116]/50 transition-colors ${
+            compact ? "p-3 w-full min-w-0" : "p-4"
+          }`}
         >
           {needsAttention(category) && (
             <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-purple-500" title="Has requests pending approval" />
           )}
-          <FiFolder className="text-[#c89116] mb-2" size={22} />
-          <h3 className="text-sm font-bold text-white truncate">{category}</h3>
+          <FiFolder className="text-[#c89116] mb-1.5" size={compact ? 18 : 22} />
+          <h3 className={`text-sm font-bold text-white ${compact ? "wrap-anywhere" : "truncate"}`}>{category}</h3>
           <p className="text-xs text-[#a6a6a6] mt-0.5">{counts[category] ?? 0} total</p>
         </button>
       ))}

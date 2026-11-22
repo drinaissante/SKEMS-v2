@@ -315,7 +315,7 @@ export default function RequestPage() {
             )}
 
             {pickerCategory === null ? (
-              <div className="flex-1 min-h-40 max-h-80 overflow-y-auto pr-1" data-tour="equipment-list">
+              <div className="flex-1 min-h-0 max-h-[24rem] overflow-y-auto pr-1 w-full min-w-0" data-tour="equipment-list">
                 <CategoryFolderGrid
                   categories={pickerCategories}
                   counts={pickerCounts}
@@ -693,14 +693,16 @@ export default function RequestPage() {
                 )}
 
                 {pickerCategory === null ? (
-                  <CategoryFolderGrid
-                    categories={pickerCategories}
-                    counts={pickerCounts}
-                    total={equipments.length}
-                    allLabel="All Equipment"
-                    onSelect={(c) => { setPickerCategory(c); setListPage(1) }}
-                    compact
-                  />
+                  <div className="max-h-[55vh] overflow-y-auto pr-1 w-full min-w-0">
+                    <CategoryFolderGrid
+                      categories={pickerCategories}
+                      counts={pickerCounts}
+                      total={equipments.length}
+                      allLabel="All Equipment"
+                      onSelect={(c) => { setPickerCategory(c); setListPage(1) }}
+                      compact
+                    />
+                  </div>
                 ) : (
                   <>
                     <div className="relative mb-3">
