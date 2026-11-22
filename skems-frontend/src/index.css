@@ -366,3 +366,24 @@ body.offline [role="button"] {
 [data-theme="rose"] .hover\:bg-\[white\]\/90:hover {
   background-color: rgba(255, 255, 255, 0.9);
 }
+
+/* Rose theme — mobile tab bar accents */
+[data-theme="rose"] .sk-tabbar .text-\[\#fdb125\] {
+  color: #ec4899;
+}
+
+[data-theme="rose"] .sk-tabbar .bg-\[\#c89116\] {
+  background-color: #ec4899;
+}
+
+[data-theme="rose"] .sk-tabbar .hover\:bg-\[\#caa453\]:hover {
+  background-color: #db2777;
+}
+
+[data-theme="rose"] .sk-tabbar .hover\:text-\[\#fdb125\]:hover {
+  color: #ec4899;
+}
+
+[data-theme="rose"] .sk-tabbar .hover\:border-\[\#c89116\]:hover {
+  border-color: #ec4899;
+}

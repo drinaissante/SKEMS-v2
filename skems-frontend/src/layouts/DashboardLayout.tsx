@@ -78,20 +78,24 @@ export default function DashboardLayout() {
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {!collapsed && (
+          {!collapsed ? (
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#a6a6a6]/60 text-center pb-1 pt-2">
               Management
             </p>
+          ) : (
+            <div className="h-4" />
           )}
           {managementItems.map(renderNavItem)}
 
           {isSuperAdmin && (
             <>
               <div className="h-px bg-white/10 my-2" />
-              {!collapsed && (
+              {!collapsed ? (
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#a6a6a6]/60 text-center pb-1">
                   Super Admin
                 </p>
+              ) : (
+                <div className="h-4" />
               )}
               {superAdminItems.map(renderNavItem)}
             </>

@@ -157,7 +157,7 @@ export default function MobileTabBar() {
         </div>
       )}
 
-      <nav className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-40 md:hidden w-[min(28rem,calc(100%-1.5rem))] rounded-2xl border border-white/10 bg-[#0c0c0c]/95 backdrop-blur shadow-xl px-3 pb-1 pt-1">
+      <nav className="sk-tabbar fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-40 md:hidden w-[min(28rem,calc(100%-1.5rem))] rounded-[1.75rem] border border-white/10 bg-[#0c0c0c]/95 backdrop-blur shadow-xl px-3 pb-1 pt-1">
         <div className="relative flex items-end">
           {leftTabs.map((item) => (
             <TabButton
