@@ -8,6 +8,7 @@ import { registerSW } from "virtual:pwa-register"
 
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
+import ErrorBoundary from './components/ErrorBoundary.tsx'
 import ScrollToTop from './components/ScrollToTop.tsx'
 
 import './index.css'
@@ -39,6 +40,9 @@ createRoot(document.getElementById('root')!).render(
       persistOptions={{
         persister,
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        // Schema drift guard: bumping the app version invalidates
+        // persisted caches restored into newer code shapes.
+        buster: "v1.1.1",
         dehydrateOptions: {
           shouldDehydrateQuery: (query) => query.state.status === "success",
         },
@@ -46,9 +50,11 @@ createRoot(document.getElementById('root')!).render(
     >
       <BrowserRouter>
         <ScrollToTop />
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ErrorBoundary>
       </BrowserRouter>
     </PersistQueryClientProvider>
   </StrictMode>,
